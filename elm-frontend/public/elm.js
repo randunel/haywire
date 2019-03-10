@@ -4808,7 +4808,7 @@ var billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState = billstc
 var author$project$PortFunnels$initialState = {websocket: billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState};
 var author$project$Main$init = function (_n0) {
 	return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
-		{error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, send: 'Hello World!', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, useSimulator: false, wasLoaded: false});
+		{error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, send: 'Hello World!', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, wasLoaded: false});
 };
 var author$project$Main$Process = function (a) {
 	return {$: 'Process', a: a};
@@ -7036,7 +7036,7 @@ var author$project$PortFunnels$getCmdPort = F3(
 	});
 var author$project$Main$getCmdPort = F2(
 	function (moduleName, model) {
-		return A3(author$project$PortFunnels$getCmdPort, author$project$Main$Process, moduleName, model.useSimulator);
+		return A3(author$project$PortFunnels$getCmdPort, author$project$Main$Process, moduleName, false);
 	});
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$closedCodeToString = function (code) {
 	switch (code.$) {
@@ -7087,7 +7087,7 @@ var billstclair$elm_websocket_client$PortFunnel$WebSocket$isLoaded = function (_
 var author$project$Main$doIsLoaded = function (model) {
 	return ((!model.wasLoaded) && billstclair$elm_websocket_client$PortFunnel$WebSocket$isLoaded(model.state.websocket)) ? _Utils_update(
 		model,
-		{useSimulator: false, wasLoaded: true}) : model;
+		{wasLoaded: true}) : model;
 };
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$maybeStringToString = function (string) {
 	if (string.$ === 'Nothing') {
@@ -7561,11 +7561,6 @@ var author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{url: url}));
-			case 'ToggleUseSimulator':
-				return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
-					_Utils_update(
-						model,
-						{useSimulator: !model.useSimulator}));
 			case 'ToggleAutoReopen':
 				var state = model.state;
 				var socketState = state.websocket;
@@ -7590,10 +7585,7 @@ var author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							log: A2(
-								elm$core$List$cons,
-								model.useSimulator ? 'Connecting to simulator' : ('Connecting to ' + model.url),
-								model.log)
+							log: A2(elm$core$List$cons, 'Connecting to ' + model.url, model.log)
 						}));
 			case 'Send':
 				return A2(
@@ -7640,7 +7632,6 @@ var author$project$Main$Close = {$: 'Close'};
 var author$project$Main$Connect = {$: 'Connect'};
 var author$project$Main$Send = {$: 'Send'};
 var author$project$Main$ToggleAutoReopen = {$: 'ToggleAutoReopen'};
-var author$project$Main$ToggleUseSimulator = {$: 'ToggleUseSimulator'};
 var author$project$Main$UpdateSend = function (a) {
 	return {$: 'UpdateSend', a: a};
 };
@@ -7673,16 +7664,6 @@ var author$project$Main$b = function (string) {
 };
 var elm$html$Html$br = _VirtualDom_node('br');
 var author$project$Main$br = A2(elm$html$Html$br, _List_Nil, _List_Nil);
-var elm$html$Html$p = _VirtualDom_node('p');
-var author$project$Main$docp = function (string) {
-	return A2(
-		elm$html$Html$p,
-		_List_Nil,
-		_List_fromArray(
-			[
-				elm$html$Html$text(string)
-			]));
-};
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected = F2(
 	function (key, _n0) {
 		var state = _n0.a;
@@ -7708,11 +7689,11 @@ var elm$core$List$intersperse = F2(
 			return A2(elm$core$List$cons, hd, spersed);
 		}
 	});
-var elm$html$Html$a = _VirtualDom_node('a');
 var elm$html$Html$button = _VirtualDom_node('button');
 var elm$html$Html$div = _VirtualDom_node('div');
 var elm$html$Html$h1 = _VirtualDom_node('h1');
 var elm$html$Html$input = _VirtualDom_node('input');
+var elm$html$Html$p = _VirtualDom_node('p');
 var elm$html$Html$Attributes$boolProperty = F2(
 	function (key, bool) {
 		return A2(
@@ -7722,19 +7703,6 @@ var elm$html$Html$Attributes$boolProperty = F2(
 	});
 var elm$html$Html$Attributes$checked = elm$html$Html$Attributes$boolProperty('checked');
 var elm$html$Html$Attributes$disabled = elm$html$Html$Attributes$boolProperty('disabled');
-var elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			elm$json$Json$Encode$string(string));
-	});
-var elm$html$Html$Attributes$href = function (url) {
-	return A2(
-		elm$html$Html$Attributes$stringProperty,
-		'href',
-		_VirtualDom_noJavaScriptUri(url));
-};
 var elm$html$Html$Attributes$size = function (n) {
 	return A2(
 		_VirtualDom_attribute,
@@ -7743,6 +7711,13 @@ var elm$html$Html$Attributes$size = function (n) {
 };
 var elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var elm$html$Html$Attributes$style = elm$virtual_dom$VirtualDom$style;
+var elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			elm$json$Json$Encode$string(string));
+	});
 var elm$html$Html$Attributes$type_ = elm$html$Html$Attributes$stringProperty('type');
 var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
 var elm$virtual_dom$VirtualDom$Normal = function (a) {
@@ -7793,6 +7768,17 @@ var elm$html$Html$Events$onInput = function (tagger) {
 			elm$html$Html$Events$alwaysStop,
 			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
 };
+var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
+var elm$svg$Svg$circle = elm$svg$Svg$trustedNode('circle');
+var elm$svg$Svg$svg = elm$svg$Svg$trustedNode('svg');
+var elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
+var elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
+var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
+var elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
+var elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
+var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
+var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
+var elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
 var author$project$Main$view = function (model) {
 	var isConnected = A2(billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected, model.key, model.state.websocket);
 	return A2(
@@ -7878,17 +7864,6 @@ var author$project$Main$view = function (model) {
 								elm$html$Html$text('Connect')
 							])),
 						author$project$Main$br,
-						author$project$Main$b('use simulator: '),
-						A2(
-						elm$html$Html$input,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$type_('checkbox'),
-								elm$html$Html$Events$onClick(author$project$Main$ToggleUseSimulator),
-								elm$html$Html$Attributes$disabled(isConnected)
-							]),
-						_List_Nil),
-						author$project$Main$br,
 						author$project$Main$b('auto reopen: '),
 						A2(
 						elm$html$Html$input,
@@ -7918,45 +7893,26 @@ var author$project$Main$view = function (model) {
 							A2(elm$core$List$map, elm$html$Html$text, model.log))
 						]))),
 				A2(
-				elm$html$Html$div,
-				_List_Nil,
+				elm$svg$Svg$svg,
 				_List_fromArray(
 					[
-						author$project$Main$b('Instructions:'),
-						author$project$Main$docp('Fill in the \'url\' and click \'Connect\' to connect to a real server.' + ' This will only work if you\'ve connected the port JavaScript code.'),
-						author$project$Main$docp('Fill in the text and click \'Send\' to send a message.'),
-						author$project$Main$docp('Click \'Close\' to close the connection.'),
-						author$project$Main$docp('If the \'use simulator\' checkbox is checked at startup,' + (' then you\'re either runing from \'elm reactor\' or' + ' the JavaScript code got an error starting.')),
-						author$project$Main$docp('Uncheck the \'auto reopen\' checkbox to report when the' + (' connection is lost unexpectedly, rather than the deault' + ' of attempting to reconnect.'))
-					])),
-				A2(
-				elm$html$Html$p,
-				_List_Nil,
+						elm$svg$Svg$Attributes$width('320'),
+						elm$svg$Svg$Attributes$height('240')
+					]),
 				_List_fromArray(
 					[
-						author$project$Main$b('Package: '),
 						A2(
-						elm$html$Html$a,
+						elm$svg$Svg$circle,
 						_List_fromArray(
 							[
-								elm$html$Html$Attributes$href('https://package.elm-lang.org/packages/billstclair/elm-websocket-client/latest')
+								elm$svg$Svg$Attributes$cx('20'),
+								elm$svg$Svg$Attributes$cy('40'),
+								elm$svg$Svg$Attributes$r('4'),
+								elm$svg$Svg$Attributes$fill('orange'),
+								elm$svg$Svg$Attributes$stroke('black'),
+								elm$svg$Svg$Attributes$strokeWidth('2')
 							]),
-						_List_fromArray(
-							[
-								elm$html$Html$text('billstclair/elm-websocket-client')
-							])),
-						author$project$Main$br,
-						author$project$Main$b('GitHub: '),
-						A2(
-						elm$html$Html$a,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$href('https://github.com/billstclair/elm-websocket-client')
-							]),
-						_List_fromArray(
-							[
-								elm$html$Html$text('github.com/billstclair/elm-websocket-client')
-							]))
+						_List_Nil)
 					]))
 			]));
 };

@@ -9,6 +9,8 @@ import Dict exposing (Dict)
 import Html exposing (Html, a, button, div, h1, input, p, span, text)
 import Html.Attributes exposing (checked, disabled, href, size, style, type_, value)
 import Html.Events exposing (onClick, onInput)
+import Svg exposing (Svg)
+import Svg.Attributes as SvgAttrs
 import Json.Encode exposing (Value)
 import PortFunnel.WebSocket as WebSocket exposing (Response(..))
 import PortFunnels exposing (FunnelDict, Handler(..), State)
@@ -349,4 +351,18 @@ view model =
                   ]
                 , List.intersperse br (List.map text model.log)
                 ]
+        , Svg.svg
+            [ SvgAttrs.width "320"
+            , SvgAttrs.height "240"
+            ]
+            [ Svg.circle
+                [ SvgAttrs.cx <| "20"
+                , SvgAttrs.cy <| "40"
+                , SvgAttrs.r <| "4"
+                , SvgAttrs.fill "orange"
+                , SvgAttrs.stroke "black"
+                , SvgAttrs.strokeWidth "2"
+                ]
+                []
+            ]
         ]
