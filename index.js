@@ -30,7 +30,7 @@ cs.on('data', data => {
     if (result) {
         wss.clients.forEach(client => {
             if (client.readyState === ws.OPEN) {
-                client.send(data);
+                client.send(JSON.stringify(result));
             }
         });
     } else {
@@ -85,34 +85,49 @@ function parseLogLine(data) {
 }
 
 const PARSERS = {
-    'player_footstep': {
-        '1': [ originator ]
-    },
-    'player_jump': {
-        '1': [ originator ]
-    },
-    'weapon_reload': {
-        '1': [ originator ]
-    },
-    'weapon_zoom': {
-        '1': [ originator ]
+    'bullet_impact': {
+        '1': [ userCoords('originator'), coordinates('impact') ]
     },
     'decoy_firing': {
-        '1': [ originator, entity('decoy') ]
-    }
+        '1': [ userCoords('originator'), entity('decoy') ]
+    },
+    'player_death': {
+        '1': [ userCoords('victim'), userCoords('attacker') ]
+    },
+    'player_footstep': {
+        '1': [ userCoords('originator') ]
+    },
+    'player_hurt': {
+        '1': [ userCoords('victim'), userCoords('attacker'), int('health') ]
+    },
+    'player_jump': {
+        '1': [ userCoords('originator') ]
+    },
+    'player_spawn': {
+        '1': [ userCoords('originator') ]
+    },
+    'weapon_reload': {
+        '1': [ userCoords('originator') ]
+    },
+    'weapon_zoom': {
+        '1': [ userCoords('originator') ]
+    },
 }
 
-function originator(iterator) {
-    const clientId = iterator.next().value;
-    const [x, y, z] = iterator.next().value.split(',');
-    const [ang0, ang1, ang2] = iterator.next().value.split(',');
-    return {
-        originator: {
+function userCoords(type) {
+    return function parseUserCoords(iterator) {
+        const clientId = iterator.next().value;
+        const [x, y, z] = iterator.next().value.split(',');
+        const [ang0, ang1, ang2] = iterator.next().value.split(',');
+
+        const result = {};
+        result[type] = {
             clientId,
             position: { x, y, z },
             orientation: { ang0, ang1, ang2 }
-        }
-    }
+        };
+        return result;
+    };
 }
 
 function entity(type) {
@@ -126,5 +141,25 @@ function entity(type) {
                 position: { x, y, z }
             }
         };
-    }
+    };
+}
+
+function coordinates(type) {
+    return function parseCoordinates(iterator) {
+        const [x, y, z] = iterator.next().value.split(',');
+        const result = {};
+        result[type] = {
+            position: { x, y, z },
+        };
+        return result;
+    };
+}
+
+function int(type) {
+    return function parseInt(iterator) {
+        const number = iterator.next().value;
+        const result = {};
+        result[type] = number;
+        return result;
+    };
 }
