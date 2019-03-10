@@ -1,0 +1,16 @@
+{
+  "name": "haywire",
+  "version": "0.0.1",
+  "description": "CS:GO web tv",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mihai Ene <dkrandu@yahoo.com>",
+  "license": "CC BY-NC-SA 2.0",
+  "dependencies": {
+    "express": "^4.16.4",
+    "srcds-log": "file:../node-srcds-log",
+    "ws": "^6.1.4"
+  }
+}
