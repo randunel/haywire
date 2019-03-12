@@ -12,7 +12,7 @@ import Html.Events exposing (onClick, onInput)
 import Svg exposing (Svg)
 import Svg.Attributes as SvgAttrs
 import Json.Encode exposing (Value)
-import Json.Decode exposing (Decoder, field, string)
+import Json.Decode exposing (Decoder, field, string, float)
 import PortFunnel.WebSocket as WebSocket exposing (Response(..))
 import PortFunnels exposing (FunnelDict, Handler(..), State)
 
@@ -119,11 +119,6 @@ type Command = Bullet_impact
              | Weapon_reload
              | Weapon_zoom
              | Unknown_command
-
-type alias BulletImpact =
-    { command : Command
-    , originator : UserCoords
-    }
 
 type alias UserCoords =
     { position : Coordinates
@@ -249,17 +244,54 @@ hwDecoder =
 
 appendLog : String -> Model -> Model
 appendLog str model =
-    { model | log = ("Received \"" ++ str ++ "\"") :: model.log }
+    { model | log = str :: model.log }
 
-plsDraw : String -> Model -> Model
-plsDraw str model =
-    { model | error = Nothing }
+plsDraw : String -> String -> Model -> Model
+plsDraw command message model =
+    case stringToCommand command of
+        Player_footstep -> case (decodePlayerFootstep message) of
+            Just userCoords -> handlePlayerFootstep model userCoords
+            Nothing -> model
+        _ -> model
+
+handlePlayerFootstep : Model -> UserCoords -> Model
+handlePlayerFootstep model userCoords =
+    model
+
+decodePlayerFootstep : String -> Maybe UserCoords
+decodePlayerFootstep message =
+    case Json.Decode.decodeString playerFootstepDecoder message of
+        Ok res -> Just res
+        Err err -> Nothing
+
+playerFootstepDecoder : Decoder UserCoords
+playerFootstepDecoder =
+    (Json.Decode.map2 UserCoords
+        (field "coordinates" coorinatesDecoder)
+        (field "angles" anglesDecoder)
+    )
+
+coorinatesDecoder : Decoder Coordinates
+coorinatesDecoder =
+    (Json.Decode.map3 Coordinates
+        (field "x" float)
+        (field "y" float)
+        (field "z" float)
+    )
+
+anglesDecoder : Decoder Angles
+anglesDecoder =
+    (Json.Decode.map3 Angles
+        (field "ang0" float)
+        (field "ang1" float)
+        (field "ang2" float)
+    )
 
 handleMessage : Model -> String -> Model
 handleMessage model message =
     case Json.Decode.decodeString hwDecoder message of
-        Ok res -> appendLog res model |> plsDraw res
-        Err err -> { model | log = ("Received \"" ++ "unknown" ++ "\"") :: model.log }
+        Ok res -> appendLog res model |> plsDraw res message
+        Err err -> { model | log = ("Received \"" ++ "unknown " ++ message ++ "\"") :: model.log }
 
 decodeMessage : String -> Command
 decodeMessage message =

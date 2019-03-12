@@ -7094,32 +7094,120 @@ var author$project$Main$appendLog = F2(
 		return _Utils_update(
 			model,
 			{
-				log: A2(elm$core$List$cons, 'Received \"' + (str + '\"'), model.log)
+				log: A2(elm$core$List$cons, str, model.log)
 			});
 	});
 var author$project$Main$hwDecoder = A2(elm$json$Json$Decode$field, 'command', elm$json$Json$Decode$string);
-var author$project$Main$plsDraw = F2(
-	function (str, model) {
-		return _Utils_update(
-			model,
-			{error: elm$core$Maybe$Nothing});
+var author$project$Main$UserCoords = F2(
+	function (position, orientation) {
+		return {orientation: orientation, position: position};
 	});
+var author$project$Main$Angles = F3(
+	function (ang0, ang1, ang2) {
+		return {ang0: ang0, ang1: ang1, ang2: ang2};
+	});
+var elm$json$Json$Decode$float = _Json_decodeFloat;
+var author$project$Main$anglesDecoder = A4(
+	elm$json$Json$Decode$map3,
+	author$project$Main$Angles,
+	A2(elm$json$Json$Decode$field, 'ang0', elm$json$Json$Decode$float),
+	A2(elm$json$Json$Decode$field, 'ang1', elm$json$Json$Decode$float),
+	A2(elm$json$Json$Decode$field, 'ang2', elm$json$Json$Decode$float));
+var author$project$Main$Coordinates = F3(
+	function (x, y, z) {
+		return {x: x, y: y, z: z};
+	});
+var author$project$Main$coorinatesDecoder = A4(
+	elm$json$Json$Decode$map3,
+	author$project$Main$Coordinates,
+	A2(elm$json$Json$Decode$field, 'x', elm$json$Json$Decode$float),
+	A2(elm$json$Json$Decode$field, 'y', elm$json$Json$Decode$float),
+	A2(elm$json$Json$Decode$field, 'z', elm$json$Json$Decode$float));
+var author$project$Main$playerFootstepDecoder = A3(
+	elm$json$Json$Decode$map2,
+	author$project$Main$UserCoords,
+	A2(elm$json$Json$Decode$field, 'coordinates', author$project$Main$coorinatesDecoder),
+	A2(elm$json$Json$Decode$field, 'angles', author$project$Main$anglesDecoder));
 var elm$json$Json$Decode$decodeString = _Json_runOnString;
+var author$project$Main$decodePlayerFootstep = function (message) {
+	var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$playerFootstepDecoder, message);
+	if (_n0.$ === 'Ok') {
+		var res = _n0.a;
+		return elm$core$Maybe$Just(res);
+	} else {
+		var err = _n0.a;
+		return elm$core$Maybe$Nothing;
+	}
+};
+var author$project$Main$handlePlayerFootstep = F2(
+	function (model, userCoords) {
+		return model;
+	});
+var author$project$Main$Bullet_impact = {$: 'Bullet_impact'};
+var author$project$Main$Decoy_firing = {$: 'Decoy_firing'};
+var author$project$Main$Player_death = {$: 'Player_death'};
+var author$project$Main$Player_footstep = {$: 'Player_footstep'};
+var author$project$Main$Player_hurt = {$: 'Player_hurt'};
+var author$project$Main$Player_jump = {$: 'Player_jump'};
+var author$project$Main$Player_spawn = {$: 'Player_spawn'};
+var author$project$Main$Unknown_command = {$: 'Unknown_command'};
+var author$project$Main$Weapon_reload = {$: 'Weapon_reload'};
+var author$project$Main$Weapon_zoom = {$: 'Weapon_zoom'};
+var author$project$Main$stringToCommand = function (str) {
+	switch (str) {
+		case 'bullet_impact':
+			return author$project$Main$Bullet_impact;
+		case 'decoy_firing':
+			return author$project$Main$Decoy_firing;
+		case 'player_death':
+			return author$project$Main$Player_death;
+		case 'player_footstep':
+			return author$project$Main$Player_footstep;
+		case 'player_hurt':
+			return author$project$Main$Player_hurt;
+		case 'player_jump':
+			return author$project$Main$Player_jump;
+		case 'player_spawn':
+			return author$project$Main$Player_spawn;
+		case 'weapon_reload':
+			return author$project$Main$Weapon_reload;
+		case 'weapon_zoom':
+			return author$project$Main$Weapon_zoom;
+		default:
+			return author$project$Main$Unknown_command;
+	}
+};
+var author$project$Main$plsDraw = F3(
+	function (command, message, model) {
+		var _n0 = author$project$Main$stringToCommand(command);
+		if (_n0.$ === 'Player_footstep') {
+			var _n1 = author$project$Main$decodePlayerFootstep(message);
+			if (_n1.$ === 'Just') {
+				var userCoords = _n1.a;
+				return A2(author$project$Main$handlePlayerFootstep, model, userCoords);
+			} else {
+				return model;
+			}
+		} else {
+			return model;
+		}
+	});
 var author$project$Main$handleMessage = F2(
 	function (model, message) {
 		var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$hwDecoder, message);
 		if (_n0.$ === 'Ok') {
 			var res = _n0.a;
-			return A2(
+			return A3(
 				author$project$Main$plsDraw,
 				res,
+				message,
 				A2(author$project$Main$appendLog, res, model));
 		} else {
 			var err = _n0.a;
 			return _Utils_update(
 				model,
 				{
-					log: A2(elm$core$List$cons, 'Received \"' + ('unknown' + '\"'), model.log)
+					log: A2(elm$core$List$cons, 'Received \"' + ('unknown ' + (message + '\"')), model.log)
 				});
 		}
 	});

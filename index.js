@@ -43,7 +43,7 @@ server.listen(PORT, () => console.log(`listening on ${PORT}`));
 function parseLogLine(data) {
     if (data.indexOf('HW->') < 0) {
         // TODO: use other parser
-        return {};
+        return {"parseLogLine": data};
     }
 
     const line = new String(data);
@@ -91,6 +91,18 @@ const PARSERS = {
     'decoy_firing': {
         '1': [ userCoords('originator'), entity('decoy') ]
     },
+    'grenade_bounce': {
+        '1': [ userCoords('originator') ]
+    },
+    'hegrenade_detonate': {
+        '1': [ userCoords('originator'), entity('hegrenade_detonate') ]
+    },
+    'molotov_detonate': {
+        '1': [ userCoords('originator'), entity('molotov_detonate') ]
+    },
+    'player_activate': {
+        '1': [ userCoords('originator') ]
+    },
     'player_death': {
         '1': [ userCoords('victim'), userCoords('attacker') ]
     },
@@ -105,6 +117,12 @@ const PARSERS = {
     },
     'player_spawn': {
         '1': [ userCoords('originator') ]
+    },
+    'smokegrenade_detonate': {
+        '1': [ userCoords('originator'), entity('smokegrenade_detonate') ]
+    },
+    'smokegrenade_expired': {
+        '1': [ userCoords('originator'), entity('smokegrenade_expired') ]
     },
     'weapon_reload': {
         '1': [ userCoords('originator') ]
