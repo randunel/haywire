@@ -7089,6 +7089,18 @@ var author$project$Main$doIsLoaded = function (model) {
 		model,
 		{wasLoaded: true}) : model;
 };
+var author$project$Main$hwDecoder = A2(elm$json$Json$Decode$field, 'command', elm$json$Json$Decode$string);
+var elm$json$Json$Decode$decodeString = _Json_runOnString;
+var author$project$Main$plsDecode = function (message) {
+	var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$hwDecoder, message);
+	if (_n0.$ === 'Ok') {
+		var res = _n0.a;
+		return res;
+	} else {
+		var err = _n0.a;
+		return 'fail';
+	}
+};
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$maybeStringToString = function (string) {
 	if (string.$ === 'Nothing') {
 		return 'Nothing';
@@ -7247,7 +7259,10 @@ var author$project$Main$socketHandler = F3(
 					_Utils_update(
 						model,
 						{
-							log: A2(elm$core$List$cons, 'Received \"' + (message + '\"'), model.log)
+							log: A2(
+								elm$core$List$cons,
+								'Received \"' + (author$project$Main$plsDecode(message) + '\"'),
+								model.log)
 						}));
 			case 'ConnectedResponse':
 				var r = response.a;
@@ -7798,7 +7813,7 @@ var author$project$Main$view = function (model) {
 				_List_Nil,
 				_List_fromArray(
 					[
-						elm$html$Html$text('PortFunnel.WebSocket Example')
+						elm$html$Html$text('Haywire sample')
 					])),
 				A2(
 				elm$html$Html$p,
@@ -7877,22 +7892,6 @@ var author$project$Main$view = function (model) {
 						_List_Nil)
 					])),
 				A2(
-				elm$html$Html$p,
-				_List_Nil,
-				elm$core$List$concat(
-					_List_fromArray(
-						[
-							_List_fromArray(
-							[
-								author$project$Main$b('Log:'),
-								author$project$Main$br
-							]),
-							A2(
-							elm$core$List$intersperse,
-							author$project$Main$br,
-							A2(elm$core$List$map, elm$html$Html$text, model.log))
-						]))),
-				A2(
 				elm$svg$Svg$svg,
 				_List_fromArray(
 					[
@@ -7913,7 +7912,23 @@ var author$project$Main$view = function (model) {
 								elm$svg$Svg$Attributes$strokeWidth('2')
 							]),
 						_List_Nil)
-					]))
+					])),
+				A2(
+				elm$html$Html$p,
+				_List_Nil,
+				elm$core$List$concat(
+					_List_fromArray(
+						[
+							_List_fromArray(
+							[
+								author$project$Main$b('Log:'),
+								author$project$Main$br
+							]),
+							A2(
+							elm$core$List$intersperse,
+							author$project$Main$br,
+							A2(elm$core$List$map, elm$html$Html$text, model.log))
+						])))
 			]));
 };
 var elm$browser$Browser$External = function (a) {

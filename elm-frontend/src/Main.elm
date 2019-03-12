@@ -12,6 +12,7 @@ import Html.Events exposing (onClick, onInput)
 import Svg exposing (Svg)
 import Svg.Attributes as SvgAttrs
 import Json.Encode exposing (Value)
+import Json.Decode exposing (Decoder, field, string)
 import PortFunnel.WebSocket as WebSocket exposing (Response(..))
 import PortFunnels exposing (FunnelDict, Handler(..), State)
 
@@ -202,6 +203,15 @@ doIsLoaded model =
     else
         model
 
+hwDecoder : Decoder String
+hwDecoder =
+    field "command" string
+
+plsDecode : String -> String
+plsDecode message =
+    case Json.Decode.decodeString hwDecoder message of
+        Ok res -> res
+        Err err -> "fail"
 
 socketHandler : Response -> State -> Model -> ( Model, Cmd Msg )
 socketHandler response state mdl =
@@ -215,7 +225,8 @@ socketHandler response state mdl =
     in
     case response of
         WebSocket.MessageReceivedResponse { message } ->
-            { model | log = ("Received \"" ++ message ++ "\"") :: model.log }
+            -- { model | log = ("Received \"" ++ (Result.withDefault "asd" (Json.Decode.decodeString hwDecoder message)) ++ "\"") :: model.log }
+            { model | log = ("Received \"" ++ plsDecode message ++ "\"") :: model.log }
                 |> withNoCmd
 
         WebSocket.ConnectedResponse r ->
@@ -300,7 +311,7 @@ view model =
         , style "padding" "1em"
         , style "border" "solid"
         ]
-        [ h1 [] [ text "PortFunnel.WebSocket Example" ]
+        [ h1 [] [ text "Haywire sample" ]
         , p []
             [ input
                 [ value model.send
@@ -344,13 +355,6 @@ view model =
                 ]
                 []
             ]
-        , p [] <|
-            List.concat
-                [ [ b "Log:"
-                  , br
-                  ]
-                , List.intersperse br (List.map text model.log)
-                ]
         , Svg.svg
             [ SvgAttrs.width "320"
             , SvgAttrs.height "240"
@@ -365,4 +369,11 @@ view model =
                 ]
                 []
             ]
+        , p [] <|
+            List.concat
+                [ [ b "Log:"
+                  , br
+                  ]
+                , List.intersperse br (List.map text model.log)
+                ]
         ]
