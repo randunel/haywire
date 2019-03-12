@@ -4808,7 +4808,7 @@ var billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState = billstc
 var author$project$PortFunnels$initialState = {websocket: billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState};
 var author$project$Main$init = function (_n0) {
 	return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
-		{error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, send: 'Hello World!', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, wasLoaded: false});
+		{error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, send: 'Hello World!', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, users: _List_Nil, wasLoaded: false});
 };
 var author$project$Main$Process = function (a) {
 	return {$: 'Process', a: a};
@@ -7089,18 +7089,40 @@ var author$project$Main$doIsLoaded = function (model) {
 		model,
 		{wasLoaded: true}) : model;
 };
+var author$project$Main$appendLog = F2(
+	function (str, model) {
+		return _Utils_update(
+			model,
+			{
+				log: A2(elm$core$List$cons, 'Received \"' + (str + '\"'), model.log)
+			});
+	});
 var author$project$Main$hwDecoder = A2(elm$json$Json$Decode$field, 'command', elm$json$Json$Decode$string);
+var author$project$Main$plsDraw = F2(
+	function (str, model) {
+		return _Utils_update(
+			model,
+			{error: elm$core$Maybe$Nothing});
+	});
 var elm$json$Json$Decode$decodeString = _Json_runOnString;
-var author$project$Main$plsDecode = function (message) {
-	var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$hwDecoder, message);
-	if (_n0.$ === 'Ok') {
-		var res = _n0.a;
-		return res;
-	} else {
-		var err = _n0.a;
-		return 'fail';
-	}
-};
+var author$project$Main$handleMessage = F2(
+	function (model, message) {
+		var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$hwDecoder, message);
+		if (_n0.$ === 'Ok') {
+			var res = _n0.a;
+			return A2(
+				author$project$Main$plsDraw,
+				res,
+				A2(author$project$Main$appendLog, res, model));
+		} else {
+			var err = _n0.a;
+			return _Utils_update(
+				model,
+				{
+					log: A2(elm$core$List$cons, 'Received \"' + ('unknown' + '\"'), model.log)
+				});
+		}
+	});
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$maybeStringToString = function (string) {
 	if (string.$ === 'Nothing') {
 		return 'Nothing';
@@ -7256,14 +7278,7 @@ var author$project$Main$socketHandler = F3(
 			case 'MessageReceivedResponse':
 				var message = response.a.message;
 				return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
-					_Utils_update(
-						model,
-						{
-							log: A2(
-								elm$core$List$cons,
-								'Received \"' + (author$project$Main$plsDecode(message) + '\"'),
-								model.log)
-						}));
+					A2(author$project$Main$handleMessage, model, message));
 			case 'ConnectedResponse':
 				var r = response.a;
 				return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(

@@ -77,6 +77,7 @@ type alias Model =
     , state : State
     , key : String
     , error : Maybe String
+    , users : List User
     }
 
 
@@ -98,9 +99,48 @@ init _ =
     , state = PortFunnels.initialState
     , key = "socket"
     , error = Nothing
+    , users = []
     }
         |> withNoCmd
 
+type alias User =
+    { id : String
+    , lastCoords : Coordinates
+    , lastAngles : Angles
+    }
+
+type Command = Bullet_impact
+             | Decoy_firing
+             | Player_death
+             | Player_footstep
+             | Player_hurt
+             | Player_jump
+             | Player_spawn
+             | Weapon_reload
+             | Weapon_zoom
+             | Unknown_command
+
+type alias BulletImpact =
+    { command : Command
+    , originator : UserCoords
+    }
+
+type alias UserCoords =
+    { position : Coordinates
+    , orientation : Angles
+    }
+
+type alias Coordinates =
+    { x : Float
+    , y : Float
+    , z : Float
+    }
+
+type alias Angles =
+    { ang0 : Float
+    , ang1 : Float
+    , ang2 : Float
+    }
 
 
 -- UPDATE
@@ -207,11 +247,53 @@ hwDecoder : Decoder String
 hwDecoder =
     field "command" string
 
-plsDecode : String -> String
-plsDecode message =
+appendLog : String -> Model -> Model
+appendLog str model =
+    { model | log = ("Received \"" ++ str ++ "\"") :: model.log }
+
+plsDraw : String -> Model -> Model
+plsDraw str model =
+    { model | error = Nothing }
+
+handleMessage : Model -> String -> Model
+handleMessage model message =
     case Json.Decode.decodeString hwDecoder message of
-        Ok res -> res
-        Err err -> "fail"
+        Ok res -> appendLog res model |> plsDraw res
+        Err err -> { model | log = ("Received \"" ++ "unknown" ++ "\"") :: model.log }
+
+decodeMessage : String -> Command
+decodeMessage message =
+    case Json.Decode.decodeString hwDecoder message of
+        Ok res -> stringToCommand res
+        Err err -> Unknown_command
+
+stringToCommand : String -> Command
+stringToCommand str =
+    case str of
+        "bullet_impact" -> Bullet_impact
+        "decoy_firing" -> Decoy_firing
+        "player_death" -> Player_death
+        "player_footstep" -> Player_footstep
+        "player_hurt" -> Player_hurt
+        "player_jump" -> Player_jump
+        "player_spawn" -> Player_spawn
+        "weapon_reload" -> Weapon_reload
+        "weapon_zoom" -> Weapon_zoom
+        _ -> Unknown_command
+
+commandToString : Command -> String
+commandToString cmd =
+    case cmd of
+        Bullet_impact -> "bullet_impact"
+        Decoy_firing -> "decoy_firing"
+        Player_death -> "player_death"
+        Player_footstep-> "player_footstep"
+        Player_hurt -> "player_hurt"
+        Player_jump -> "player_jump"
+        Player_spawn -> "player_spawn"
+        Weapon_reload -> "weapon_reload"
+        Weapon_zoom -> "weapon_zoom"
+        Unknown_command -> "unknown_c"
 
 socketHandler : Response -> State -> Model -> ( Model, Cmd Msg )
 socketHandler response state mdl =
@@ -226,7 +308,8 @@ socketHandler response state mdl =
     case response of
         WebSocket.MessageReceivedResponse { message } ->
             -- { model | log = ("Received \"" ++ (Result.withDefault "asd" (Json.Decode.decodeString hwDecoder message)) ++ "\"") :: model.log }
-            { model | log = ("Received \"" ++ plsDecode message ++ "\"") :: model.log }
+            -- { model | log = ("Received \"" ++ commandToString (decodeMessage message) ++ "\"") :: model.log }
+            handleMessage model message
                 |> withNoCmd
 
         WebSocket.ConnectedResponse r ->
