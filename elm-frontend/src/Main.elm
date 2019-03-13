@@ -77,7 +77,7 @@ type alias Model =
     , state : State
     , key : String
     , error : Maybe String
-    , users : Dict.Dict String User
+    , players : Dict.Dict String Player
     }
 
 
@@ -99,11 +99,11 @@ init _ =
     , state = PortFunnels.initialState
     , key = "socket"
     , error = Nothing
-    , users = Dict.empty
+    , players = Dict.empty
     }
         |> withNoCmd
 
-type alias User =
+type alias Player =
     { clientId : ClientId
     , coordinates : Coordinates
     , angles : Angles
@@ -248,35 +248,35 @@ handleCommand : String -> String -> Model -> Model
 handleCommand command message model =
     case stringToCommand command of
         Player_footstep -> case (decodePlayerFootstep message) of
-            Just user -> handlePlayerFootstep model user
+            Just player -> handlePlayerFootstep model player
             Nothing -> model
         _ -> model
 
-handlePlayerFootstep : Model -> User -> Model
-handlePlayerFootstep model user =
-    { model | users = Dict.insert user.clientId user model.users }
+handlePlayerFootstep : Model -> Player -> Model
+handlePlayerFootstep model player =
+    { model | players = Dict.insert player.clientId player model.players }
 
--- findOrCreateUser : Model -> ClientId -> User
--- findOrCreateUser model clientId =
+-- findOrCreatePlayer : Model -> ClientId -> Player
+-- findOrCreatePlayer model clientId =
 --     let
---         user = List.head (List.filter (\u -> u.clientId == clientId) model.users)
+--         player = List.head (List.filter (\u -> u.clientId == clientId) model.players)
 --     in
---        case user of
+--        case player of
 --            Just u -> u
 --            Nothing -> let
---                           newUser = User clientId (Coordinates 0 0 0) (Angles 0 0 0)
+--                           newPlayer = Player clientId (Coordinates 0 0 0) (Angles 0 0 0)
 --                       in
---                          model.users = model.users ++ [ newUser ]
+--                          model.players = model.players ++ [ newPlayer ]
 
-decodePlayerFootstep : String -> Maybe User
+decodePlayerFootstep : String -> Maybe Player
 decodePlayerFootstep message =
     case Json.Decode.decodeString playerFootstepDecoder message of
         Ok res -> Just res
         Err err -> Nothing
 
-playerFootstepDecoder : Decoder User
+playerFootstepDecoder : Decoder Player
 playerFootstepDecoder =
-    (Json.Decode.map3 User
+    (Json.Decode.map3 Player
         (field "clientId" clientIdDecoder)
         (field "coordinates" coorinatesDecoder)
         (field "angles" anglesDecoder)
@@ -489,7 +489,7 @@ view model =
             [ SvgAttrs.width "1000"
             , SvgAttrs.height "1000"
             ]
-            (List.map userSvg (Dict.values model.users))
+            (List.map playerSvg (Dict.values model.players))
             -- [ Svg.circle
             --     [ SvgAttrs.cx <| "20"
             --     , SvgAttrs.cy <| "40"
@@ -509,9 +509,9 @@ view model =
                 ]
         ]
 
-userSvg user = Svg.circle
-    [ SvgAttrs.cx <| String.fromFloat (user.coordinates.x / 100)
-    , SvgAttrs.cy <| String.fromFloat (user.coordinates.y / 100)
+playerSvg player = Svg.circle
+    [ SvgAttrs.cx <| String.fromFloat (player.coordinates.x / 100)
+    , SvgAttrs.cy <| String.fromFloat (player.coordinates.y / 100)
     , SvgAttrs.r <| "4"
     , SvgAttrs.fill "orange"
     , SvgAttrs.stroke "black"

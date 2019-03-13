@@ -4808,7 +4808,7 @@ var billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState = billstc
 var author$project$PortFunnels$initialState = {websocket: billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState};
 var author$project$Main$init = function (_n0) {
 	return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
-		{error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, send: 'Hello World!', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, users: elm$core$Dict$empty, wasLoaded: false});
+		{error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, players: elm$core$Dict$empty, send: 'Hello World!', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, wasLoaded: false});
 };
 var author$project$Main$Process = function (a) {
 	return {$: 'Process', a: a};
@@ -7098,7 +7098,7 @@ var author$project$Main$appendLog = F2(
 			});
 	});
 var author$project$Main$commandDecoder = A2(elm$json$Json$Decode$field, 'command', elm$json$Json$Decode$string);
-var author$project$Main$User = F3(
+var author$project$Main$Player = F3(
 	function (clientId, coordinates, angles) {
 		return {angles: angles, clientId: clientId, coordinates: coordinates};
 	});
@@ -7126,7 +7126,7 @@ var author$project$Main$coorinatesDecoder = A4(
 	A2(elm$json$Json$Decode$field, 'z', elm$json$Json$Decode$float));
 var author$project$Main$playerFootstepDecoder = A4(
 	elm$json$Json$Decode$map3,
-	author$project$Main$User,
+	author$project$Main$Player,
 	A2(elm$json$Json$Decode$field, 'clientId', author$project$Main$clientIdDecoder),
 	A2(elm$json$Json$Decode$field, 'coordinates', author$project$Main$coorinatesDecoder),
 	A2(elm$json$Json$Decode$field, 'angles', author$project$Main$anglesDecoder));
@@ -7142,11 +7142,11 @@ var author$project$Main$decodePlayerFootstep = function (message) {
 	}
 };
 var author$project$Main$handlePlayerFootstep = F2(
-	function (model, user) {
+	function (model, player) {
 		return _Utils_update(
 			model,
 			{
-				users: A3(elm$core$Dict$insert, user.clientId, user, model.users)
+				players: A3(elm$core$Dict$insert, player.clientId, player, model.players)
 			});
 	});
 var author$project$Main$Bullet_impact = {$: 'Bullet_impact'};
@@ -7189,8 +7189,8 @@ var author$project$Main$handleCommand = F3(
 		if (_n0.$ === 'Player_footstep') {
 			var _n1 = author$project$Main$decodePlayerFootstep(message);
 			if (_n1.$ === 'Just') {
-				var user = _n1.a;
-				return A2(author$project$Main$handlePlayerFootstep, model, user);
+				var player = _n1.a;
+				return A2(author$project$Main$handlePlayerFootstep, model, player);
 			} else {
 				return model;
 			}
@@ -7793,15 +7793,15 @@ var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
 var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
 var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
-var author$project$Main$userSvg = function (user) {
+var author$project$Main$playerSvg = function (player) {
 	return A2(
 		elm$svg$Svg$circle,
 		_List_fromArray(
 			[
 				elm$svg$Svg$Attributes$cx(
-				elm$core$String$fromFloat(user.coordinates.x / 100)),
+				elm$core$String$fromFloat(player.coordinates.x / 100)),
 				elm$svg$Svg$Attributes$cy(
-				elm$core$String$fromFloat(user.coordinates.y / 100)),
+				elm$core$String$fromFloat(player.coordinates.y / 100)),
 				elm$svg$Svg$Attributes$r('4'),
 				elm$svg$Svg$Attributes$fill('orange'),
 				elm$svg$Svg$Attributes$stroke('black'),
@@ -8032,8 +8032,8 @@ var author$project$Main$view = function (model) {
 					]),
 				A2(
 					elm$core$List$map,
-					author$project$Main$userSvg,
-					elm$core$Dict$values(model.users))),
+					author$project$Main$playerSvg,
+					elm$core$Dict$values(model.players))),
 				A2(
 				elm$html$Html$p,
 				_List_Nil,
