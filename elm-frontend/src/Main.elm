@@ -257,18 +257,6 @@ handlePlayerFootstep : Model -> Player -> Model
 handlePlayerFootstep model player =
     { model | players = Dict.insert player.clientId player model.players }
 
--- findOrCreatePlayer : Model -> ClientId -> Player
--- findOrCreatePlayer model clientId =
---     let
---         player = List.head (List.filter (\u -> u.clientId == clientId) model.players)
---     in
---        case player of
---            Just u -> u
---            Nothing -> let
---                           newPlayer = Player clientId (Coordinates 0 0 0) (Angles 0 0 0)
---                       in
---                          model.players = model.players ++ [ newPlayer ]
-
 decodePlayerFootstep : String -> Maybe Player
 decodePlayerFootstep message =
     case Json.Decode.decodeString playerFootstepDecoder message of
