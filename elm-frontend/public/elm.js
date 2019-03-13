@@ -4808,7 +4808,7 @@ var billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState = billstc
 var author$project$PortFunnels$initialState = {websocket: billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState};
 var author$project$Main$init = function (_n0) {
 	return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
-		{error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, send: 'Hello World!', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, users: _List_Nil, wasLoaded: false});
+		{error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, send: 'Hello World!', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, users: elm$core$Dict$empty, wasLoaded: false});
 };
 var author$project$Main$Process = function (a) {
 	return {$: 'Process', a: a};
@@ -7097,10 +7097,10 @@ var author$project$Main$appendLog = F2(
 				log: A2(elm$core$List$cons, str, model.log)
 			});
 	});
-var author$project$Main$hwDecoder = A2(elm$json$Json$Decode$field, 'command', elm$json$Json$Decode$string);
-var author$project$Main$UserCoords = F2(
-	function (position, orientation) {
-		return {orientation: orientation, position: position};
+var author$project$Main$commandDecoder = A2(elm$json$Json$Decode$field, 'command', elm$json$Json$Decode$string);
+var author$project$Main$User = F3(
+	function (clientId, coordinates, angles) {
+		return {angles: angles, clientId: clientId, coordinates: coordinates};
 	});
 var author$project$Main$Angles = F3(
 	function (ang0, ang1, ang2) {
@@ -7113,6 +7113,7 @@ var author$project$Main$anglesDecoder = A4(
 	A2(elm$json$Json$Decode$field, 'ang0', elm$json$Json$Decode$float),
 	A2(elm$json$Json$Decode$field, 'ang1', elm$json$Json$Decode$float),
 	A2(elm$json$Json$Decode$field, 'ang2', elm$json$Json$Decode$float));
+var author$project$Main$clientIdDecoder = elm$json$Json$Decode$string;
 var author$project$Main$Coordinates = F3(
 	function (x, y, z) {
 		return {x: x, y: y, z: z};
@@ -7123,9 +7124,10 @@ var author$project$Main$coorinatesDecoder = A4(
 	A2(elm$json$Json$Decode$field, 'x', elm$json$Json$Decode$float),
 	A2(elm$json$Json$Decode$field, 'y', elm$json$Json$Decode$float),
 	A2(elm$json$Json$Decode$field, 'z', elm$json$Json$Decode$float));
-var author$project$Main$playerFootstepDecoder = A3(
-	elm$json$Json$Decode$map2,
-	author$project$Main$UserCoords,
+var author$project$Main$playerFootstepDecoder = A4(
+	elm$json$Json$Decode$map3,
+	author$project$Main$User,
+	A2(elm$json$Json$Decode$field, 'clientId', author$project$Main$clientIdDecoder),
 	A2(elm$json$Json$Decode$field, 'coordinates', author$project$Main$coorinatesDecoder),
 	A2(elm$json$Json$Decode$field, 'angles', author$project$Main$anglesDecoder));
 var elm$json$Json$Decode$decodeString = _Json_runOnString;
@@ -7140,8 +7142,12 @@ var author$project$Main$decodePlayerFootstep = function (message) {
 	}
 };
 var author$project$Main$handlePlayerFootstep = F2(
-	function (model, userCoords) {
-		return model;
+	function (model, user) {
+		return _Utils_update(
+			model,
+			{
+				users: A3(elm$core$Dict$insert, user.clientId, user, model.users)
+			});
 	});
 var author$project$Main$Bullet_impact = {$: 'Bullet_impact'};
 var author$project$Main$Decoy_firing = {$: 'Decoy_firing'};
@@ -7177,14 +7183,14 @@ var author$project$Main$stringToCommand = function (str) {
 			return author$project$Main$Unknown_command;
 	}
 };
-var author$project$Main$plsDraw = F3(
+var author$project$Main$handleCommand = F3(
 	function (command, message, model) {
 		var _n0 = author$project$Main$stringToCommand(command);
 		if (_n0.$ === 'Player_footstep') {
 			var _n1 = author$project$Main$decodePlayerFootstep(message);
 			if (_n1.$ === 'Just') {
-				var userCoords = _n1.a;
-				return A2(author$project$Main$handlePlayerFootstep, model, userCoords);
+				var user = _n1.a;
+				return A2(author$project$Main$handlePlayerFootstep, model, user);
 			} else {
 				return model;
 			}
@@ -7194,21 +7200,17 @@ var author$project$Main$plsDraw = F3(
 	});
 var author$project$Main$handleMessage = F2(
 	function (model, message) {
-		var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$hwDecoder, message);
+		var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$commandDecoder, message);
 		if (_n0.$ === 'Ok') {
 			var res = _n0.a;
 			return A3(
-				author$project$Main$plsDraw,
+				author$project$Main$handleCommand,
 				res,
 				message,
-				A2(author$project$Main$appendLog, res, model));
+				A2(author$project$Main$appendLog, message, model));
 		} else {
 			var err = _n0.a;
-			return _Utils_update(
-				model,
-				{
-					log: A2(elm$core$List$cons, 'Received \"' + ('unknown ' + (message + '\"')), model.log)
-				});
+			return A2(author$project$Main$appendLog, 'Received unexpected ' + message, model);
 		}
 	});
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$maybeStringToString = function (string) {
@@ -7782,6 +7784,31 @@ var author$project$Main$b = function (string) {
 };
 var elm$html$Html$br = _VirtualDom_node('br');
 var author$project$Main$br = A2(elm$html$Html$br, _List_Nil, _List_Nil);
+var elm$core$String$fromFloat = _String_fromNumber;
+var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
+var elm$svg$Svg$circle = elm$svg$Svg$trustedNode('circle');
+var elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
+var elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
+var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
+var elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
+var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
+var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
+var author$project$Main$userSvg = function (user) {
+	return A2(
+		elm$svg$Svg$circle,
+		_List_fromArray(
+			[
+				elm$svg$Svg$Attributes$cx(
+				elm$core$String$fromFloat(user.coordinates.x / 100)),
+				elm$svg$Svg$Attributes$cy(
+				elm$core$String$fromFloat(user.coordinates.y / 100)),
+				elm$svg$Svg$Attributes$r('4'),
+				elm$svg$Svg$Attributes$fill('orange'),
+				elm$svg$Svg$Attributes$stroke('black'),
+				elm$svg$Svg$Attributes$strokeWidth('2')
+			]),
+		_List_Nil);
+};
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected = F2(
 	function (key, _n0) {
 		var state = _n0.a;
@@ -7789,6 +7816,16 @@ var billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected = F2(
 			A2(elm$core$Dict$get, key, state.socketStates),
 			elm$core$Maybe$Nothing);
 	});
+var elm$core$Dict$values = function (dict) {
+	return A3(
+		elm$core$Dict$foldr,
+		F3(
+			function (key, value, valueList) {
+				return A2(elm$core$List$cons, value, valueList);
+			}),
+		_List_Nil,
+		dict);
+};
 var elm$core$List$intersperse = F2(
 	function (sep, xs) {
 		if (!xs.b) {
@@ -7886,16 +7923,8 @@ var elm$html$Html$Events$onInput = function (tagger) {
 			elm$html$Html$Events$alwaysStop,
 			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
 };
-var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
-var elm$svg$Svg$circle = elm$svg$Svg$trustedNode('circle');
 var elm$svg$Svg$svg = elm$svg$Svg$trustedNode('svg');
-var elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
-var elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
-var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
-var elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
-var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
-var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
 var elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
 var author$project$Main$view = function (model) {
 	var isConnected = A2(billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected, model.key, model.state.websocket);
@@ -7998,24 +8027,13 @@ var author$project$Main$view = function (model) {
 				elm$svg$Svg$svg,
 				_List_fromArray(
 					[
-						elm$svg$Svg$Attributes$width('320'),
-						elm$svg$Svg$Attributes$height('240')
+						elm$svg$Svg$Attributes$width('1000'),
+						elm$svg$Svg$Attributes$height('1000')
 					]),
-				_List_fromArray(
-					[
-						A2(
-						elm$svg$Svg$circle,
-						_List_fromArray(
-							[
-								elm$svg$Svg$Attributes$cx('20'),
-								elm$svg$Svg$Attributes$cy('40'),
-								elm$svg$Svg$Attributes$r('4'),
-								elm$svg$Svg$Attributes$fill('orange'),
-								elm$svg$Svg$Attributes$stroke('black'),
-								elm$svg$Svg$Attributes$strokeWidth('2')
-							]),
-						_List_Nil)
-					])),
+				A2(
+					elm$core$List$map,
+					author$project$Main$userSvg,
+					elm$core$Dict$values(model.users))),
 				A2(
 				elm$html$Html$p,
 				_List_Nil,

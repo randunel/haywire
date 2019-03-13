@@ -77,7 +77,7 @@ type alias Model =
     , state : State
     , key : String
     , error : Maybe String
-    , users : List User
+    , users : Dict.Dict String User
     }
 
 
@@ -99,14 +99,14 @@ init _ =
     , state = PortFunnels.initialState
     , key = "socket"
     , error = Nothing
-    , users = []
+    , users = Dict.empty
     }
         |> withNoCmd
 
 type alias User =
-    { id : String
-    , lastCoords : Coordinates
-    , lastAngles : Angles
+    { clientId : ClientId
+    , coordinates : Coordinates
+    , angles : Angles
     }
 
 type Command = Bullet_impact
@@ -120,10 +120,8 @@ type Command = Bullet_impact
              | Weapon_zoom
              | Unknown_command
 
-type alias UserCoords =
-    { position : Coordinates
-    , orientation : Angles
-    }
+type alias ClientId =
+    String
 
 type alias Coordinates =
     { x : Float
@@ -238,38 +236,55 @@ doIsLoaded model =
     else
         model
 
-hwDecoder : Decoder String
-hwDecoder =
+commandDecoder : Decoder String
+commandDecoder =
     field "command" string
 
 appendLog : String -> Model -> Model
 appendLog str model =
     { model | log = str :: model.log }
 
-plsDraw : String -> String -> Model -> Model
-plsDraw command message model =
+handleCommand : String -> String -> Model -> Model
+handleCommand command message model =
     case stringToCommand command of
         Player_footstep -> case (decodePlayerFootstep message) of
-            Just userCoords -> handlePlayerFootstep model userCoords
+            Just user -> handlePlayerFootstep model user
             Nothing -> model
         _ -> model
 
-handlePlayerFootstep : Model -> UserCoords -> Model
-handlePlayerFootstep model userCoords =
-    model
+handlePlayerFootstep : Model -> User -> Model
+handlePlayerFootstep model user =
+    { model | users = Dict.insert user.clientId user model.users }
 
-decodePlayerFootstep : String -> Maybe UserCoords
+-- findOrCreateUser : Model -> ClientId -> User
+-- findOrCreateUser model clientId =
+--     let
+--         user = List.head (List.filter (\u -> u.clientId == clientId) model.users)
+--     in
+--        case user of
+--            Just u -> u
+--            Nothing -> let
+--                           newUser = User clientId (Coordinates 0 0 0) (Angles 0 0 0)
+--                       in
+--                          model.users = model.users ++ [ newUser ]
+
+decodePlayerFootstep : String -> Maybe User
 decodePlayerFootstep message =
     case Json.Decode.decodeString playerFootstepDecoder message of
         Ok res -> Just res
         Err err -> Nothing
 
-playerFootstepDecoder : Decoder UserCoords
+playerFootstepDecoder : Decoder User
 playerFootstepDecoder =
-    (Json.Decode.map2 UserCoords
+    (Json.Decode.map3 User
+        (field "clientId" clientIdDecoder)
         (field "coordinates" coorinatesDecoder)
         (field "angles" anglesDecoder)
     )
+
+clientIdDecoder : Decoder ClientId
+clientIdDecoder =
+    string
 
 coorinatesDecoder : Decoder Coordinates
 coorinatesDecoder =
@@ -289,13 +304,13 @@ anglesDecoder =
 
 handleMessage : Model -> String -> Model
 handleMessage model message =
-    case Json.Decode.decodeString hwDecoder message of
-        Ok res -> appendLog res model |> plsDraw res message
-        Err err -> { model | log = ("Received \"" ++ "unknown " ++ message ++ "\"") :: model.log }
+    case Json.Decode.decodeString commandDecoder message of
+        Ok res -> appendLog message model |> handleCommand res message
+        Err err -> appendLog ("Received unexpected " ++ message) model
 
 decodeMessage : String -> Command
 decodeMessage message =
-    case Json.Decode.decodeString hwDecoder message of
+    case Json.Decode.decodeString commandDecoder message of
         Ok res -> stringToCommand res
         Err err -> Unknown_command
 
@@ -339,7 +354,7 @@ socketHandler response state mdl =
     in
     case response of
         WebSocket.MessageReceivedResponse { message } ->
-            -- { model | log = ("Received \"" ++ (Result.withDefault "asd" (Json.Decode.decodeString hwDecoder message)) ++ "\"") :: model.log }
+            -- { model | log = ("Received \"" ++ (Result.withDefault "asd" (Json.Decode.decodeString commandDecoder message)) ++ "\"") :: model.log }
             -- { model | log = ("Received \"" ++ commandToString (decodeMessage message) ++ "\"") :: model.log }
             handleMessage model message
                 |> withNoCmd
@@ -471,19 +486,20 @@ view model =
                 []
             ]
         , Svg.svg
-            [ SvgAttrs.width "320"
-            , SvgAttrs.height "240"
+            [ SvgAttrs.width "1000"
+            , SvgAttrs.height "1000"
             ]
-            [ Svg.circle
-                [ SvgAttrs.cx <| "20"
-                , SvgAttrs.cy <| "40"
-                , SvgAttrs.r <| "4"
-                , SvgAttrs.fill "orange"
-                , SvgAttrs.stroke "black"
-                , SvgAttrs.strokeWidth "2"
-                ]
-                []
-            ]
+            (List.map userSvg (Dict.values model.users))
+            -- [ Svg.circle
+            --     [ SvgAttrs.cx <| "20"
+            --     , SvgAttrs.cy <| "40"
+            --     , SvgAttrs.r <| "4"
+            --     , SvgAttrs.fill "orange"
+            --     , SvgAttrs.stroke "black"
+            --     , SvgAttrs.strokeWidth "2"
+            --     ]
+            --     []
+            -- ]
         , p [] <|
             List.concat
                 [ [ b "Log:"
@@ -492,3 +508,13 @@ view model =
                 , List.intersperse br (List.map text model.log)
                 ]
         ]
+
+userSvg user = Svg.circle
+    [ SvgAttrs.cx <| String.fromFloat (user.coordinates.x / 100)
+    , SvgAttrs.cy <| String.fromFloat (user.coordinates.y / 100)
+    , SvgAttrs.r <| "4"
+    , SvgAttrs.fill "orange"
+    , SvgAttrs.stroke "black"
+    , SvgAttrs.strokeWidth "2"
+    ]
+    []
