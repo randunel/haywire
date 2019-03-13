@@ -12,7 +12,7 @@ import Html.Events exposing (onClick, onInput)
 import Svg exposing (Svg)
 import Svg.Attributes as SvgAttrs
 import Json.Encode exposing (Value)
-import Json.Decode exposing (Decoder, field, string, float)
+import Json.Decode exposing (Decoder, field, string, float, at)
 import PortFunnel.WebSocket as WebSocket exposing (Response(..))
 import PortFunnels exposing (FunnelDict, Handler(..), State)
 
@@ -83,11 +83,11 @@ type alias Model =
 
 main =
     Browser.element
-        { init = init
-        , update = update
-        , view = view
-        , subscriptions = subscriptions
-        }
+    { init = init
+    , update = update
+    , view = view
+    , subscriptions = subscriptions
+    }
 
 
 init : () -> ( Model, Cmd Msg )
@@ -102,24 +102,25 @@ init _ =
     -- , players = Dict.empty
     , players = Dict.fromList [ ( "dict id", Player "player id" (Coordinates 1 1 1) ( Angles 1 1 1) ) ]
     }
-        |> withNoCmd
+    |> withNoCmd
 
 type alias Player =
     { clientId : ClientId
-    , coordinates : Coordinates
-    , angles : Angles
+    , position : Coordinates
+    , orientation : Angles
     }
 
-type Command = Bullet_impact
-             | Decoy_firing
-             | Player_death
-             | Player_footstep
-             | Player_hurt
-             | Player_jump
-             | Player_spawn
-             | Weapon_reload
-             | Weapon_zoom
-             | Unknown_command
+type Command =
+    Bullet_impact
+    | Decoy_firing
+    | Player_death
+    | Player_footstep
+    | Player_hurt
+    | Player_jump
+    | Player_spawn
+    | Weapon_reload
+    | Weapon_zoom
+    | Unknown_command
 
 type alias ClientId =
     String
@@ -140,8 +141,8 @@ type alias Angles =
 -- UPDATE
 
 
-type Msg
-    = UpdateSend String
+type Msg =
+    UpdateSend String
     | UpdateUrl String
     | ToggleAutoReopen
     | Connect
@@ -231,7 +232,7 @@ doIsLoaded : Model -> Model
 doIsLoaded model =
     if not model.wasLoaded && WebSocket.isLoaded model.state.websocket then
         { model
-            | wasLoaded = True
+        | wasLoaded = True
         }
 
     else
@@ -250,12 +251,16 @@ handleCommand command message model =
     case stringToCommand command of
         Player_footstep -> case (decodePlayerFootstep message) of
             Just player -> handlePlayerFootstep model player
-            Nothing -> model
+            Nothing -> appendLog message model
         _ -> model
 
 handlePlayerFootstep : Model -> Player -> Model
 handlePlayerFootstep model player =
-    { model | players = Dict.insert player.clientId player model.players }
+    { model | players = Dict.insert (clientIdToString player.clientId) player model.players }
+
+clientIdToString : ClientId -> String
+clientIdToString clientId =
+    clientId
 
 decodePlayerFootstep : String -> Maybe Player
 decodePlayerFootstep message =
@@ -265,30 +270,30 @@ decodePlayerFootstep message =
 
 playerFootstepDecoder : Decoder Player
 playerFootstepDecoder =
-    (Json.Decode.map3 Player
-        (field "clientId" clientIdDecoder)
-        (field "coordinates" coorinatesDecoder)
-        (field "angles" anglesDecoder)
+    ( Json.Decode.map3 Player
+        ( at [ "originator", "clientId" ] clientIdDecoder )
+        ( at [ "originator", "position" ] coordinatesDecoder )
+        ( at [ "originator", "orientation" ] anglesDecoder )
     )
 
 clientIdDecoder : Decoder ClientId
 clientIdDecoder =
     string
 
-coorinatesDecoder : Decoder Coordinates
-coorinatesDecoder =
-    (Json.Decode.map3 Coordinates
-        (field "x" float)
-        (field "y" float)
-        (field "z" float)
+coordinatesDecoder : Decoder Coordinates
+coordinatesDecoder =
+    ( Json.Decode.map3 Coordinates
+        ( field "x" float )
+        ( field "y" float )
+        ( field "z" float )
     )
 
 anglesDecoder : Decoder Angles
 anglesDecoder =
-    (Json.Decode.map3 Angles
-        (field "ang0" float)
-        (field "ang1" float)
-        (field "ang2" float)
+    ( Json.Decode.map3 Angles
+        ( field "ang0" float )
+        ( field "ang1" float )
+        ( field "ang2" float )
     )
 
 handleMessage : Model -> String -> Model
@@ -299,9 +304,9 @@ handleMessage model message =
             ( String.concat
                 ( List.map
                     ( \p ->
-                        "p coords:" ++ String.fromFloat p.coordinates.x
-                        ++ String.fromFloat p.coordinates.y
-                        ++ String.fromFloat p.coordinates.z
+                        "p coords:" ++ String.fromFloat p.position.x
+                        ++ String.fromFloat p.position.y
+                        ++ String.fromFloat p.position.z
                     )
                     ( Dict.values model.players )
                 )
@@ -491,16 +496,6 @@ view model =
             , SvgAttrs.height "500"
             ]
             (List.map playerSvg (Dict.values model.players))
-            -- [ Svg.circle
-            --     [ SvgAttrs.cx <| "20"
-            --     , SvgAttrs.cy <| "40"
-            --     , SvgAttrs.r <| "4"
-            --     , SvgAttrs.fill "orange"
-            --     , SvgAttrs.stroke "black"
-            --     , SvgAttrs.strokeWidth "2"
-            --     ]
-            --     []
-            -- ]
         , p [] <|
             List.concat
                 [ [ b "Log:"
@@ -511,8 +506,8 @@ view model =
         ]
 
 playerSvg player = Svg.circle
-    [ SvgAttrs.cx <| String.fromFloat (player.coordinates.x / 100)
-    , SvgAttrs.cy <| String.fromFloat (player.coordinates.y / 100)
+    [ SvgAttrs.cx <| String.fromFloat (player.position.x / 100)
+    , SvgAttrs.cy <| String.fromFloat (player.position.y / 100)
     , SvgAttrs.r <| "4"
     , SvgAttrs.fill "orange"
     , SvgAttrs.stroke "black"

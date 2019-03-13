@@ -4799,8 +4799,8 @@ var author$project$Main$Coordinates = F3(
 		return {x: x, y: y, z: z};
 	});
 var author$project$Main$Player = F3(
-	function (clientId, coordinates, angles) {
-		return {angles: angles, clientId: clientId, coordinates: coordinates};
+	function (clientId, position, orientation) {
+		return {clientId: clientId, orientation: orientation, position: position};
 	});
 var author$project$Main$defaultUrl = 'ws://localhost:3000';
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$State = function (a) {
@@ -7137,18 +7137,34 @@ var author$project$Main$anglesDecoder = A4(
 	A2(elm$json$Json$Decode$field, 'ang1', elm$json$Json$Decode$float),
 	A2(elm$json$Json$Decode$field, 'ang2', elm$json$Json$Decode$float));
 var author$project$Main$clientIdDecoder = elm$json$Json$Decode$string;
-var author$project$Main$coorinatesDecoder = A4(
+var author$project$Main$coordinatesDecoder = A4(
 	elm$json$Json$Decode$map3,
 	author$project$Main$Coordinates,
 	A2(elm$json$Json$Decode$field, 'x', elm$json$Json$Decode$float),
 	A2(elm$json$Json$Decode$field, 'y', elm$json$Json$Decode$float),
 	A2(elm$json$Json$Decode$field, 'z', elm$json$Json$Decode$float));
+var elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
+	});
 var author$project$Main$playerFootstepDecoder = A4(
 	elm$json$Json$Decode$map3,
 	author$project$Main$Player,
-	A2(elm$json$Json$Decode$field, 'clientId', author$project$Main$clientIdDecoder),
-	A2(elm$json$Json$Decode$field, 'coordinates', author$project$Main$coorinatesDecoder),
-	A2(elm$json$Json$Decode$field, 'angles', author$project$Main$anglesDecoder));
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['originator', 'clientId']),
+		author$project$Main$clientIdDecoder),
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['originator', 'position']),
+		author$project$Main$coordinatesDecoder),
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
+			['originator', 'orientation']),
+		author$project$Main$anglesDecoder));
 var elm$json$Json$Decode$decodeString = _Json_runOnString;
 var author$project$Main$decodePlayerFootstep = function (message) {
 	var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$playerFootstepDecoder, message);
@@ -7160,12 +7176,19 @@ var author$project$Main$decodePlayerFootstep = function (message) {
 		return elm$core$Maybe$Nothing;
 	}
 };
+var author$project$Main$clientIdToString = function (clientId) {
+	return clientId;
+};
 var author$project$Main$handlePlayerFootstep = F2(
 	function (model, player) {
 		return _Utils_update(
 			model,
 			{
-				players: A3(elm$core$Dict$insert, player.clientId, player, model.players)
+				players: A3(
+					elm$core$Dict$insert,
+					author$project$Main$clientIdToString(player.clientId),
+					player,
+					model.players)
 			});
 	});
 var author$project$Main$Bullet_impact = {$: 'Bullet_impact'};
@@ -7211,7 +7234,7 @@ var author$project$Main$handleCommand = F3(
 				var player = _n1.a;
 				return A2(author$project$Main$handlePlayerFootstep, model, player);
 			} else {
-				return model;
+				return A2(author$project$Main$appendLog, message, model);
 			}
 		} else {
 			return model;
@@ -7246,7 +7269,7 @@ var author$project$Main$handleMessage = F2(
 						A2(
 							elm$core$List$map,
 							function (p) {
-								return 'p coords:' + (elm$core$String$fromFloat(p.coordinates.x) + (elm$core$String$fromFloat(p.coordinates.y) + elm$core$String$fromFloat(p.coordinates.z)));
+								return 'p coords:' + (elm$core$String$fromFloat(p.position.x) + (elm$core$String$fromFloat(p.position.y) + elm$core$String$fromFloat(p.position.z)));
 							},
 							elm$core$Dict$values(model.players))),
 					model));
@@ -7840,9 +7863,9 @@ var author$project$Main$playerSvg = function (player) {
 		_List_fromArray(
 			[
 				elm$svg$Svg$Attributes$cx(
-				elm$core$String$fromFloat(player.coordinates.x / 100)),
+				elm$core$String$fromFloat(player.position.x / 100)),
 				elm$svg$Svg$Attributes$cy(
-				elm$core$String$fromFloat(player.coordinates.y / 100)),
+				elm$core$String$fromFloat(player.position.y / 100)),
 				elm$svg$Svg$Attributes$r('4'),
 				elm$svg$Svg$Attributes$fill('orange'),
 				elm$svg$Svg$Attributes$stroke('black'),
@@ -7935,10 +7958,6 @@ var elm$html$Html$Events$stopPropagationOn = F2(
 			elm$virtual_dom$VirtualDom$on,
 			event,
 			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
-	});
-var elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
 	});
 var elm$html$Html$Events$targetValue = A2(
 	elm$json$Json$Decode$at,
