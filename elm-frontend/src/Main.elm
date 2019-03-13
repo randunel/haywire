@@ -100,7 +100,7 @@ init _ =
     , key = "socket"
     , error = Nothing
     -- , players = Dict.empty
-    , players = Dict.fromList [ ( "dict id", Player "player id" (Coordinates 1 1 1) ( Angles 1 1 1) ) ]
+    , players = Dict.fromList [ ( "dict id", Player "player id" (Coordinates "1" "1" "1") ( Angles "1" "1" "1") ) ]
     }
     |> withNoCmd
 
@@ -126,15 +126,15 @@ type alias ClientId =
     String
 
 type alias Coordinates =
-    { x : Float
-    , y : Float
-    , z : Float
+    { x : String
+    , y : String
+    , z : String
     }
 
 type alias Angles =
-    { ang0 : Float
-    , ang1 : Float
-    , ang2 : Float
+    { ang0 : String
+    , ang1 : String
+    , ang2 : String
     }
 
 
@@ -283,17 +283,17 @@ clientIdDecoder =
 coordinatesDecoder : Decoder Coordinates
 coordinatesDecoder =
     ( Json.Decode.map3 Coordinates
-        ( field "x" float )
-        ( field "y" float )
-        ( field "z" float )
+        ( field "x" string )
+        ( field "y" string )
+        ( field "z" string )
     )
 
 anglesDecoder : Decoder Angles
 anglesDecoder =
     ( Json.Decode.map3 Angles
-        ( field "ang0" float )
-        ( field "ang1" float )
-        ( field "ang2" float )
+        ( field "ang0" string )
+        ( field "ang1" string )
+        ( field "ang2" string )
     )
 
 handleMessage : Model -> String -> Model
@@ -304,9 +304,9 @@ handleMessage model message =
             ( String.concat
                 ( List.map
                     ( \p ->
-                        "p coords:" ++ String.fromFloat p.position.x
-                        ++ String.fromFloat p.position.y
-                        ++ String.fromFloat p.position.z
+                        "p coords:" ++ p.position.x
+                        ++ p.position.y
+                        ++ p.position.z
                     )
                     ( Dict.values model.players )
                 )
@@ -506,8 +506,8 @@ view model =
         ]
 
 playerSvg player = Svg.circle
-    [ SvgAttrs.cx <| String.fromFloat (player.position.x / 100)
-    , SvgAttrs.cy <| String.fromFloat (player.position.y / 100)
+    [ SvgAttrs.cx <| player.position.x
+    , SvgAttrs.cy <| player.position.y
     , SvgAttrs.r <| "4"
     , SvgAttrs.fill "orange"
     , SvgAttrs.stroke "black"

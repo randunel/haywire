@@ -4953,8 +4953,8 @@ var author$project$Main$init = function (_n0) {
 						A3(
 							author$project$Main$Player,
 							'player id',
-							A3(author$project$Main$Coordinates, 1, 1, 1),
-							A3(author$project$Main$Angles, 1, 1, 1)))
+							A3(author$project$Main$Coordinates, '1', '1', '1'),
+							A3(author$project$Main$Angles, '1', '1', '1')))
 					])),
 			send: 'Hello World!',
 			state: author$project$PortFunnels$initialState,
@@ -7129,20 +7129,19 @@ var author$project$Main$appendLog = F2(
 			});
 	});
 var author$project$Main$commandDecoder = A2(elm$json$Json$Decode$field, 'command', elm$json$Json$Decode$string);
-var elm$json$Json$Decode$float = _Json_decodeFloat;
 var author$project$Main$anglesDecoder = A4(
 	elm$json$Json$Decode$map3,
 	author$project$Main$Angles,
-	A2(elm$json$Json$Decode$field, 'ang0', elm$json$Json$Decode$float),
-	A2(elm$json$Json$Decode$field, 'ang1', elm$json$Json$Decode$float),
-	A2(elm$json$Json$Decode$field, 'ang2', elm$json$Json$Decode$float));
+	A2(elm$json$Json$Decode$field, 'ang0', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'ang1', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'ang2', elm$json$Json$Decode$string));
 var author$project$Main$clientIdDecoder = elm$json$Json$Decode$string;
 var author$project$Main$coordinatesDecoder = A4(
 	elm$json$Json$Decode$map3,
 	author$project$Main$Coordinates,
-	A2(elm$json$Json$Decode$field, 'x', elm$json$Json$Decode$float),
-	A2(elm$json$Json$Decode$field, 'y', elm$json$Json$Decode$float),
-	A2(elm$json$Json$Decode$field, 'z', elm$json$Json$Decode$float));
+	A2(elm$json$Json$Decode$field, 'x', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'y', elm$json$Json$Decode$string),
+	A2(elm$json$Json$Decode$field, 'z', elm$json$Json$Decode$string));
 var elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
 		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
@@ -7253,7 +7252,6 @@ var elm$core$Dict$values = function (dict) {
 var elm$core$String$concat = function (strings) {
 	return A2(elm$core$String$join, '', strings);
 };
-var elm$core$String$fromFloat = _String_fromNumber;
 var author$project$Main$handleMessage = F2(
 	function (model, message) {
 		var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$commandDecoder, message);
@@ -7269,7 +7267,7 @@ var author$project$Main$handleMessage = F2(
 						A2(
 							elm$core$List$map,
 							function (p) {
-								return 'p coords:' + (elm$core$String$fromFloat(p.position.x) + (elm$core$String$fromFloat(p.position.y) + elm$core$String$fromFloat(p.position.z)));
+								return 'p coords:' + (p.position.x + (p.position.y + p.position.z));
 							},
 							elm$core$Dict$values(model.players))),
 					model));
@@ -7862,10 +7860,8 @@ var author$project$Main$playerSvg = function (player) {
 		elm$svg$Svg$circle,
 		_List_fromArray(
 			[
-				elm$svg$Svg$Attributes$cx(
-				elm$core$String$fromFloat(player.position.x / 100)),
-				elm$svg$Svg$Attributes$cy(
-				elm$core$String$fromFloat(player.position.y / 100)),
+				elm$svg$Svg$Attributes$cx(player.position.x),
+				elm$svg$Svg$Attributes$cy(player.position.y),
 				elm$svg$Svg$Attributes$r('4'),
 				elm$svg$Svg$Attributes$fill('orange'),
 				elm$svg$Svg$Attributes$stroke('black'),
