@@ -4790,6 +4790,18 @@ var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var Janiczek$cmd_extra$Cmd$Extra$withNoCmd = function (model) {
 	return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 };
+var author$project$Main$Angles = F3(
+	function (ang0, ang1, ang2) {
+		return {ang0: ang0, ang1: ang1, ang2: ang2};
+	});
+var author$project$Main$Coordinates = F3(
+	function (x, y, z) {
+		return {x: x, y: y, z: z};
+	});
+var author$project$Main$Player = F3(
+	function (clientId, coordinates, angles) {
+		return {angles: angles, clientId: clientId, coordinates: coordinates};
+	});
 var author$project$Main$defaultUrl = 'ws://localhost:3000';
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$State = function (a) {
 	return {$: 'State', a: a};
@@ -4806,9 +4818,149 @@ var elm$core$Set$empty = elm$core$Set$Set_elm_builtin(elm$core$Dict$empty);
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState = billstclair$elm_websocket_client$PortFunnel$WebSocket$State(
 	{continuationCounter: 0, continuations: elm$core$Dict$empty, isLoaded: false, noAutoReopenKeys: elm$core$Set$empty, queues: elm$core$Dict$empty, socketStates: elm$core$Dict$empty});
 var author$project$PortFunnels$initialState = {websocket: billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState};
+var elm$core$Dict$Black = {$: 'Black'};
+var elm$core$Dict$RBNode_elm_builtin = F5(
+	function (a, b, c, d, e) {
+		return {$: 'RBNode_elm_builtin', a: a, b: b, c: c, d: d, e: e};
+	});
+var elm$core$Basics$compare = _Utils_compare;
+var elm$core$Dict$Red = {$: 'Red'};
+var elm$core$Dict$balance = F5(
+	function (color, key, value, left, right) {
+		if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Red')) {
+			var _n1 = right.a;
+			var rK = right.b;
+			var rV = right.c;
+			var rLeft = right.d;
+			var rRight = right.e;
+			if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
+				var _n3 = left.a;
+				var lK = left.b;
+				var lV = left.c;
+				var lLeft = left.d;
+				var lRight = left.e;
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Red,
+					key,
+					value,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					color,
+					rK,
+					rV,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, key, value, left, rLeft),
+					rRight);
+			}
+		} else {
+			if ((((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) && (left.d.$ === 'RBNode_elm_builtin')) && (left.d.a.$ === 'Red')) {
+				var _n5 = left.a;
+				var lK = left.b;
+				var lV = left.c;
+				var _n6 = left.d;
+				var _n7 = _n6.a;
+				var llK = _n6.b;
+				var llV = _n6.c;
+				var llLeft = _n6.d;
+				var llRight = _n6.e;
+				var lRight = left.e;
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Red,
+					lK,
+					lV,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, llK, llV, llLeft, llRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, key, value, lRight, right));
+			} else {
+				return A5(elm$core$Dict$RBNode_elm_builtin, color, key, value, left, right);
+			}
+		}
+	});
+var elm$core$Dict$insertHelp = F3(
+	function (key, value, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, key, value, elm$core$Dict$RBEmpty_elm_builtin, elm$core$Dict$RBEmpty_elm_builtin);
+		} else {
+			var nColor = dict.a;
+			var nKey = dict.b;
+			var nValue = dict.c;
+			var nLeft = dict.d;
+			var nRight = dict.e;
+			var _n1 = A2(elm$core$Basics$compare, key, nKey);
+			switch (_n1.$) {
+				case 'LT':
+					return A5(
+						elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						A3(elm$core$Dict$insertHelp, key, value, nLeft),
+						nRight);
+				case 'EQ':
+					return A5(elm$core$Dict$RBNode_elm_builtin, nColor, nKey, value, nLeft, nRight);
+				default:
+					return A5(
+						elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						nLeft,
+						A3(elm$core$Dict$insertHelp, key, value, nRight));
+			}
+		}
+	});
+var elm$core$Dict$insert = F3(
+	function (key, value, dict) {
+		var _n0 = A3(elm$core$Dict$insertHelp, key, value, dict);
+		if ((_n0.$ === 'RBNode_elm_builtin') && (_n0.a.$ === 'Red')) {
+			var _n1 = _n0.a;
+			var k = _n0.b;
+			var v = _n0.c;
+			var l = _n0.d;
+			var r = _n0.e;
+			return A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, k, v, l, r);
+		} else {
+			var x = _n0;
+			return x;
+		}
+	});
+var elm$core$Dict$fromList = function (assocs) {
+	return A3(
+		elm$core$List$foldl,
+		F2(
+			function (_n0, dict) {
+				var key = _n0.a;
+				var value = _n0.b;
+				return A3(elm$core$Dict$insert, key, value, dict);
+			}),
+		elm$core$Dict$empty,
+		assocs);
+};
 var author$project$Main$init = function (_n0) {
 	return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
-		{error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, players: elm$core$Dict$empty, send: 'Hello World!', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, wasLoaded: false});
+		{
+			error: elm$core$Maybe$Nothing,
+			key: 'socket',
+			log: _List_Nil,
+			players: elm$core$Dict$fromList(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'dict id',
+						A3(
+							author$project$Main$Player,
+							'player id',
+							A3(author$project$Main$Coordinates, 1, 1, 1),
+							A3(author$project$Main$Angles, 1, 1, 1)))
+					])),
+			send: 'Hello World!',
+			state: author$project$PortFunnels$initialState,
+			url: author$project$Main$defaultUrl,
+			wasLoaded: false
+		});
 };
 var author$project$Main$Process = function (a) {
 	return {$: 'Process', a: a};
@@ -5864,127 +6016,6 @@ var billstclair$elm_websocket_client$PortFunnel$WebSocket$closurePairs = _List_f
 		_Utils_Tuple2(1015, billstclair$elm_websocket_client$PortFunnel$WebSocket$TLSHandshakeClosure),
 		_Utils_Tuple2(4000, billstclair$elm_websocket_client$PortFunnel$WebSocket$TimedOutOnReconnect)
 	]);
-var elm$core$Dict$Black = {$: 'Black'};
-var elm$core$Dict$RBNode_elm_builtin = F5(
-	function (a, b, c, d, e) {
-		return {$: 'RBNode_elm_builtin', a: a, b: b, c: c, d: d, e: e};
-	});
-var elm$core$Basics$compare = _Utils_compare;
-var elm$core$Dict$Red = {$: 'Red'};
-var elm$core$Dict$balance = F5(
-	function (color, key, value, left, right) {
-		if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Red')) {
-			var _n1 = right.a;
-			var rK = right.b;
-			var rV = right.c;
-			var rLeft = right.d;
-			var rRight = right.e;
-			if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
-				var _n3 = left.a;
-				var lK = left.b;
-				var lV = left.c;
-				var lLeft = left.d;
-				var lRight = left.e;
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					elm$core$Dict$Red,
-					key,
-					value,
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, lK, lV, lLeft, lRight),
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, rK, rV, rLeft, rRight));
-			} else {
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					color,
-					rK,
-					rV,
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, key, value, left, rLeft),
-					rRight);
-			}
-		} else {
-			if ((((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) && (left.d.$ === 'RBNode_elm_builtin')) && (left.d.a.$ === 'Red')) {
-				var _n5 = left.a;
-				var lK = left.b;
-				var lV = left.c;
-				var _n6 = left.d;
-				var _n7 = _n6.a;
-				var llK = _n6.b;
-				var llV = _n6.c;
-				var llLeft = _n6.d;
-				var llRight = _n6.e;
-				var lRight = left.e;
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					elm$core$Dict$Red,
-					lK,
-					lV,
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, llK, llV, llLeft, llRight),
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, key, value, lRight, right));
-			} else {
-				return A5(elm$core$Dict$RBNode_elm_builtin, color, key, value, left, right);
-			}
-		}
-	});
-var elm$core$Dict$insertHelp = F3(
-	function (key, value, dict) {
-		if (dict.$ === 'RBEmpty_elm_builtin') {
-			return A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, key, value, elm$core$Dict$RBEmpty_elm_builtin, elm$core$Dict$RBEmpty_elm_builtin);
-		} else {
-			var nColor = dict.a;
-			var nKey = dict.b;
-			var nValue = dict.c;
-			var nLeft = dict.d;
-			var nRight = dict.e;
-			var _n1 = A2(elm$core$Basics$compare, key, nKey);
-			switch (_n1.$) {
-				case 'LT':
-					return A5(
-						elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						A3(elm$core$Dict$insertHelp, key, value, nLeft),
-						nRight);
-				case 'EQ':
-					return A5(elm$core$Dict$RBNode_elm_builtin, nColor, nKey, value, nLeft, nRight);
-				default:
-					return A5(
-						elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						nLeft,
-						A3(elm$core$Dict$insertHelp, key, value, nRight));
-			}
-		}
-	});
-var elm$core$Dict$insert = F3(
-	function (key, value, dict) {
-		var _n0 = A3(elm$core$Dict$insertHelp, key, value, dict);
-		if ((_n0.$ === 'RBNode_elm_builtin') && (_n0.a.$ === 'Red')) {
-			var _n1 = _n0.a;
-			var k = _n0.b;
-			var v = _n0.c;
-			var l = _n0.d;
-			var r = _n0.e;
-			return A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, k, v, l, r);
-		} else {
-			var x = _n0;
-			return x;
-		}
-	});
-var elm$core$Dict$fromList = function (assocs) {
-	return A3(
-		elm$core$List$foldl,
-		F2(
-			function (_n0, dict) {
-				var key = _n0.a;
-				var value = _n0.b;
-				return A3(elm$core$Dict$insert, key, value, dict);
-			}),
-		elm$core$Dict$empty,
-		assocs);
-};
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$closureDict = elm$core$Dict$fromList(billstclair$elm_websocket_client$PortFunnel$WebSocket$closurePairs);
 var elm$core$Dict$get = F2(
 	function (targetKey, dict) {
@@ -7098,14 +7129,6 @@ var author$project$Main$appendLog = F2(
 			});
 	});
 var author$project$Main$commandDecoder = A2(elm$json$Json$Decode$field, 'command', elm$json$Json$Decode$string);
-var author$project$Main$Player = F3(
-	function (clientId, coordinates, angles) {
-		return {angles: angles, clientId: clientId, coordinates: coordinates};
-	});
-var author$project$Main$Angles = F3(
-	function (ang0, ang1, ang2) {
-		return {ang0: ang0, ang1: ang1, ang2: ang2};
-	});
 var elm$json$Json$Decode$float = _Json_decodeFloat;
 var author$project$Main$anglesDecoder = A4(
 	elm$json$Json$Decode$map3,
@@ -7114,10 +7137,6 @@ var author$project$Main$anglesDecoder = A4(
 	A2(elm$json$Json$Decode$field, 'ang1', elm$json$Json$Decode$float),
 	A2(elm$json$Json$Decode$field, 'ang2', elm$json$Json$Decode$float));
 var author$project$Main$clientIdDecoder = elm$json$Json$Decode$string;
-var author$project$Main$Coordinates = F3(
-	function (x, y, z) {
-		return {x: x, y: y, z: z};
-	});
 var author$project$Main$coorinatesDecoder = A4(
 	elm$json$Json$Decode$map3,
 	author$project$Main$Coordinates,
@@ -7198,6 +7217,20 @@ var author$project$Main$handleCommand = F3(
 			return model;
 		}
 	});
+var elm$core$Dict$values = function (dict) {
+	return A3(
+		elm$core$Dict$foldr,
+		F3(
+			function (key, value, valueList) {
+				return A2(elm$core$List$cons, value, valueList);
+			}),
+		_List_Nil,
+		dict);
+};
+var elm$core$String$concat = function (strings) {
+	return A2(elm$core$String$join, '', strings);
+};
+var elm$core$String$fromFloat = _String_fromNumber;
 var author$project$Main$handleMessage = F2(
 	function (model, message) {
 		var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$commandDecoder, message);
@@ -7207,7 +7240,16 @@ var author$project$Main$handleMessage = F2(
 				author$project$Main$handleCommand,
 				res,
 				message,
-				A2(author$project$Main$appendLog, message, model));
+				A2(
+					author$project$Main$appendLog,
+					elm$core$String$concat(
+						A2(
+							elm$core$List$map,
+							function (p) {
+								return 'p coords:' + (elm$core$String$fromFloat(p.coordinates.x) + (elm$core$String$fromFloat(p.coordinates.y) + elm$core$String$fromFloat(p.coordinates.z)));
+							},
+							elm$core$Dict$values(model.players))),
+					model));
 		} else {
 			var err = _n0.a;
 			return A2(author$project$Main$appendLog, 'Received unexpected ' + message, model);
@@ -7784,7 +7826,6 @@ var author$project$Main$b = function (string) {
 };
 var elm$html$Html$br = _VirtualDom_node('br');
 var author$project$Main$br = A2(elm$html$Html$br, _List_Nil, _List_Nil);
-var elm$core$String$fromFloat = _String_fromNumber;
 var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var elm$svg$Svg$circle = elm$svg$Svg$trustedNode('circle');
 var elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
@@ -7816,16 +7857,6 @@ var billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected = F2(
 			A2(elm$core$Dict$get, key, state.socketStates),
 			elm$core$Maybe$Nothing);
 	});
-var elm$core$Dict$values = function (dict) {
-	return A3(
-		elm$core$Dict$foldr,
-		F3(
-			function (key, value, valueList) {
-				return A2(elm$core$List$cons, value, valueList);
-			}),
-		_List_Nil,
-		dict);
-};
 var elm$core$List$intersperse = F2(
 	function (sep, xs) {
 		if (!xs.b) {
@@ -8027,8 +8058,8 @@ var author$project$Main$view = function (model) {
 				elm$svg$Svg$svg,
 				_List_fromArray(
 					[
-						elm$svg$Svg$Attributes$width('1000'),
-						elm$svg$Svg$Attributes$height('1000')
+						elm$svg$Svg$Attributes$width('500'),
+						elm$svg$Svg$Attributes$height('500')
 					]),
 				A2(
 					elm$core$List$map,

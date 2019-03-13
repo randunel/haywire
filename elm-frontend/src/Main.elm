@@ -99,7 +99,8 @@ init _ =
     , state = PortFunnels.initialState
     , key = "socket"
     , error = Nothing
-    , players = Dict.empty
+    -- , players = Dict.empty
+    , players = Dict.fromList [ ( "dict id", Player "player id" (Coordinates 1 1 1) ( Angles 1 1 1) ) ]
     }
         |> withNoCmd
 
@@ -305,7 +306,19 @@ anglesDecoder =
 handleMessage : Model -> String -> Model
 handleMessage model message =
     case Json.Decode.decodeString commandDecoder message of
-        Ok res -> appendLog message model |> handleCommand res message
+        -- Ok res -> appendLog message model |> handleCommand res message
+        Ok res -> appendLog
+            ( String.concat
+                ( List.map
+                    ( \p ->
+                        "p coords:" ++ String.fromFloat p.coordinates.x
+                        ++ String.fromFloat p.coordinates.y
+                        ++ String.fromFloat p.coordinates.z
+                    )
+                    ( Dict.values model.players )
+                )
+            )
+            model |> handleCommand res message
         Err err -> appendLog ("Received unexpected " ++ message) model
 
 decodeMessage : String -> Command
@@ -486,8 +499,8 @@ view model =
                 []
             ]
         , Svg.svg
-            [ SvgAttrs.width "1000"
-            , SvgAttrs.height "1000"
+            [ SvgAttrs.width "500"
+            , SvgAttrs.height "500"
             ]
             (List.map playerSvg (Dict.values model.players))
             -- [ Svg.circle
