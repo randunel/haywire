@@ -88,11 +88,17 @@ const PARSERS = {
     'bullet_impact': {
         '1': [ userCoords('originator'), coordinates('impact') ]
     },
+    'buytime_ended': {
+        '1': []
+    },
     'cs_pre_restart': {
         '1': []
     },
     'decoy_firing': {
         '1': [ userCoords('originator'), entity('decoy') ]
+    },
+    'flashbang_detonate': {
+        '1': [ userCoords('originator'), entity('flashbang_detonate') ]
     },
     'grenade_bounce': {
         '1': [ userCoords('originator') ]
@@ -104,6 +110,9 @@ const PARSERS = {
         '1': [ userCoords('originator'), entity('molotov_detonate') ]
     },
     'player_activate': {
+        '1': [ userCoords('originator') ]
+    },
+    'player_blind': {
         '1': [ userCoords('originator') ]
     },
     'player_death': {
