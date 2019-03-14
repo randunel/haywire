@@ -103,8 +103,7 @@ init _ =
     , state = PortFunnels.initialState
     , key = "socket"
     , error = Nothing
-    -- , players = Dict.empty
-    , players = Dict.fromList [ ( "dict id", Player "player id" (Coordinates "1" "1" "1") ( Angles "1" "1" "1") ) ]
+    , players = Dict.empty
     , minX = 0
     , minY = 0
     , maxX = 0
@@ -265,16 +264,12 @@ handleCommand command message model =
 handlePlayerCoordinates : Model -> Player -> Model
 handlePlayerCoordinates model player =
     {
-        model | players = Dict.insert (clientIdToString player.clientId) player model.players
+        model | players = Dict.insert player.clientId player model.players
         , minX = min model.minX (Maybe.withDefault model.minX (String.toFloat player.position.x))
         , minY = min model.minY (Maybe.withDefault model.minY (String.toFloat player.position.y))
         , maxX = max model.maxX (Maybe.withDefault model.maxX (String.toFloat player.position.x))
         , maxY = max model.maxY (Maybe.withDefault model.maxY (String.toFloat player.position.y))
     }
-
-clientIdToString : ClientId -> String
-clientIdToString clientId =
-    clientId
 
 decodeOriginator : String -> Maybe Player
 decodeOriginator message =
@@ -313,7 +308,7 @@ anglesDecoder =
 handleMessage : Model -> String -> Model
 handleMessage model message =
     case Json.Decode.decodeString commandDecoder message of
-        Ok res -> appendLog message model |> handleCommand res message
+        Ok res -> handleCommand res message model
         Err err -> appendLog ("Received unexpected " ++ message) model
 
 decodeMessage : String -> Command
@@ -494,8 +489,8 @@ view model =
                 []
             ]
         , Svg.svg
-            [ SvgAttrs.width "1000"
-            , SvgAttrs.height "1000"
+            [ SvgAttrs.width "800"
+            , SvgAttrs.height "800"
             ]
             (List.map (playerSvg model) (Dict.values model.players))
         , p [] <|
@@ -503,7 +498,7 @@ view model =
                 [ [ b "Players:"
                   , br
                   ]
-                , List.intersperse br (List.map text (List.map (\p -> "x: " ++ p.position.x ++ " y:" ++ p.position.y ++ " z:" ++ p.position.z) (Dict.values model.players)))
+                , List.intersperse br (List.map text (List.map (\p -> "clientId:" ++ p.clientId ++ " x:" ++ p.position.x ++ " y:" ++ p.position.y ++ " z:" ++ p.position.z) (Dict.values model.players)))
                 ]
         , p [] <|
             List.concat
@@ -515,8 +510,8 @@ view model =
         ]
 
 playerSvg model player = Svg.circle
-    [ SvgAttrs.cx <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat player.position.x)) - model.minX) * 1000 / (model.maxX - model.minX))
-    , SvgAttrs.cy <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat player.position.y)) - model.minY) * 1000 / (model.maxY - model.minY))
+    [ SvgAttrs.cx <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat player.position.x)) - model.minX) * 800 / (model.maxX - model.minX))
+    , SvgAttrs.cy <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat player.position.y)) - model.minY) * 800 / (model.maxY - model.minY))
     , SvgAttrs.r <| "4"
     , SvgAttrs.fill "orange"
     , SvgAttrs.stroke "black"
