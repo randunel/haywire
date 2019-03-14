@@ -174,12 +174,12 @@ public Action:HandleSimpleUserid(Handle:event, const String:eventName[], bool:do
 }
 
 public Action:HandleSimpleEvent(Handle:event, const String:eventName[], bool:dontBroadcast) {
-    LogToGame("HW->%s", eventName);
+    LogToGame("HW->%s->1", eventName);
     return Plugin_Handled;
 }
 
 public Action:HandleSimpleEntity(Handle:event, const String:eventName[], bool:dontBroadcast) {
-    LogToGame("HW->%s->%d->%f,%f,%f",
+    LogToGame("HW->%s->1->%d->%f,%f,%f",
         GetEventInt(event, "entityid"),
         GetEventFloat(event, "x"),
         GetEventFloat(event, "y"),

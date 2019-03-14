@@ -88,6 +88,9 @@ const PARSERS = {
     'bullet_impact': {
         '1': [ userCoords('originator'), coordinates('impact') ]
     },
+    'cs_pre_restart': {
+        '1': []
+    },
     'decoy_firing': {
         '1': [ userCoords('originator'), entity('decoy') ]
     },
@@ -117,6 +120,9 @@ const PARSERS = {
     },
     'player_spawn': {
         '1': [ userCoords('originator') ]
+    },
+    'round_freeze_end': {
+        '1': []
     },
     'smokegrenade_detonate': {
         '1': [ userCoords('originator'), entity('smokegrenade_detonate') ]
@@ -150,7 +156,7 @@ function userCoords(type) {
 
 function entity(type) {
     return function parseEntity(iterator) {
-        const entityId = iterator.next().value;
+        const id = iterator.next().value;
         const [x, y, z] = iterator.next().value.split(',');
         return {
             entity: {

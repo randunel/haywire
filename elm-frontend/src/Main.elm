@@ -78,6 +78,10 @@ type alias Model =
     , key : String
     , error : Maybe String
     , players : Dict.Dict String Player
+    , minX : Float
+    , minY : Float
+    , maxX : Float
+    , maxY : Float
     }
 
 
@@ -101,6 +105,10 @@ init _ =
     , error = Nothing
     -- , players = Dict.empty
     , players = Dict.fromList [ ( "dict id", Player "player id" (Coordinates "1" "1" "1") ( Angles "1" "1" "1") ) ]
+    , minX = 0
+    , minY = 0
+    , maxX = 0
+    , maxY = 0
     }
     |> withNoCmd
 
@@ -249,27 +257,33 @@ appendLog str model =
 handleCommand : String -> String -> Model -> Model
 handleCommand command message model =
     case stringToCommand command of
-        Player_footstep -> case (decodePlayerFootstep message) of
-            Just player -> handlePlayerFootstep model player
+        Player_footstep -> case (decodeOriginator message) of
+            Just player -> handlePlayerCoordinates model player
             Nothing -> appendLog message model
         _ -> model
 
-handlePlayerFootstep : Model -> Player -> Model
-handlePlayerFootstep model player =
-    { model | players = Dict.insert (clientIdToString player.clientId) player model.players }
+handlePlayerCoordinates : Model -> Player -> Model
+handlePlayerCoordinates model player =
+    {
+        model | players = Dict.insert (clientIdToString player.clientId) player model.players
+        , minX = min model.minX (Maybe.withDefault model.minX (String.toFloat player.position.x))
+        , minY = min model.minY (Maybe.withDefault model.minY (String.toFloat player.position.y))
+        , maxX = max model.maxX (Maybe.withDefault model.maxX (String.toFloat player.position.x))
+        , maxY = max model.maxY (Maybe.withDefault model.maxY (String.toFloat player.position.y))
+    }
 
 clientIdToString : ClientId -> String
 clientIdToString clientId =
     clientId
 
-decodePlayerFootstep : String -> Maybe Player
-decodePlayerFootstep message =
-    case Json.Decode.decodeString playerFootstepDecoder message of
+decodeOriginator : String -> Maybe Player
+decodeOriginator message =
+    case Json.Decode.decodeString originatorDecoder message of
         Ok res -> Just res
         Err err -> Nothing
 
-playerFootstepDecoder : Decoder Player
-playerFootstepDecoder =
+originatorDecoder : Decoder Player
+originatorDecoder =
     ( Json.Decode.map3 Player
         ( at [ "originator", "clientId" ] clientIdDecoder )
         ( at [ "originator", "position" ] coordinatesDecoder )
@@ -299,19 +313,7 @@ anglesDecoder =
 handleMessage : Model -> String -> Model
 handleMessage model message =
     case Json.Decode.decodeString commandDecoder message of
-        -- Ok res -> appendLog message model |> handleCommand res message
-        Ok res -> appendLog
-            ( String.concat
-                ( List.map
-                    ( \p ->
-                        "p coords:" ++ p.position.x
-                        ++ p.position.y
-                        ++ p.position.z
-                    )
-                    ( Dict.values model.players )
-                )
-            )
-            model |> handleCommand res message
+        Ok res -> appendLog message model |> handleCommand res message
         Err err -> appendLog ("Received unexpected " ++ message) model
 
 decodeMessage : String -> Command
@@ -441,7 +443,7 @@ view model =
             WebSocket.isConnected model.key model.state.websocket
     in
     div
-        [ style "width" "40em"
+        [ style "width" "90%"
         , style "margin" "auto"
         , style "margin-top" "1em"
         , style "padding" "1em"
@@ -492,10 +494,17 @@ view model =
                 []
             ]
         , Svg.svg
-            [ SvgAttrs.width "500"
-            , SvgAttrs.height "500"
+            [ SvgAttrs.width "1000"
+            , SvgAttrs.height "1000"
             ]
-            (List.map playerSvg (Dict.values model.players))
+            (List.map (playerSvg model) (Dict.values model.players))
+        , p [] <|
+            List.concat
+                [ [ b "Players:"
+                  , br
+                  ]
+                , List.intersperse br (List.map text (List.map (\p -> "x: " ++ p.position.x ++ " y:" ++ p.position.y ++ " z:" ++ p.position.z) (Dict.values model.players)))
+                ]
         , p [] <|
             List.concat
                 [ [ b "Log:"
@@ -505,9 +514,9 @@ view model =
                 ]
         ]
 
-playerSvg player = Svg.circle
-    [ SvgAttrs.cx <| player.position.x
-    , SvgAttrs.cy <| player.position.y
+playerSvg model player = Svg.circle
+    [ SvgAttrs.cx <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat player.position.x)) - model.minX) * 1000 / (model.maxX - model.minX))
+    , SvgAttrs.cy <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat player.position.y)) - model.minY) * 1000 / (model.maxY - model.minY))
     , SvgAttrs.r <| "4"
     , SvgAttrs.fill "orange"
     , SvgAttrs.stroke "black"

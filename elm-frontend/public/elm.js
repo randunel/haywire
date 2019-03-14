@@ -4945,6 +4945,10 @@ var author$project$Main$init = function (_n0) {
 			error: elm$core$Maybe$Nothing,
 			key: 'socket',
 			log: _List_Nil,
+			maxX: 0,
+			maxY: 0,
+			minX: 0,
+			minY: 0,
 			players: elm$core$Dict$fromList(
 				_List_fromArray(
 					[
@@ -7146,7 +7150,7 @@ var elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
 		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
 	});
-var author$project$Main$playerFootstepDecoder = A4(
+var author$project$Main$originatorDecoder = A4(
 	elm$json$Json$Decode$map3,
 	author$project$Main$Player,
 	A2(
@@ -7165,8 +7169,8 @@ var author$project$Main$playerFootstepDecoder = A4(
 			['originator', 'orientation']),
 		author$project$Main$anglesDecoder));
 var elm$json$Json$Decode$decodeString = _Json_runOnString;
-var author$project$Main$decodePlayerFootstep = function (message) {
-	var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$playerFootstepDecoder, message);
+var author$project$Main$decodeOriginator = function (message) {
+	var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$originatorDecoder, message);
 	if (_n0.$ === 'Ok') {
 		var res = _n0.a;
 		return elm$core$Maybe$Just(res);
@@ -7178,11 +7182,44 @@ var author$project$Main$decodePlayerFootstep = function (message) {
 var author$project$Main$clientIdToString = function (clientId) {
 	return clientId;
 };
-var author$project$Main$handlePlayerFootstep = F2(
+var elm$core$Basics$min = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) < 0) ? x : y;
+	});
+var elm$core$String$toFloat = _String_toFloat;
+var author$project$Main$handlePlayerCoordinates = F2(
 	function (model, player) {
 		return _Utils_update(
 			model,
 			{
+				maxX: A2(
+					elm$core$Basics$max,
+					model.maxX,
+					A2(
+						elm$core$Maybe$withDefault,
+						model.maxX,
+						elm$core$String$toFloat(player.position.x))),
+				maxY: A2(
+					elm$core$Basics$max,
+					model.maxY,
+					A2(
+						elm$core$Maybe$withDefault,
+						model.maxY,
+						elm$core$String$toFloat(player.position.y))),
+				minX: A2(
+					elm$core$Basics$min,
+					model.minX,
+					A2(
+						elm$core$Maybe$withDefault,
+						model.minX,
+						elm$core$String$toFloat(player.position.x))),
+				minY: A2(
+					elm$core$Basics$min,
+					model.minY,
+					A2(
+						elm$core$Maybe$withDefault,
+						model.minY,
+						elm$core$String$toFloat(player.position.y))),
 				players: A3(
 					elm$core$Dict$insert,
 					author$project$Main$clientIdToString(player.clientId),
@@ -7228,10 +7265,10 @@ var author$project$Main$handleCommand = F3(
 	function (command, message, model) {
 		var _n0 = author$project$Main$stringToCommand(command);
 		if (_n0.$ === 'Player_footstep') {
-			var _n1 = author$project$Main$decodePlayerFootstep(message);
+			var _n1 = author$project$Main$decodeOriginator(message);
 			if (_n1.$ === 'Just') {
 				var player = _n1.a;
-				return A2(author$project$Main$handlePlayerFootstep, model, player);
+				return A2(author$project$Main$handlePlayerCoordinates, model, player);
 			} else {
 				return A2(author$project$Main$appendLog, message, model);
 			}
@@ -7239,19 +7276,6 @@ var author$project$Main$handleCommand = F3(
 			return model;
 		}
 	});
-var elm$core$Dict$values = function (dict) {
-	return A3(
-		elm$core$Dict$foldr,
-		F3(
-			function (key, value, valueList) {
-				return A2(elm$core$List$cons, value, valueList);
-			}),
-		_List_Nil,
-		dict);
-};
-var elm$core$String$concat = function (strings) {
-	return A2(elm$core$String$join, '', strings);
-};
 var author$project$Main$handleMessage = F2(
 	function (model, message) {
 		var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$commandDecoder, message);
@@ -7261,16 +7285,7 @@ var author$project$Main$handleMessage = F2(
 				author$project$Main$handleCommand,
 				res,
 				message,
-				A2(
-					author$project$Main$appendLog,
-					elm$core$String$concat(
-						A2(
-							elm$core$List$map,
-							function (p) {
-								return 'p coords:' + (p.position.x + (p.position.y + p.position.z));
-							},
-							elm$core$Dict$values(model.players))),
-					model));
+				A2(author$project$Main$appendLog, message, model));
 		} else {
 			var err = _n0.a;
 			return A2(author$project$Main$appendLog, 'Received unexpected ' + message, model);
@@ -7847,6 +7862,7 @@ var author$project$Main$b = function (string) {
 };
 var elm$html$Html$br = _VirtualDom_node('br');
 var author$project$Main$br = A2(elm$html$Html$br, _List_Nil, _List_Nil);
+var elm$core$String$fromFloat = _String_fromNumber;
 var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var elm$svg$Svg$circle = elm$svg$Svg$trustedNode('circle');
 var elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
@@ -7855,20 +7871,31 @@ var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
 var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
 var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
-var author$project$Main$playerSvg = function (player) {
-	return A2(
-		elm$svg$Svg$circle,
-		_List_fromArray(
-			[
-				elm$svg$Svg$Attributes$cx(player.position.x),
-				elm$svg$Svg$Attributes$cy(player.position.y),
-				elm$svg$Svg$Attributes$r('4'),
-				elm$svg$Svg$Attributes$fill('orange'),
-				elm$svg$Svg$Attributes$stroke('black'),
-				elm$svg$Svg$Attributes$strokeWidth('2')
-			]),
-		_List_Nil);
-};
+var author$project$Main$playerSvg = F2(
+	function (model, player) {
+		return A2(
+			elm$svg$Svg$circle,
+			_List_fromArray(
+				[
+					elm$svg$Svg$Attributes$cx(
+					elm$core$String$fromFloat(
+						((A2(
+							elm$core$Maybe$withDefault,
+							0,
+							elm$core$String$toFloat(player.position.x)) - model.minX) * 1000) / (model.maxX - model.minX))),
+					elm$svg$Svg$Attributes$cy(
+					elm$core$String$fromFloat(
+						((A2(
+							elm$core$Maybe$withDefault,
+							0,
+							elm$core$String$toFloat(player.position.y)) - model.minY) * 1000) / (model.maxY - model.minY))),
+					elm$svg$Svg$Attributes$r('4'),
+					elm$svg$Svg$Attributes$fill('orange'),
+					elm$svg$Svg$Attributes$stroke('black'),
+					elm$svg$Svg$Attributes$strokeWidth('2')
+				]),
+			_List_Nil);
+	});
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected = F2(
 	function (key, _n0) {
 		var state = _n0.a;
@@ -7876,6 +7903,16 @@ var billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected = F2(
 			A2(elm$core$Dict$get, key, state.socketStates),
 			elm$core$Maybe$Nothing);
 	});
+var elm$core$Dict$values = function (dict) {
+	return A3(
+		elm$core$Dict$foldr,
+		F3(
+			function (key, value, valueList) {
+				return A2(elm$core$List$cons, value, valueList);
+			}),
+		_List_Nil,
+		dict);
+};
 var elm$core$List$intersperse = F2(
 	function (sep, xs) {
 		if (!xs.b) {
@@ -7978,7 +8015,7 @@ var author$project$Main$view = function (model) {
 		elm$html$Html$div,
 		_List_fromArray(
 			[
-				A2(elm$html$Html$Attributes$style, 'width', '40em'),
+				A2(elm$html$Html$Attributes$style, 'width', '90%'),
 				A2(elm$html$Html$Attributes$style, 'margin', 'auto'),
 				A2(elm$html$Html$Attributes$style, 'margin-top', '1em'),
 				A2(elm$html$Html$Attributes$style, 'padding', '1em'),
@@ -8073,13 +8110,37 @@ var author$project$Main$view = function (model) {
 				elm$svg$Svg$svg,
 				_List_fromArray(
 					[
-						elm$svg$Svg$Attributes$width('500'),
-						elm$svg$Svg$Attributes$height('500')
+						elm$svg$Svg$Attributes$width('1000'),
+						elm$svg$Svg$Attributes$height('1000')
 					]),
 				A2(
 					elm$core$List$map,
-					author$project$Main$playerSvg,
+					author$project$Main$playerSvg(model),
 					elm$core$Dict$values(model.players))),
+				A2(
+				elm$html$Html$p,
+				_List_Nil,
+				elm$core$List$concat(
+					_List_fromArray(
+						[
+							_List_fromArray(
+							[
+								author$project$Main$b('Players:'),
+								author$project$Main$br
+							]),
+							A2(
+							elm$core$List$intersperse,
+							author$project$Main$br,
+							A2(
+								elm$core$List$map,
+								elm$html$Html$text,
+								A2(
+									elm$core$List$map,
+									function (p) {
+										return 'x: ' + (p.position.x + (' y:' + (p.position.y + (' z:' + p.position.z))));
+									},
+									elm$core$Dict$values(model.players))))
+						]))),
 				A2(
 				elm$html$Html$p,
 				_List_Nil,
