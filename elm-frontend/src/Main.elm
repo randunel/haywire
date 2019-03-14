@@ -132,11 +132,20 @@ type Command =
     | Buytime_ended
     | Cs_pre_restart
     | Decoy_firing
+    | Flashbang_detonate
+    | Grenade_bounce
+    | Hegrenade_bounce
+    | Molotov_detonate
+    | Player_activate
+    | Player_blind
     | Player_death
     | Player_footstep
     | Player_hurt
     | Player_jump
     | Player_spawn
+    | Round_freeze_end
+    | Smokegrenade_detonate
+    | Smokegrenade_expired
     | Weapon_reload
     | Weapon_zoom
     | Unknown_command
@@ -375,11 +384,20 @@ stringToCommand str =
         "buytime_ended" -> Buytime_ended
         "cs_pre_restart" -> Cs_pre_restart
         "decoy_firing" -> Decoy_firing
+        "flashbang_detonate" -> Flashbang_detonate
+        "grenade_bounce" -> Grenade_bounce
+        "hegrenade_bounce" -> Hegrenade_bounce
+        "molotov_detonate" -> Molotov_detonate
+        "player_activate" -> Player_activate
+        "player_blind" -> Player_blind
         "player_death" -> Player_death
         "player_footstep" -> Player_footstep
         "player_hurt" -> Player_hurt
         "player_jump" -> Player_jump
         "player_spawn" -> Player_spawn
+        "round_freeze_end" -> Round_freeze_end
+        "smokegrenade_detonate" -> Smokegrenade_detonate
+        "smokegrenade_expired" -> Smokegrenade_expired
         "weapon_reload" -> Weapon_reload
         "weapon_zoom" -> Weapon_zoom
         _ -> Unknown_command

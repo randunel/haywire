@@ -7265,11 +7265,20 @@ var author$project$Main$Bullet_impact = {$: 'Bullet_impact'};
 var author$project$Main$Buytime_ended = {$: 'Buytime_ended'};
 var author$project$Main$Cs_pre_restart = {$: 'Cs_pre_restart'};
 var author$project$Main$Decoy_firing = {$: 'Decoy_firing'};
+var author$project$Main$Flashbang_detonate = {$: 'Flashbang_detonate'};
+var author$project$Main$Grenade_bounce = {$: 'Grenade_bounce'};
+var author$project$Main$Hegrenade_bounce = {$: 'Hegrenade_bounce'};
+var author$project$Main$Molotov_detonate = {$: 'Molotov_detonate'};
+var author$project$Main$Player_activate = {$: 'Player_activate'};
+var author$project$Main$Player_blind = {$: 'Player_blind'};
 var author$project$Main$Player_death = {$: 'Player_death'};
 var author$project$Main$Player_footstep = {$: 'Player_footstep'};
 var author$project$Main$Player_hurt = {$: 'Player_hurt'};
 var author$project$Main$Player_jump = {$: 'Player_jump'};
 var author$project$Main$Player_spawn = {$: 'Player_spawn'};
+var author$project$Main$Round_freeze_end = {$: 'Round_freeze_end'};
+var author$project$Main$Smokegrenade_detonate = {$: 'Smokegrenade_detonate'};
+var author$project$Main$Smokegrenade_expired = {$: 'Smokegrenade_expired'};
 var author$project$Main$Unknown_command = {$: 'Unknown_command'};
 var author$project$Main$Weapon_reload = {$: 'Weapon_reload'};
 var author$project$Main$Weapon_zoom = {$: 'Weapon_zoom'};
@@ -7283,6 +7292,18 @@ var author$project$Main$stringToCommand = function (str) {
 			return author$project$Main$Cs_pre_restart;
 		case 'decoy_firing':
 			return author$project$Main$Decoy_firing;
+		case 'flashbang_detonate':
+			return author$project$Main$Flashbang_detonate;
+		case 'grenade_bounce':
+			return author$project$Main$Grenade_bounce;
+		case 'hegrenade_bounce':
+			return author$project$Main$Hegrenade_bounce;
+		case 'molotov_detonate':
+			return author$project$Main$Molotov_detonate;
+		case 'player_activate':
+			return author$project$Main$Player_activate;
+		case 'player_blind':
+			return author$project$Main$Player_blind;
 		case 'player_death':
 			return author$project$Main$Player_death;
 		case 'player_footstep':
@@ -7293,6 +7314,12 @@ var author$project$Main$stringToCommand = function (str) {
 			return author$project$Main$Player_jump;
 		case 'player_spawn':
 			return author$project$Main$Player_spawn;
+		case 'round_freeze_end':
+			return author$project$Main$Round_freeze_end;
+		case 'smokegrenade_detonate':
+			return author$project$Main$Smokegrenade_detonate;
+		case 'smokegrenade_expired':
+			return author$project$Main$Smokegrenade_expired;
 		case 'weapon_reload':
 			return author$project$Main$Weapon_reload;
 		case 'weapon_zoom':
