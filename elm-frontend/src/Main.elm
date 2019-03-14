@@ -113,12 +113,24 @@ init _ =
 
 type alias Player =
     { clientId : ClientId
+    , coordinates : PlayerCoordinates
+    , aliveState : AliveState
+    }
+
+type AliveState = Alive
+    | Dead
+    | Unknown
+
+type alias PlayerCoordinates =
+    { clientId : ClientId
     , position : Coordinates
     , orientation : Angles
     }
 
 type Command =
     Bullet_impact
+    | Buytime_ended
+    | Cs_pre_restart
     | Decoy_firing
     | Player_death
     | Player_footstep
@@ -263,44 +275,74 @@ handleCommand : String -> String -> Model -> Model
 handleCommand command message model =
     case stringToCommand command of
         Player_footstep -> case (decodeOriginator message) of
-            Just player -> handlePlayerCoordinates model player
+            Just playerCoords -> handlePlayerCoordinates model playerCoords Alive
             Nothing -> appendLog message model
         Player_jump -> case (decodeOriginator message) of
-            Just player -> handlePlayerCoordinates model player
+            Just playerCoords -> handlePlayerCoordinates model playerCoords Alive
             Nothing -> appendLog message model
         Player_spawn -> case (decodeOriginator message) of
-            Just player -> handlePlayerCoordinates model player
+            Just playerCoords -> handlePlayerCoordinates model playerCoords Alive
             Nothing -> appendLog message model
         Weapon_reload -> case (decodeOriginator message) of
-            Just player -> handlePlayerCoordinates model player
+            Just playerCoords -> handlePlayerCoordinates model playerCoords Alive
             Nothing -> appendLog message model
         Weapon_zoom -> case (decodeOriginator message) of
-            Just player -> handlePlayerCoordinates model player
+            Just playerCoords -> handlePlayerCoordinates model playerCoords Alive
             Nothing -> appendLog message model
         Bullet_impact -> case (decodeOriginator message) of
-            Just player -> handlePlayerCoordinates model player
+            Just playerCoords -> handlePlayerCoordinates model playerCoords Alive
+            Nothing -> appendLog message model
+        Player_hurt -> case (decodeVictimAttacker message) of
+            Just (victim, attacker) -> handlePlayerCoordinates (handlePlayerCoordinates model victim Alive) attacker Alive
+            Nothing -> appendLog message model
+        Player_death -> case (decodeVictimAttacker message) of
+            Just (victim, attacker) -> handlePlayerCoordinates (handlePlayerCoordinates model victim Dead) attacker Alive
             Nothing -> appendLog message model
         _ -> appendLog message model
 
-handlePlayerCoordinates : Model -> Player -> Model
-handlePlayerCoordinates model player =
+handlePlayerCoordinates : Model -> PlayerCoordinates -> AliveState -> Model
+handlePlayerCoordinates model playerCoords aliveState =
     {
-        model | players = Dict.insert player.clientId player model.players
-        , minX = min model.minX (Maybe.withDefault model.minX (String.toFloat player.position.x))
-        , minY = min model.minY (Maybe.withDefault model.minY (String.toFloat player.position.y))
-        , maxX = max model.maxX (Maybe.withDefault model.maxX (String.toFloat player.position.x))
-        , maxY = max model.maxY (Maybe.withDefault model.maxY (String.toFloat player.position.y))
+        model | players = Dict.insert playerCoords.clientId (Player playerCoords.clientId playerCoords aliveState) model.players
+        , minX = min model.minX (Maybe.withDefault model.minX (String.toFloat playerCoords.position.x))
+        , minY = min model.minY (Maybe.withDefault model.minY (String.toFloat playerCoords.position.y))
+        , maxX = max model.maxX (Maybe.withDefault model.maxX (String.toFloat playerCoords.position.x))
+        , maxY = max model.maxY (Maybe.withDefault model.maxY (String.toFloat playerCoords.position.y))
     }
 
-decodeOriginator : String -> Maybe Player
+decodeVictimAttacker : String -> Maybe (PlayerCoordinates, PlayerCoordinates)
+decodeVictimAttacker message =
+    case Json.Decode.decodeString victimDecoder message of
+        Ok victim -> case Json.Decode.decodeString attackerDecoder message of
+            Ok attacker -> Just (victim, attacker)
+            Err err -> Nothing
+        Err err -> Nothing
+
+victimDecoder : Decoder PlayerCoordinates
+victimDecoder =
+    ( Json.Decode.map3 PlayerCoordinates
+        ( at [ "victim", "clientId" ] clientIdDecoder )
+        ( at [ "victim", "position" ] coordinatesDecoder )
+        ( at [ "victim", "orientation" ] anglesDecoder )
+    )
+
+attackerDecoder : Decoder PlayerCoordinates
+attackerDecoder =
+    ( Json.Decode.map3 PlayerCoordinates
+        ( at [ "attacker", "clientId" ] clientIdDecoder )
+        ( at [ "attacker", "position" ] coordinatesDecoder )
+        ( at [ "attacker", "orientation" ] anglesDecoder )
+    )
+
+decodeOriginator : String -> Maybe PlayerCoordinates
 decodeOriginator message =
     case Json.Decode.decodeString originatorDecoder message of
         Ok res -> Just res
         Err err -> Nothing
 
-originatorDecoder : Decoder Player
+originatorDecoder : Decoder PlayerCoordinates
 originatorDecoder =
-    ( Json.Decode.map3 Player
+    ( Json.Decode.map3 PlayerCoordinates
         ( at [ "originator", "clientId" ] clientIdDecoder )
         ( at [ "originator", "position" ] coordinatesDecoder )
         ( at [ "originator", "orientation" ] anglesDecoder )
@@ -330,6 +372,8 @@ stringToCommand : String -> Command
 stringToCommand str =
     case str of
         "bullet_impact" -> Bullet_impact
+        "buytime_ended" -> Buytime_ended
+        "cs_pre_restart" -> Cs_pre_restart
         "decoy_firing" -> Decoy_firing
         "player_death" -> Player_death
         "player_footstep" -> Player_footstep
@@ -491,7 +535,7 @@ view model =
                 [ [ b "Players:"
                   , br
                   ]
-                , List.intersperse br (List.map text (List.map (\p -> "clientId:" ++ p.clientId ++ " x:" ++ p.position.x ++ " y:" ++ p.position.y ++ " z:" ++ p.position.z) (Dict.values model.players)))
+                , List.intersperse br (List.map text (List.map (\p -> "clientId:" ++ p.clientId ++ " x:" ++ p.coordinates.position.x ++ " y:" ++ p.coordinates.position.y ++ " z:" ++ p.coordinates.position.z) (Dict.values model.players)))
                 ]
         , p [] <|
             List.concat
@@ -503,9 +547,12 @@ view model =
         ]
 
 playerSvg model player = Svg.circle
-    [ SvgAttrs.cx <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat player.position.x)) - model.minX) * 800 / (model.maxX - model.minX))
-    , SvgAttrs.cy <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat player.position.y)) - model.minY) * 800 / (model.maxY - model.minY))
-    , SvgAttrs.r <| "4"
+    [ SvgAttrs.cx <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat player.coordinates.position.x)) - model.minX) * 800 / (model.maxX - model.minX))
+    , SvgAttrs.cy <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat player.coordinates.position.y)) - model.minY) * 800 / (model.maxY - model.minY))
+    , SvgAttrs.r <| case player.aliveState of
+        Alive -> "5"
+        Dead -> "2"
+        Unknown -> "5"
     , SvgAttrs.fill "orange"
     , SvgAttrs.stroke "black"
     , SvgAttrs.strokeWidth "2"
