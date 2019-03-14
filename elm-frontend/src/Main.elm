@@ -245,13 +245,19 @@ doIsLoaded model =
     else
         model
 
-commandDecoder : Decoder String
-commandDecoder =
-    field "command" string
-
 appendLog : String -> Model -> Model
 appendLog str model =
     { model | log = str :: model.log }
+
+handleMessage : Model -> String -> Model
+handleMessage model message =
+    case Json.Decode.decodeString commandDecoder message of
+        Ok res -> handleCommand res message model
+        Err err -> appendLog ("Received unexpected " ++ message) model
+
+commandDecoder : Decoder String
+commandDecoder =
+    field "command" string
 
 handleCommand : String -> String -> Model -> Model
 handleCommand command message model =
@@ -259,7 +265,22 @@ handleCommand command message model =
         Player_footstep -> case (decodeOriginator message) of
             Just player -> handlePlayerCoordinates model player
             Nothing -> appendLog message model
-        _ -> model
+        Player_jump -> case (decodeOriginator message) of
+            Just player -> handlePlayerCoordinates model player
+            Nothing -> appendLog message model
+        Player_spawn -> case (decodeOriginator message) of
+            Just player -> handlePlayerCoordinates model player
+            Nothing -> appendLog message model
+        Weapon_reload -> case (decodeOriginator message) of
+            Just player -> handlePlayerCoordinates model player
+            Nothing -> appendLog message model
+        Weapon_zoom -> case (decodeOriginator message) of
+            Just player -> handlePlayerCoordinates model player
+            Nothing -> appendLog message model
+        Bullet_impact -> case (decodeOriginator message) of
+            Just player -> handlePlayerCoordinates model player
+            Nothing -> appendLog message model
+        _ -> appendLog message model
 
 handlePlayerCoordinates : Model -> Player -> Model
 handlePlayerCoordinates model player =
@@ -305,18 +326,6 @@ anglesDecoder =
         ( field "ang2" string )
     )
 
-handleMessage : Model -> String -> Model
-handleMessage model message =
-    case Json.Decode.decodeString commandDecoder message of
-        Ok res -> handleCommand res message model
-        Err err -> appendLog ("Received unexpected " ++ message) model
-
-decodeMessage : String -> Command
-decodeMessage message =
-    case Json.Decode.decodeString commandDecoder message of
-        Ok res -> stringToCommand res
-        Err err -> Unknown_command
-
 stringToCommand : String -> Command
 stringToCommand str =
     case str of
@@ -331,20 +340,6 @@ stringToCommand str =
         "weapon_zoom" -> Weapon_zoom
         _ -> Unknown_command
 
-commandToString : Command -> String
-commandToString cmd =
-    case cmd of
-        Bullet_impact -> "bullet_impact"
-        Decoy_firing -> "decoy_firing"
-        Player_death -> "player_death"
-        Player_footstep-> "player_footstep"
-        Player_hurt -> "player_hurt"
-        Player_jump -> "player_jump"
-        Player_spawn -> "player_spawn"
-        Weapon_reload -> "weapon_reload"
-        Weapon_zoom -> "weapon_zoom"
-        Unknown_command -> "unknown_c"
-
 socketHandler : Response -> State -> Model -> ( Model, Cmd Msg )
 socketHandler response state mdl =
     let
@@ -357,8 +352,6 @@ socketHandler response state mdl =
     in
     case response of
         WebSocket.MessageReceivedResponse { message } ->
-            -- { model | log = ("Received \"" ++ (Result.withDefault "asd" (Json.Decode.decodeString commandDecoder message)) ++ "\"") :: model.log }
-            -- { model | log = ("Received \"" ++ commandToString (decodeMessage message) ++ "\"") :: model.log }
             handleMessage model message
                 |> withNoCmd
 

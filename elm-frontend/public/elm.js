@@ -7234,16 +7234,57 @@ var author$project$Main$stringToCommand = function (str) {
 var author$project$Main$handleCommand = F3(
 	function (command, message, model) {
 		var _n0 = author$project$Main$stringToCommand(command);
-		if (_n0.$ === 'Player_footstep') {
-			var _n1 = author$project$Main$decodeOriginator(message);
-			if (_n1.$ === 'Just') {
-				var player = _n1.a;
-				return A2(author$project$Main$handlePlayerCoordinates, model, player);
-			} else {
+		switch (_n0.$) {
+			case 'Player_footstep':
+				var _n1 = author$project$Main$decodeOriginator(message);
+				if (_n1.$ === 'Just') {
+					var player = _n1.a;
+					return A2(author$project$Main$handlePlayerCoordinates, model, player);
+				} else {
+					return A2(author$project$Main$appendLog, message, model);
+				}
+			case 'Player_jump':
+				var _n2 = author$project$Main$decodeOriginator(message);
+				if (_n2.$ === 'Just') {
+					var player = _n2.a;
+					return A2(author$project$Main$handlePlayerCoordinates, model, player);
+				} else {
+					return A2(author$project$Main$appendLog, message, model);
+				}
+			case 'Player_spawn':
+				var _n3 = author$project$Main$decodeOriginator(message);
+				if (_n3.$ === 'Just') {
+					var player = _n3.a;
+					return A2(author$project$Main$handlePlayerCoordinates, model, player);
+				} else {
+					return A2(author$project$Main$appendLog, message, model);
+				}
+			case 'Weapon_reload':
+				var _n4 = author$project$Main$decodeOriginator(message);
+				if (_n4.$ === 'Just') {
+					var player = _n4.a;
+					return A2(author$project$Main$handlePlayerCoordinates, model, player);
+				} else {
+					return A2(author$project$Main$appendLog, message, model);
+				}
+			case 'Weapon_zoom':
+				var _n5 = author$project$Main$decodeOriginator(message);
+				if (_n5.$ === 'Just') {
+					var player = _n5.a;
+					return A2(author$project$Main$handlePlayerCoordinates, model, player);
+				} else {
+					return A2(author$project$Main$appendLog, message, model);
+				}
+			case 'Bullet_impact':
+				var _n6 = author$project$Main$decodeOriginator(message);
+				if (_n6.$ === 'Just') {
+					var player = _n6.a;
+					return A2(author$project$Main$handlePlayerCoordinates, model, player);
+				} else {
+					return A2(author$project$Main$appendLog, message, model);
+				}
+			default:
 				return A2(author$project$Main$appendLog, message, model);
-			}
-		} else {
-			return model;
 		}
 	});
 var author$project$Main$handleMessage = F2(
