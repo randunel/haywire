@@ -12,5 +12,8 @@
     "express": "^4.16.4",
     "srcds-log": "file:../node-srcds-log",
     "ws": "^6.1.4"
+  },
+  "devDependencies": {
+    "eslint-config-ub": "^3.0.0"
   }
 }

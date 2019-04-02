@@ -10,9 +10,9 @@ const parseLogLine = require('./parser');
 const app = express();
 const PORT = 3000;
 
-app.use('/', express.static(path.join(__dirname, 'elm-frontend/build')));
+app.use('/', express.static(path.join(__dirname, 'elm-frontend/public')));
 
-const server = http.createServer(app)
+const server = http.createServer(app);
 const wss = new ws.Server({ server });
 
 wss.on('connection', (socket, req) => {
@@ -20,23 +20,23 @@ wss.on('connection', (socket, req) => {
     socket.send('hello from node', { asd: 'qq' });
 });
 
-server.listen(PORT, () => console.log(`listening on ${PORT}`));
+server.listen(PORT, '0.0.0.0', () => console.log(`listening on ${PORT}`));
 
 const cs = new SrcdsLogger({
     port: 3333,
-    address: '127.0.0.1',
+    address: '0.0.0.0',
     type: 'udp4'
 });
 
 cs.on('data', data => {
     const { result, err } = parseLogLine(data);
     if (err) {
-        console.log(err, '\nCould not parse\n', data);
-    } else {
-        wss.clients.forEach(client => {
-            if (client.readyState === ws.OPEN) {
-                client.send(JSON.stringify(result));
-            }
-        });
+        console.log('\nCould not parse\n', data);
+        return;
     }
+    wss.clients.forEach(client => {
+        if (client.readyState === ws.OPEN) {
+            client.send(JSON.stringify(result));
+        }
+    });
 });

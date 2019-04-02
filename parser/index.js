@@ -2,6 +2,69 @@
 
 const haywireIterator = require('./iterator');
 
+const PARSERS = {
+    'bullet_impact': {
+        '1': [userCoords('originator'), coordinates('impact')]
+    },
+    'buytime_ended': {
+        '1': []
+    },
+    'cs_pre_restart': {
+        '1': []
+    },
+    'decoy_firing': {
+        '1': [userCoords('originator'), entity('decoy')]
+    },
+    'flashbang_detonate': {
+        '1': [userCoords('originator'), entity('flashbang_detonate')]
+    },
+    'grenade_bounce': {
+        '1': [userCoords('originator')]
+    },
+    'hegrenade_detonate': {
+        '1': [userCoords('originator'), entity('hegrenade_detonate')]
+    },
+    'molotov_detonate': {
+        '1': [userCoords('originator'), entity('molotov_detonate')]
+    },
+    'player_activate': {
+        '1': [userCoords('originator')]
+    },
+    'player_blind': {
+        '1': [userCoords('originator')]
+    },
+    'player_death': {
+        '1': [userCoords('victim'), userCoords('attacker')]
+    },
+    'player_footstep': {
+        '1': [userCoords('originator')]
+    },
+    'player_hurt': {
+        '1': [userCoords('victim'), userCoords('attacker'), int('health')]
+    },
+    'player_jump': {
+        '1': [userCoords('originator')]
+    },
+    'player_spawn': {
+        '1': [userCoords('originator')]
+    },
+    'round_freeze_end': {
+        '1': []
+    },
+    'smokegrenade_detonate': {
+        '1': [userCoords('originator'), entity('smokegrenade_detonate')]
+    },
+    'smokegrenade_expired': {
+        '1': [userCoords('originator'), entity('smokegrenade_expired')]
+    },
+    'weapon_reload': {
+        '1': [userCoords('originator')]
+    },
+    'weapon_zoom': {
+        '1': [userCoords('originator')]
+    }
+};
+
 module.exports = function parseLogLine(data) {
     if (data.indexOf('HW->') < 0) {
         // TODO: use other parser
@@ -28,71 +91,8 @@ module.exports = function parseLogLine(data) {
     const result = parser[version]
         .reduce((prev, fn) => Object.assign(prev, fn(iterator)), { command });
     // console.log('result', result);
-    return result;
+    return { result };
 };
-
-const PARSERS = {
-    'bullet_impact': {
-        '1': [ userCoords('originator'), coordinates('impact') ]
-    },
-    'buytime_ended': {
-        '1': []
-    },
-    'cs_pre_restart': {
-        '1': []
-    },
-    'decoy_firing': {
-        '1': [ userCoords('originator'), entity('decoy') ]
-    },
-    'flashbang_detonate': {
-        '1': [ userCoords('originator'), entity('flashbang_detonate') ]
-    },
-    'grenade_bounce': {
-        '1': [ userCoords('originator') ]
-    },
-    'hegrenade_detonate': {
-        '1': [ userCoords('originator'), entity('hegrenade_detonate') ]
-    },
-    'molotov_detonate': {
-        '1': [ userCoords('originator'), entity('molotov_detonate') ]
-    },
-    'player_activate': {
-        '1': [ userCoords('originator') ]
-    },
-    'player_blind': {
-        '1': [ userCoords('originator') ]
-    },
-    'player_death': {
-        '1': [ userCoords('victim'), userCoords('attacker') ]
-    },
-    'player_footstep': {
-        '1': [ userCoords('originator') ]
-    },
-    'player_hurt': {
-        '1': [ userCoords('victim'), userCoords('attacker'), int('health') ]
-    },
-    'player_jump': {
-        '1': [ userCoords('originator') ]
-    },
-    'player_spawn': {
-        '1': [ userCoords('originator') ]
-    },
-    'round_freeze_end': {
-        '1': []
-    },
-    'smokegrenade_detonate': {
-        '1': [ userCoords('originator'), entity('smokegrenade_detonate') ]
-    },
-    'smokegrenade_expired': {
-        '1': [ userCoords('originator'), entity('smokegrenade_expired') ]
-    },
-    'weapon_reload': {
-        '1': [ userCoords('originator') ]
-    },
-    'weapon_zoom': {
-        '1': [ userCoords('originator') ]
-    },
-}
 
 function userCoords(type) {
     return function parseUserCoords(iterator) {
@@ -129,7 +129,7 @@ function coordinates(type) {
         const [x, y, z] = iterator.next().value.split(',');
         const result = {};
         result[type] = {
-            position: { x, y, z },
+            position: { x, y, z }
         };
         return result;
     };
