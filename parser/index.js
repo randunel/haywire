@@ -40,7 +40,7 @@ const PARSERS = {
         '1': [userCoords('originator')]
     },
     'player_death': {
-        '1': [userCoords('victim'), userCoords('attacker')]
+        '1': [userCoords('victim'), team('victim'), userCoords('attacker'), team('attacker'), name('victim')]
     },
     'player_footstep': {
         '1': [userCoords('originator')]
@@ -95,7 +95,7 @@ module.exports = function parseLogLine(data) {
         return { result: null, err };
     }
     const result = parser[version]
-        .reduce((prev, fn) => Object.assign(prev, fn(iterator)), { command });
+        .reduce((prev, fn) => mergeDeep(prev, fn(iterator)), { command });
     // console.log('result', result);
     return { result };
 };
@@ -150,6 +150,24 @@ function healthArmour(type) {
     };
 }
 
+function team(type) {
+    return function parseInt(iterator) {
+        const team = iterator.next().value;
+        const result = {};
+        result[type] = { team };
+        return result;
+    };
+}
+
+function name(type) {
+    return function parseInt(iterator) {
+        const name = iterator.next().value;
+        const result = {};
+        result[type] = { name };
+        return result;
+    };
+}
+
 function int(type) {
     return function parseInt(iterator) {
         const number = iterator.next().value;
@@ -157,4 +175,31 @@ function int(type) {
         result[type] = number;
         return result;
     };
+}
+
+function isObject(item) {
+    return (item && typeof item === 'object' && !Array.isArray(item));
+}
+
+function mergeDeep(target, ...sources) {
+    if (!sources.length) {
+        return target;
+    }
+
+    const source = sources.shift();
+
+    if (isObject(target) && isObject(source)) {
+        for (const key in source) {
+            if (isObject(source[key])) {
+                if (!target[key]) {
+                    Object.assign(target, { [key]: {} });
+                }
+                mergeDeep(target[key], source[key]);
+            } else {
+                Object.assign(target, { [key]: source[key] });
+            }
+        }
+    }
+
+    return mergeDeep(target, ...sources);
 }

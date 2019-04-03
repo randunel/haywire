@@ -82,10 +82,17 @@ HookEvents() {
 }
 
 public Action:HandleUserAttacker(Handle:event, const String:eventName[], bool:dontBroadcast) {
-    new player = GetClientOfUserId(GetEventInt(event, "userid"));
-    new attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
-    // char steamId[32];
-    // new player = GetClientAuthId(GetClientOfUserId(GetEventInt(event, "userid")), AuthId_SteamID64, steamId, sizeof(steamId));
+    new playerUserId = GetEventInt(event, "userid");
+    new player = GetClientOfUserId(playerUserId);
+    new attackerUserId = GetEventInt(event, "attacker");
+    new attacker = GetClientOfUserId(attackerUserId);
+
+    decl String:playerName[32];
+    GetClientName(player, playerName, sizeof(playerName));
+    new playerTeam = GetClientTeam(player);
+    // decl String:attackerName[32];
+    // GetClientName(attacker, attackerName, sizeof(attackerName));
+    new attackerTeam = GetClientTeam(attacker);
 
     new Float:playerCoords[3];
     GetClientAbsOrigin(player, Float:playerCoords);
@@ -95,22 +102,26 @@ public Action:HandleUserAttacker(Handle:event, const String:eventName[], bool:do
     GetClientAbsOrigin(attacker, Float:attackerCoords);
     new Float:attackerAngles[3];
     GetClientEyeAngles(attacker, Float:attackerAngles);
-    LogToGame("HW->%s->1->%d->%f,%f,%f->%f,%f,%f->%d->%f,%f,%f->%f,%f,%f",
+
+    LogToGame("HW->%s->1->%d->%f,%f,%f->%f,%f,%f->%d->%d->%f,%f,%f->%f,%f,%f->%d->%s",
         eventName,
-        GetEventInt(event, "userid"),
+        playerUserId,
         playerCoords[0],
         playerCoords[1],
         playerCoords[2],
         playerAngles[0],
         playerAngles[1],
         playerAngles[2],
-        GetEventInt(event, "attacker"),
+        playerTeam,
+        attackerUserId,
         attackerCoords[0],
         attackerCoords[1],
         attackerCoords[2],
         attackerAngles[0],
         attackerAngles[1],
-        attackerAngles[2]
+        attackerAngles[2],
+        attackerTeam,
+        playerName
     );
     return Plugin_Handled;
 }
