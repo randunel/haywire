@@ -34,7 +34,6 @@ HookEvents() {
     HookEvent("player_spawn", HandleSimpleUserid);
     HookEvent("silencer_off", HandleSimpleUserid);
     HookEvent("silencer_on", HandleSimpleUserid);
-    HookEvent("grenade_bounce", HandleSimpleUserid);
     HookEvent("player_footstep", HandleSimpleUserid);
     HookEvent("player_jump", HandleSimpleUserid);
     HookEvent("player_blind", HandleSimpleUserid);
@@ -65,6 +64,7 @@ HookEvents() {
     HookEvent("bomb_dropped", HandleUserEntity);
     HookEvent("hegrenade_detonate", HandleUserEntity);
     HookEvent("flashbang_detonate", HandleUserEntity);
+    HookEvent("grenade_bounce", HandleUserEntity);
     HookEvent("smokegrenade_detonate", HandleUserEntity);
     HookEvent("smokegrenade_expired", HandleUserEntity);
     HookEvent("molotov_detonate", HandleUserEntity); // TEST, it may need custom handler
@@ -119,6 +119,10 @@ public Action:HandleUserAttackerHealth(Handle:event, const String:eventName[], b
     new player = GetClientOfUserId(GetEventInt(event, "userid"));
     new attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
     new health = GetEventInt(event, "health");
+    new armor = GetEventInt(event, "armor");
+    new dmg_health = GetEventInt(event, "dmg_health");
+    new dmg_armor = GetEventInt(event, "dmg_armor");
+    new hitgroup = GetEventInt(event, "hitgroup");
     // char steamId[32];
     // new player = GetClientAuthId(GetClientOfUserId(GetEventInt(event, "userid")), AuthId_SteamID64, steamId, sizeof(steamId));
 
@@ -130,7 +134,7 @@ public Action:HandleUserAttackerHealth(Handle:event, const String:eventName[], b
     GetClientAbsOrigin(attacker, Float:attackerCoords);
     new Float:attackerAngles[3];
     GetClientEyeAngles(attacker, Float:attackerAngles);
-    LogToGame("HW->%s->1->%d->%f,%f,%f->%f,%f,%f->%d->%f,%f,%f->%f,%f,%f->%d",
+    LogToGame("HW->%s->1->%d->%f,%f,%f->%f,%f,%f->%d->%f,%f,%f->%f,%f,%f->%d,%d->%d,%d->%d",
         eventName,
         GetEventInt(event, "userid"),
         playerCoords[0],
@@ -146,7 +150,11 @@ public Action:HandleUserAttackerHealth(Handle:event, const String:eventName[], b
         attackerAngles[0],
         attackerAngles[1],
         attackerAngles[2],
-        health
+        health,
+        armor,
+        dmg_health,
+        dmg_armor,
+        hitgroup
     );
     return Plugin_Handled;
 }

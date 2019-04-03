@@ -31,6 +31,9 @@ const cs = new SrcdsLogger({
 cs.on('data', data => {
     const { result, err } = parseLogLine(data);
     if (err) {
+        if (err.message === 'NonHaywireData') {
+            return;
+        }
         console.log('\nCould not parse\n', data);
         return;
     }

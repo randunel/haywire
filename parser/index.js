@@ -12,14 +12,20 @@ const PARSERS = {
     'cs_pre_restart': {
         '1': []
     },
+    'decoy_detonate': {
+        '1': [userCoords('originator'), entity('decoy')]
+    },
     'decoy_firing': {
+        '1': [userCoords('originator'), entity('decoy')]
+    },
+    'decoy_started': {
         '1': [userCoords('originator'), entity('decoy')]
     },
     'flashbang_detonate': {
         '1': [userCoords('originator'), entity('flashbang_detonate')]
     },
     'grenade_bounce': {
-        '1': [userCoords('originator')]
+        '1': [userCoords('originator'), entity('grenade_bounce')]
     },
     'hegrenade_detonate': {
         '1': [userCoords('originator'), entity('hegrenade_detonate')]
@@ -40,7 +46,7 @@ const PARSERS = {
         '1': [userCoords('originator')]
     },
     'player_hurt': {
-        '1': [userCoords('victim'), userCoords('attacker'), int('health')]
+        '1': [userCoords('victim'), userCoords('attacker'), healthArmour('remaining'), healthArmour('damage'), int('hitbox')]
     },
     'player_jump': {
         '1': [userCoords('originator')]
@@ -131,6 +137,15 @@ function coordinates(type) {
         result[type] = {
             position: { x, y, z }
         };
+        return result;
+    };
+}
+
+function healthArmour(type) {
+    return function parseHA(iterator) {
+        const [health, armour] = iterator.next().value.split(',');
+        const result = {};
+        result[type] = { health, armour };
         return result;
     };
 }
