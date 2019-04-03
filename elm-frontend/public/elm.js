@@ -4808,7 +4808,7 @@ var billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState = billstc
 var author$project$PortFunnels$initialState = {websocket: billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState};
 var author$project$Main$init = function (_n0) {
 	return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
-		{bullets: _List_Nil, entities: elm$core$Dict$empty, error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, maxX: 0, maxY: 0, minX: 0, minY: 0, players: elm$core$Dict$empty, send: 'Hello World!', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, wasLoaded: false});
+		{bullets: elm$core$Dict$empty, entities: elm$core$Dict$empty, error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, maxX: 0, maxY: 0, minX: 0, minY: 0, players: elm$core$Dict$empty, send: 'Hello World!', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, wasLoaded: false});
 };
 var author$project$Main$Process = function (a) {
 	return {$: 'Process', a: a};
@@ -7099,9 +7099,10 @@ var author$project$Main$appendLog = F2(
 	});
 var author$project$Main$commandDecoder = A2(elm$json$Json$Decode$field, 'command', elm$json$Json$Decode$string);
 var author$project$Main$Alive = {$: 'Alive'};
-var author$project$Main$Bullet = function (coordinates) {
-	return {coordinates: coordinates};
-};
+var author$project$Main$Bullet = F2(
+	function (coordinates, id) {
+		return {coordinates: coordinates, id: id};
+	});
 var author$project$Main$Dead = {$: 'Dead'};
 var author$project$Main$Unknown = {$: 'Unknown'};
 var author$project$Main$PlayerCoordinates = F3(
@@ -7245,6 +7246,9 @@ var author$project$Main$decodeVictimAttacker = function (message) {
 		return elm$core$Maybe$Nothing;
 	}
 };
+var author$project$Main$getBulletId = function (coordinates) {
+	return 'bullet-' + (coordinates.x + ('-' + (coordinates.y + ('-' + coordinates.z))));
+};
 var elm$core$Basics$min = F2(
 	function (x, y) {
 		return (_Utils_cmp(x, y) < 0) ? x : y;
@@ -7255,7 +7259,7 @@ var author$project$Main$handleBulletImpact = F2(
 		return _Utils_update(
 			model,
 			{
-				bullets: A2(elm$core$List$cons, bullet, model.bullets),
+				bullets: A3(elm$core$Dict$insert, bullet.id, bullet, model.bullets),
 				maxX: A2(
 					elm$core$Basics$max,
 					model.maxX,
@@ -7437,7 +7441,10 @@ var author$project$Main$handleCommand = F3(
 						A2(
 							author$project$Main$handleBulletImpact,
 							model,
-							author$project$Main$Bullet(position.position)),
+							A2(
+								author$project$Main$Bullet,
+								position.position,
+								author$project$Main$getBulletId(position.position))),
 						playerCoords,
 						author$project$Main$Alive);
 				} else {
@@ -7574,7 +7581,7 @@ var author$project$Main$handleCommand = F3(
 			case 'Round_freeze_end':
 				return _Utils_update(
 					model,
-					{bullets: _List_Nil});
+					{bullets: elm$core$Dict$empty});
 			case 'Smokegrenade_detonate':
 				var _n19 = author$project$Main$decodeOriginator(message);
 				if (_n19.$ === 'Just') {
@@ -8140,7 +8147,7 @@ var author$project$Main$update = F2(
 						{
 							log: A2(elm$core$List$cons, 'Closing', model.log)
 						}));
-			default:
+			case 'Process':
 				var value = msg.a;
 				var _n1 = A4(author$project$PortFunnels$processValue, author$project$Main$funnelDict, value, model.state, model);
 				if (_n1.$ === 'Err') {
@@ -8155,6 +8162,14 @@ var author$project$Main$update = F2(
 					var res = _n1.a;
 					return res;
 				}
+			default:
+				var animationEndEvent = msg.a;
+				return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
+					_Utils_update(
+						model,
+						{
+							log: A2(elm$core$List$cons, 'animationEndEvent ' + animationEndEvent.id, model.log)
+						}));
 		}
 	});
 var author$project$Main$Close = {$: 'Close'};
@@ -8193,13 +8208,37 @@ var author$project$Main$b = function (string) {
 };
 var elm$html$Html$br = _VirtualDom_node('br');
 var author$project$Main$br = A2(elm$html$Html$br, _List_Nil, _List_Nil);
+var author$project$Main$OnBulletAnimationEnd = function (a) {
+	return {$: 'OnBulletAnimationEnd', a: a};
+};
+var author$project$Main$AnimationEndEvent = function (id) {
+	return {id: id};
+};
+var author$project$Main$decodeAnimationEndEvent = A2(
+	elm$json$Json$Decode$map,
+	author$project$Main$AnimationEndEvent,
+	A2(elm$json$Json$Decode$field, 'id', elm$json$Json$Decode$string));
 var elm$core$String$fromFloat = _String_fromNumber;
 var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var elm$svg$Svg$circle = elm$svg$Svg$trustedNode('circle');
 var elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
 var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
+var elm$svg$Svg$Attributes$id = _VirtualDom_attribute('id');
 var elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
+var elm$svg$Svg$Attributes$style = _VirtualDom_attribute('style');
+var elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var elm$svg$Svg$Events$on = elm$html$Html$Events$on;
 var author$project$Main$bulletsSvg = F2(
 	function (model, bullet) {
 		return A2(
@@ -8219,7 +8258,13 @@ var author$project$Main$bulletsSvg = F2(
 							0,
 							elm$core$String$toFloat(bullet.coordinates.y)) - model.minY) * 800) / (model.maxY - model.minY))),
 					elm$svg$Svg$Attributes$r('1'),
-					elm$svg$Svg$Attributes$fill('black')
+					elm$svg$Svg$Attributes$fill('black'),
+					elm$svg$Svg$Attributes$id(bullet.id),
+					A2(
+					elm$svg$Svg$Events$on,
+					'animationend',
+					A2(elm$json$Json$Decode$map, author$project$Main$OnBulletAnimationEnd, author$project$Main$decodeAnimationEndEvent)),
+					elm$svg$Svg$Attributes$style('opacity: 1; visbility: visible')
 				]),
 			_List_Nil);
 	});
@@ -8327,17 +8372,6 @@ var elm$html$Html$Attributes$stringProperty = F2(
 	});
 var elm$html$Html$Attributes$type_ = elm$html$Html$Attributes$stringProperty('type');
 var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
-var elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			elm$virtual_dom$VirtualDom$on,
-			event,
-			elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
 var elm$html$Html$Events$onClick = function (msg) {
 	return A2(
 		elm$html$Html$Events$on,
@@ -8486,7 +8520,7 @@ var author$project$Main$view = function (model) {
 					A2(
 						elm$core$List$map,
 						author$project$Main$bulletsSvg(model),
-						model.bullets))),
+						elm$core$Dict$values(model.bullets)))),
 				A2(
 				elm$html$Html$p,
 				_List_Nil,
