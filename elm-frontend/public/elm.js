@@ -7443,6 +7443,10 @@ var author$project$Main$handleCommand = F3(
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
+			case 'Buytime_ended':
+				return model;
+			case 'Cs_pre_restart':
+				return model;
 			case 'Decoy_detonate':
 				var _n3 = author$project$Main$decodeOriginator(message);
 				if (_n3.$ === 'Just') {

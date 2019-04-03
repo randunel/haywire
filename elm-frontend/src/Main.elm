@@ -306,6 +306,8 @@ handleCommand command message model =
                     handleBulletImpact model (Bullet position.position)
                 ) playerCoords Alive
             Nothing -> appendLog message model
+        Buytime_ended -> model
+        Cs_pre_restart -> model
         Decoy_detonate -> case (decodeOriginator message) of
             Just playerCoords -> handlePlayerCoordinates model playerCoords Unknown
             Nothing -> appendLog message model
