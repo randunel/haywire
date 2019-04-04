@@ -12,6 +12,7 @@ import Html.Events exposing (onClick, onInput)
 import Svg exposing (Svg)
 import Svg.Attributes as SvgAttrs
 import Svg.Events as SvgEvents
+import Animation
 import Json.Encode exposing (Value)
 import Json.Decode exposing (Decoder, field, string, float, at)
 import PortFunnel.WebSocket as WebSocket exposing (Response(..))
@@ -38,8 +39,11 @@ handlers =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions =
-    PortFunnels.subscriptions Process
+subscriptions model =
+    Sub.batch
+        [ PortFunnels.subscriptions Process model
+        , Animation.subscription Animate (List.map (\bullet -> bullet.style) (Dict.values model.bullets))
+        ]
 
 
 funnelDict : FunnelDict Model Msg
@@ -118,7 +122,8 @@ init _ =
 
 type alias Bullet =
     { coordinates : Coordinates
-    , id: String
+    , id : String
+    , style : Animation.State
     }
 
 type alias Entity =
@@ -198,7 +203,7 @@ type Msg =
     | Close
     | Send
     | Process Value
-    | OnBulletAnimationEnd AnimationEndEvent
+    | Animate Animation.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -272,9 +277,11 @@ update msg model =
                 Ok res ->
                     res
 
-        OnBulletAnimationEnd animationEndEvent ->
+        Animate animationMsg ->
             { model
-                | log = ("animationEndEvent " ++ animationEndEvent.id) :: model.log
+                | bullets = Dict.map (\key value ->
+                    { value | style = Animation.update animationMsg value.style
+                    }) model.bullets
             }
                 |> withNoCmd
 
@@ -316,9 +323,16 @@ handleCommand : String -> String -> Model -> Model
 handleCommand command message model =
     case stringToCommand command of
         Bullet_impact -> case (decodeOriginatorImpact message) of
-            Just (playerCoords, position) -> handlePlayerCoordinates (
-                    handleBulletImpact model (Bullet position.position (getBulletId position.position))
+            Just (playerCoords, position) -> -- appendLog (case List.head (Dict.values model.bullets) of
+                -- Just blt -> blt.style
+                -- Nothing -> (Bullet {x="0",y="0",z="0"} "nothing" (Animation.style [])).style
+                -- ) (
+                    handlePlayerCoordinates (
+                handleBulletImpact model (Bullet position.position (getBulletId position.position) (
+                    Animation.interrupt [Animation.toWith (Animation.easing {duration = 4000, ease = (\x -> x ^ 2)}) [Animation.opacity 0]] (Animation.style [Animation.opacity 1.0])
+                    ))
                 ) playerCoords Alive
+                -- )
             Nothing -> appendLog message model
         Buytime_ended -> model
         Cs_pre_restart -> model
@@ -674,24 +688,15 @@ view model =
         ]
 
 bulletsSvg model bullet = Svg.circle
+    (Animation.render bullet.style
+    ++
     [ SvgAttrs.cx <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat bullet.coordinates.x)) - model.minX) * 800 / (model.maxX - model.minX))
     , SvgAttrs.cy <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat bullet.coordinates.y)) - model.minY) * 800 / (model.maxY - model.minY))
     , SvgAttrs.r <| "1"
     , SvgAttrs.fill "black"
     , SvgAttrs.id bullet.id
-    , SvgEvents.on "animationend" <| Json.Decode.map OnBulletAnimationEnd decodeAnimationEndEvent
-    , SvgAttrs.style "opacity: 1; visbility: visible"
-    ]
+    ])
     []
-
-type alias AnimationEndEvent =
-    { id: String
-    }
-
-decodeAnimationEndEvent : Decoder AnimationEndEvent
-decodeAnimationEndEvent =
-    Json.Decode.map AnimationEndEvent
-        (field "id" string)
 
 playerSvg model player = Svg.circle
     [ SvgAttrs.cx <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat player.coordinates.position.x)) - model.minX) * 800 / (model.maxX - model.minX))
