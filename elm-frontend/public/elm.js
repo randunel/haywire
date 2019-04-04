@@ -7528,19 +7528,24 @@ var author$project$Main$decodeOriginator = function (message) {
 var author$project$Main$Position = function (position) {
 	return {position: position};
 };
-var author$project$Main$positionDecoder = A2(
-	elm$json$Json$Decode$map,
-	author$project$Main$Position,
-	A2(
-		elm$json$Json$Decode$at,
-		_List_fromArray(
-			['originator', 'position']),
-		author$project$Main$coordinatesDecoder));
+var author$project$Main$positionDecoder = function (field) {
+	return A2(
+		elm$json$Json$Decode$map,
+		author$project$Main$Position,
+		A2(
+			elm$json$Json$Decode$at,
+			_List_fromArray(
+				[field, 'position']),
+			author$project$Main$coordinatesDecoder));
+};
 var author$project$Main$decodeOriginatorImpact = function (message) {
 	var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$originatorDecoder, message);
 	if (_n0.$ === 'Ok') {
 		var originator = _n0.a;
-		var _n1 = A2(elm$json$Json$Decode$decodeString, author$project$Main$positionDecoder, message);
+		var _n1 = A2(
+			elm$json$Json$Decode$decodeString,
+			author$project$Main$positionDecoder('impact'),
+			message);
 		if (_n1.$ === 'Ok') {
 			var position = _n1.a;
 			return elm$core$Maybe$Just(

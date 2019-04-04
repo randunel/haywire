@@ -461,7 +461,7 @@ attackerDecoder =
 decodeOriginatorImpact : String -> Maybe (PlayerCoordinates, Position)
 decodeOriginatorImpact message =
     case Json.Decode.decodeString originatorDecoder message of
-        Ok originator -> case Json.Decode.decodeString positionDecoder message of
+        Ok originator -> case Json.Decode.decodeString (positionDecoder "impact") message of
             Ok position -> Just (originator, position)
             Err err -> Nothing
         Err err -> Nothing
@@ -472,10 +472,10 @@ decodeOriginator message =
         Ok res -> Just res
         Err err -> Nothing
 
-positionDecoder : Decoder Position
-positionDecoder =
+positionDecoder : String -> Decoder Position
+positionDecoder field =
     ( Json.Decode.map Position
-        ( at [ "originator", "position" ] coordinatesDecoder )
+        ( at [ field, "position" ] coordinatesDecoder )
     )
 
 originatorDecoder : Decoder PlayerCoordinates
