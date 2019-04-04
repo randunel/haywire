@@ -7458,6 +7458,9 @@ var author$project$Main$appendLog = F2(
 	});
 var author$project$Main$commandDecoder = A2(elm$json$Json$Decode$field, 'command', elm$json$Json$Decode$string);
 var author$project$Main$Alive = {$: 'Alive'};
+var author$project$Main$AnimationEnded = function (a) {
+	return {$: 'AnimationEnded', a: a};
+};
 var author$project$Main$Bullet = F3(
 	function (coordinates, id, style) {
 		return {coordinates: coordinates, id: id, style: style};
@@ -8539,6 +8542,12 @@ var mdgriffith$elm_style_animation$Animation$toWith = F2(
 					}),
 				props));
 	});
+var mdgriffith$elm_style_animation$Animation$Model$Send = function (a) {
+	return {$: 'Send', a: a};
+};
+var mdgriffith$elm_style_animation$Animation$Messenger$send = function (msg) {
+	return mdgriffith$elm_style_animation$Animation$Model$Send(msg);
+};
 var author$project$Main$handleCommand = F3(
 	function (command, message, model) {
 		var _n0 = author$project$Main$stringToCommand(command);
@@ -8574,7 +8583,9 @@ var author$project$Main$handleCommand = F3(
 											_List_fromArray(
 												[
 													mdgriffith$elm_style_animation$Animation$opacity(0)
-												]))
+												])),
+											mdgriffith$elm_style_animation$Animation$Messenger$send(
+											author$project$Main$AnimationEnded(position))
 										]),
 									mdgriffith$elm_style_animation$Animation$style(
 										_List_fromArray(
@@ -9064,167 +9075,6 @@ var author$project$Main$send = F2(
 			billstclair$elm_websocket_client$PortFunnel$WebSocket$send,
 			A2(author$project$Main$getCmdPort, billstclair$elm_websocket_client$PortFunnel$WebSocket$moduleName, model),
 			message);
-	});
-var Janiczek$cmd_extra$Cmd$Extra$withCmds = F2(
-	function (cmds, model) {
-		return _Utils_Tuple2(
-			model,
-			elm$core$Platform$Cmd$batch(cmds));
-	});
-var billstclair$elm_port_funnel$PortFunnel$process = F4(
-	function (accessors, _n0, genericMessage, state) {
-		var moduleDesc = _n0.a;
-		var _n1 = moduleDesc.decoder(genericMessage);
-		if (_n1.$ === 'Err') {
-			var err = _n1.a;
-			return elm$core$Result$Err(err);
-		} else {
-			var message = _n1.a;
-			var substate = accessors.get(state);
-			var _n2 = A2(moduleDesc.process, message, substate);
-			var substate2 = _n2.a;
-			var response = _n2.b;
-			return elm$core$Result$Ok(
-				_Utils_Tuple2(
-					A2(accessors.set, substate2, state),
-					response));
-		}
-	});
-var billstclair$elm_port_funnel$PortFunnel$appProcess = F5(
-	function (cmdPort, genericMessage, funnel, state, model) {
-		var _n0 = A4(billstclair$elm_port_funnel$PortFunnel$process, funnel.accessors, funnel.moduleDesc, genericMessage, state);
-		if (_n0.$ === 'Err') {
-			var error = _n0.a;
-			return elm$core$Result$Err(error);
-		} else {
-			var _n1 = _n0.a;
-			var state2 = _n1.a;
-			var response = _n1.b;
-			var gmToCmdPort = function (gm) {
-				return cmdPort(
-					billstclair$elm_port_funnel$PortFunnel$encodeGenericMessage(gm));
-			};
-			var cmd = A2(funnel.commander, gmToCmdPort, response);
-			var _n2 = A3(funnel.handler, response, state2, model);
-			var model2 = _n2.a;
-			var cmd2 = _n2.b;
-			return elm$core$Result$Ok(
-				A2(
-					Janiczek$cmd_extra$Cmd$Extra$withCmds,
-					_List_fromArray(
-						[cmd, cmd2]),
-					model2));
-		}
-	});
-var author$project$PortFunnels$appTrampoline = F5(
-	function (portGetter, genericMessage, funnel, state, model) {
-		var appFunnel = funnel.a;
-		return A5(
-			billstclair$elm_port_funnel$PortFunnel$appProcess,
-			A2(portGetter, billstclair$elm_websocket_client$PortFunnel$WebSocket$moduleName, model),
-			genericMessage,
-			appFunnel,
-			state,
-			model);
-	});
-var billstclair$elm_port_funnel$PortFunnel$processValue = F5(
-	function (funnels, appTrampoline, value, state, model) {
-		var _n0 = billstclair$elm_port_funnel$PortFunnel$decodeGenericMessage(value);
-		if (_n0.$ === 'Err') {
-			var error = _n0.a;
-			return elm$core$Result$Err(error);
-		} else {
-			var genericMessage = _n0.a;
-			var moduleName = genericMessage.moduleName;
-			var _n1 = A2(elm$core$Dict$get, moduleName, funnels);
-			if (_n1.$ === 'Just') {
-				var funnel = _n1.a;
-				var _n2 = A4(appTrampoline, genericMessage, funnel, state, model);
-				if (_n2.$ === 'Err') {
-					var error = _n2.a;
-					return elm$core$Result$Err(error);
-				} else {
-					var _n3 = _n2.a;
-					var model2 = _n3.a;
-					var cmd = _n3.b;
-					return elm$core$Result$Ok(
-						_Utils_Tuple2(model2, cmd));
-				}
-			} else {
-				return elm$core$Result$Err('Unknown moduleName: ' + moduleName);
-			}
-		}
-	});
-var author$project$PortFunnels$processValue = F4(
-	function (_n0, value, state, model) {
-		var funnelDict = _n0.a;
-		var portGetter = _n0.b;
-		return A5(
-			billstclair$elm_port_funnel$PortFunnel$processValue,
-			funnelDict,
-			author$project$PortFunnels$appTrampoline(portGetter),
-			value,
-			state,
-			model);
-	});
-var billstclair$elm_websocket_client$PortFunnel$WebSocket$makeClose = function (key) {
-	return billstclair$elm_websocket_client$PortFunnel$WebSocket$InternalMessage$PWillClose(
-		{key: key, reason: 'user request'});
-};
-var billstclair$elm_websocket_client$PortFunnel$WebSocket$makeOpenWithKey = F2(
-	function (key, url) {
-		return billstclair$elm_websocket_client$PortFunnel$WebSocket$InternalMessage$PWillOpen(
-			{keepAlive: false, key: key, url: url});
-	});
-var billstclair$elm_websocket_client$PortFunnel$WebSocket$makeSend = F2(
-	function (key, message) {
-		return billstclair$elm_websocket_client$PortFunnel$WebSocket$InternalMessage$PWillSend(
-			{key: key, message: message});
-	});
-var elm$core$Set$insert = F2(
-	function (key, _n0) {
-		var dict = _n0.a;
-		return elm$core$Set$Set_elm_builtin(
-			A3(elm$core$Dict$insert, key, _Utils_Tuple0, dict));
-	});
-var elm$core$Set$remove = F2(
-	function (key, _n0) {
-		var dict = _n0.a;
-		return elm$core$Set$Set_elm_builtin(
-			A2(elm$core$Dict$remove, key, dict));
-	});
-var billstclair$elm_websocket_client$PortFunnel$WebSocket$setAutoReopen = F3(
-	function (key, autoReopen, _n0) {
-		var state = _n0.a;
-		var keys = autoReopen ? A2(elm$core$Set$remove, key, state.noAutoReopenKeys) : A2(elm$core$Set$insert, key, state.noAutoReopenKeys);
-		return billstclair$elm_websocket_client$PortFunnel$WebSocket$State(
-			_Utils_update(
-				state,
-				{noAutoReopenKeys: keys}));
-	});
-var billstclair$elm_websocket_client$PortFunnel$WebSocket$willAutoReopen = F2(
-	function (key, _n0) {
-		var state = _n0.a;
-		return !A2(elm$core$Set$member, key, state.noAutoReopenKeys);
-	});
-var elm$core$Dict$map = F2(
-	function (func, dict) {
-		if (dict.$ === 'RBEmpty_elm_builtin') {
-			return elm$core$Dict$RBEmpty_elm_builtin;
-		} else {
-			var color = dict.a;
-			var key = dict.b;
-			var value = dict.c;
-			var left = dict.d;
-			var right = dict.e;
-			return A5(
-				elm$core$Dict$RBNode_elm_builtin,
-				color,
-				key,
-				A2(func, key, value),
-				A2(elm$core$Dict$map, func, left),
-				A2(elm$core$Dict$map, func, right));
-		}
 	});
 var elm$core$List$partition = F2(
 	function (pred, list) {
@@ -10743,10 +10593,180 @@ var mdgriffith$elm_style_animation$Animation$Model$updateAnimation = F2(
 					},
 					sentMessages)));
 	});
-var mdgriffith$elm_style_animation$Animation$update = F2(
+var mdgriffith$elm_style_animation$Animation$Messenger$update = F2(
 	function (tick, animation) {
-		return A2(mdgriffith$elm_style_animation$Animation$Model$updateAnimation, tick, animation).a;
+		return A2(mdgriffith$elm_style_animation$Animation$Model$updateAnimation, tick, animation);
 	});
+var author$project$Main$updateBulletAnimation = F2(
+	function (animationMsg, bullet) {
+		var _n0 = A2(mdgriffith$elm_style_animation$Animation$Messenger$update, animationMsg, bullet.style);
+		var style = _n0.a;
+		var cmd = _n0.b;
+		return _Utils_Tuple2(
+			_Utils_update(
+				bullet,
+				{style: style}),
+			cmd);
+	});
+var Janiczek$cmd_extra$Cmd$Extra$withCmds = F2(
+	function (cmds, model) {
+		return _Utils_Tuple2(
+			model,
+			elm$core$Platform$Cmd$batch(cmds));
+	});
+var billstclair$elm_port_funnel$PortFunnel$process = F4(
+	function (accessors, _n0, genericMessage, state) {
+		var moduleDesc = _n0.a;
+		var _n1 = moduleDesc.decoder(genericMessage);
+		if (_n1.$ === 'Err') {
+			var err = _n1.a;
+			return elm$core$Result$Err(err);
+		} else {
+			var message = _n1.a;
+			var substate = accessors.get(state);
+			var _n2 = A2(moduleDesc.process, message, substate);
+			var substate2 = _n2.a;
+			var response = _n2.b;
+			return elm$core$Result$Ok(
+				_Utils_Tuple2(
+					A2(accessors.set, substate2, state),
+					response));
+		}
+	});
+var billstclair$elm_port_funnel$PortFunnel$appProcess = F5(
+	function (cmdPort, genericMessage, funnel, state, model) {
+		var _n0 = A4(billstclair$elm_port_funnel$PortFunnel$process, funnel.accessors, funnel.moduleDesc, genericMessage, state);
+		if (_n0.$ === 'Err') {
+			var error = _n0.a;
+			return elm$core$Result$Err(error);
+		} else {
+			var _n1 = _n0.a;
+			var state2 = _n1.a;
+			var response = _n1.b;
+			var gmToCmdPort = function (gm) {
+				return cmdPort(
+					billstclair$elm_port_funnel$PortFunnel$encodeGenericMessage(gm));
+			};
+			var cmd = A2(funnel.commander, gmToCmdPort, response);
+			var _n2 = A3(funnel.handler, response, state2, model);
+			var model2 = _n2.a;
+			var cmd2 = _n2.b;
+			return elm$core$Result$Ok(
+				A2(
+					Janiczek$cmd_extra$Cmd$Extra$withCmds,
+					_List_fromArray(
+						[cmd, cmd2]),
+					model2));
+		}
+	});
+var author$project$PortFunnels$appTrampoline = F5(
+	function (portGetter, genericMessage, funnel, state, model) {
+		var appFunnel = funnel.a;
+		return A5(
+			billstclair$elm_port_funnel$PortFunnel$appProcess,
+			A2(portGetter, billstclair$elm_websocket_client$PortFunnel$WebSocket$moduleName, model),
+			genericMessage,
+			appFunnel,
+			state,
+			model);
+	});
+var billstclair$elm_port_funnel$PortFunnel$processValue = F5(
+	function (funnels, appTrampoline, value, state, model) {
+		var _n0 = billstclair$elm_port_funnel$PortFunnel$decodeGenericMessage(value);
+		if (_n0.$ === 'Err') {
+			var error = _n0.a;
+			return elm$core$Result$Err(error);
+		} else {
+			var genericMessage = _n0.a;
+			var moduleName = genericMessage.moduleName;
+			var _n1 = A2(elm$core$Dict$get, moduleName, funnels);
+			if (_n1.$ === 'Just') {
+				var funnel = _n1.a;
+				var _n2 = A4(appTrampoline, genericMessage, funnel, state, model);
+				if (_n2.$ === 'Err') {
+					var error = _n2.a;
+					return elm$core$Result$Err(error);
+				} else {
+					var _n3 = _n2.a;
+					var model2 = _n3.a;
+					var cmd = _n3.b;
+					return elm$core$Result$Ok(
+						_Utils_Tuple2(model2, cmd));
+				}
+			} else {
+				return elm$core$Result$Err('Unknown moduleName: ' + moduleName);
+			}
+		}
+	});
+var author$project$PortFunnels$processValue = F4(
+	function (_n0, value, state, model) {
+		var funnelDict = _n0.a;
+		var portGetter = _n0.b;
+		return A5(
+			billstclair$elm_port_funnel$PortFunnel$processValue,
+			funnelDict,
+			author$project$PortFunnels$appTrampoline(portGetter),
+			value,
+			state,
+			model);
+	});
+var billstclair$elm_websocket_client$PortFunnel$WebSocket$makeClose = function (key) {
+	return billstclair$elm_websocket_client$PortFunnel$WebSocket$InternalMessage$PWillClose(
+		{key: key, reason: 'user request'});
+};
+var billstclair$elm_websocket_client$PortFunnel$WebSocket$makeOpenWithKey = F2(
+	function (key, url) {
+		return billstclair$elm_websocket_client$PortFunnel$WebSocket$InternalMessage$PWillOpen(
+			{keepAlive: false, key: key, url: url});
+	});
+var billstclair$elm_websocket_client$PortFunnel$WebSocket$makeSend = F2(
+	function (key, message) {
+		return billstclair$elm_websocket_client$PortFunnel$WebSocket$InternalMessage$PWillSend(
+			{key: key, message: message});
+	});
+var elm$core$Set$insert = F2(
+	function (key, _n0) {
+		var dict = _n0.a;
+		return elm$core$Set$Set_elm_builtin(
+			A3(elm$core$Dict$insert, key, _Utils_Tuple0, dict));
+	});
+var elm$core$Set$remove = F2(
+	function (key, _n0) {
+		var dict = _n0.a;
+		return elm$core$Set$Set_elm_builtin(
+			A2(elm$core$Dict$remove, key, dict));
+	});
+var billstclair$elm_websocket_client$PortFunnel$WebSocket$setAutoReopen = F3(
+	function (key, autoReopen, _n0) {
+		var state = _n0.a;
+		var keys = autoReopen ? A2(elm$core$Set$remove, key, state.noAutoReopenKeys) : A2(elm$core$Set$insert, key, state.noAutoReopenKeys);
+		return billstclair$elm_websocket_client$PortFunnel$WebSocket$State(
+			_Utils_update(
+				state,
+				{noAutoReopenKeys: keys}));
+	});
+var billstclair$elm_websocket_client$PortFunnel$WebSocket$willAutoReopen = F2(
+	function (key, _n0) {
+		var state = _n0.a;
+		return !A2(elm$core$Set$member, key, state.noAutoReopenKeys);
+	});
+var elm$core$List$unzip = function (pairs) {
+	var step = F2(
+		function (_n0, _n1) {
+			var x = _n0.a;
+			var y = _n0.b;
+			var xs = _n1.a;
+			var ys = _n1.b;
+			return _Utils_Tuple2(
+				A2(elm$core$List$cons, x, xs),
+				A2(elm$core$List$cons, y, ys));
+		});
+	return A3(
+		elm$core$List$foldr,
+		step,
+		_Utils_Tuple2(_List_Nil, _List_Nil),
+		pairs);
+};
 var author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -10827,22 +10847,37 @@ var author$project$Main$update = F2(
 					var res = _n1.a;
 					return res;
 				}
-			default:
+			case 'Animate':
 				var animationMsg = msg.a;
+				var bulletCmds = A2(
+					elm$core$List$map,
+					author$project$Main$updateBulletAnimation(animationMsg),
+					elm$core$Dict$values(model.bullets));
+				var _n2 = elm$core$List$unzip(bulletCmds);
+				var bulletsList = _n2.a;
+				var cmds = _n2.b;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							bullets: elm$core$Dict$fromList(
+								A2(
+									elm$core$List$map,
+									function (bullet) {
+										return _Utils_Tuple2(bullet.id, bullet);
+									},
+									bulletsList))
+						}),
+					elm$core$Platform$Cmd$batch(cmds));
+			default:
+				var position = msg.a;
 				return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
 					_Utils_update(
 						model,
 						{
 							bullets: A2(
-								elm$core$Dict$map,
-								F2(
-									function (key, value) {
-										return _Utils_update(
-											value,
-											{
-												style: A2(mdgriffith$elm_style_animation$Animation$update, animationMsg, value.style)
-											});
-									}),
+								elm$core$Dict$remove,
+								author$project$Main$getBulletId(position.position),
 								model.bullets)
 						}));
 		}
@@ -11718,7 +11753,25 @@ var author$project$Main$view = function (model) {
 									function (p) {
 										return 'clientId:' + (p.clientId + (' x:' + (p.coordinates.position.x + (' y:' + (p.coordinates.position.y + (' z:' + p.coordinates.position.z))))));
 									},
-									elm$core$Dict$values(model.players))))
+									elm$core$Dict$values(model.players)))),
+							_List_fromArray(
+							[
+								author$project$Main$br,
+								author$project$Main$b('Bullets:'),
+								author$project$Main$br
+							]),
+							A2(
+							elm$core$List$intersperse,
+							author$project$Main$br,
+							A2(
+								elm$core$List$map,
+								elm$html$Html$text,
+								A2(
+									elm$core$List$map,
+									function (bullet) {
+										return 'id:' + (bullet.id + (' x:' + (bullet.coordinates.x + (' y:' + (bullet.coordinates.y + (' z:' + bullet.coordinates.z))))));
+									},
+									elm$core$Dict$values(model.bullets))))
 						]))),
 				A2(
 				elm$html$Html$p,

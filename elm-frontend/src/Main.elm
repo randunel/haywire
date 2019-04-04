@@ -13,6 +13,7 @@ import Svg exposing (Svg)
 import Svg.Attributes as SvgAttrs
 import Svg.Events as SvgEvents
 import Animation
+import Animation.Messenger
 import Json.Encode exposing (Value)
 import Json.Decode exposing (Decoder, field, string, float, at)
 import PortFunnel.WebSocket as WebSocket exposing (Response(..))
@@ -123,7 +124,7 @@ init _ =
 type alias Bullet =
     { coordinates : Coordinates
     , id : String
-    , style : Animation.State
+    , style : Animation.Messenger.State Msg
     }
 
 type alias Entity =
@@ -204,6 +205,7 @@ type Msg =
     | Send
     | Process Value
     | Animate Animation.Msg
+    | AnimationEnded Position
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -278,13 +280,29 @@ update msg model =
                     res
 
         Animate animationMsg ->
+            let
+                bulletCmds =
+                    List.map (updateBulletAnimation animationMsg) (Dict.values model.bullets)
+                (bulletsList, cmds) =
+                    List.unzip bulletCmds
+            in
+                ({ model | bullets = Dict.fromList (List.map (\bullet -> (bullet.id, bullet)) bulletsList) }, Cmd.batch cmds)
+
+        AnimationEnded position ->
             { model
-                | bullets = Dict.map (\key value ->
-                    { value | style = Animation.update animationMsg value.style
-                    }) model.bullets
+                | bullets = Dict.remove (getBulletId position.position) model.bullets
+                -- , log = ("Removed " ++ (getBulletId position.position)) :: model.log
             }
                 |> withNoCmd
 
+
+updateBulletAnimation : Animation.Msg -> Bullet -> (Bullet, Cmd Msg)
+updateBulletAnimation animationMsg bullet =
+    let
+        (style, cmd) =
+            Animation.Messenger.update animationMsg bullet.style
+    in
+        ({ bullet | style = style }, cmd)
 
 send : Model -> WebSocket.Message -> Cmd Msg
 send model message =
@@ -323,16 +341,11 @@ handleCommand : String -> String -> Model -> Model
 handleCommand command message model =
     case stringToCommand command of
         Bullet_impact -> case (decodeOriginatorImpact message) of
-            Just (playerCoords, position) -> -- appendLog (case List.head (Dict.values model.bullets) of
-                -- Just blt -> blt.style
-                -- Nothing -> (Bullet {x="0",y="0",z="0"} "nothing" (Animation.style [])).style
-                -- ) (
-                    handlePlayerCoordinates (
+            Just (playerCoords, position) -> handlePlayerCoordinates (
                 handleBulletImpact model (Bullet position.position (getBulletId position.position) (
-                    Animation.interrupt [Animation.toWith (Animation.easing {duration = 4000, ease = (\x -> x ^ 2)}) [Animation.opacity 0]] (Animation.style [Animation.opacity 1.0])
+                    Animation.interrupt [Animation.toWith (Animation.easing {duration = 4000, ease = (\x -> x ^ 2)}) [Animation.opacity 0], Animation.Messenger.send (AnimationEnded position)] (Animation.style [Animation.opacity 1.0])
                     ))
                 ) playerCoords Alive
-                -- )
             Nothing -> appendLog message model
         Buytime_ended -> model
         Cs_pre_restart -> model
@@ -677,6 +690,8 @@ view model =
                   , br
                   ]
                 , List.intersperse br (List.map text (List.map (\p -> "clientId:" ++ p.clientId ++ " x:" ++ p.coordinates.position.x ++ " y:" ++ p.coordinates.position.y ++ " z:" ++ p.coordinates.position.z) (Dict.values model.players)))
+                , [ br, b "Bullets:", br ]
+                , List.intersperse br (List.map text (List.map (\bullet -> "id:" ++ (bullet.id) ++ " x:" ++ bullet.coordinates.x ++ " y:" ++ bullet.coordinates.y ++ " z:" ++ bullet.coordinates.z) (Dict.values model.bullets)))
                 ]
         , p [] <|
             List.concat
