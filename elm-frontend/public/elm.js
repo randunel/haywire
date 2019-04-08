@@ -4808,7 +4808,7 @@ var billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState = billstc
 var author$project$PortFunnels$initialState = {websocket: billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState};
 var author$project$Main$init = function (_n0) {
 	return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
-		{bullets: elm$core$Dict$empty, entities: elm$core$Dict$empty, error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, maxX: 0, maxY: 0, minX: 0, minY: 0, players: elm$core$Dict$empty, send: 'Hello World!', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, wasLoaded: false});
+		{bullets: elm$core$Dict$empty, entities: elm$core$Dict$empty, error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, maxX: 0, maxY: 0, minX: 0, minY: 0, players: elm$core$Dict$empty, send: 'sent from frontend (elm)', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, wasLoaded: false});
 };
 var author$project$Main$Animate = function (a) {
 	return {$: 'Animate', a: a};
@@ -7809,82 +7809,6 @@ var mdgriffith$elm_style_animation$Animation$easing = function (_n0) {
 			start: 0
 		});
 };
-var elm$core$List$drop = F2(
-	function (n, list) {
-		drop:
-		while (true) {
-			if (n <= 0) {
-				return list;
-			} else {
-				if (!list.b) {
-					return list;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs;
-					n = $temp$n;
-					list = $temp$list;
-					continue drop;
-				}
-			}
-		}
-	});
-var elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return elm$core$Maybe$Just(x);
-	} else {
-		return elm$core$Maybe$Nothing;
-	}
-};
-var elm$time$Time$posixToMillis = function (_n0) {
-	var millis = _n0.a;
-	return millis;
-};
-var mdgriffith$elm_style_animation$Animation$extractInitialWait = function (steps) {
-	var _n0 = elm$core$List$head(steps);
-	if (_n0.$ === 'Nothing') {
-		return _Utils_Tuple2(
-			elm$time$Time$millisToPosix(0),
-			_List_Nil);
-	} else {
-		var step = _n0.a;
-		if (step.$ === 'Wait') {
-			var till = step.a;
-			var _n2 = mdgriffith$elm_style_animation$Animation$extractInitialWait(
-				A2(elm$core$List$drop, 1, steps));
-			var additionalTime = _n2.a;
-			var remainingSteps = _n2.b;
-			return _Utils_Tuple2(
-				elm$time$Time$millisToPosix(
-					elm$time$Time$posixToMillis(till) + elm$time$Time$posixToMillis(additionalTime)),
-				remainingSteps);
-		} else {
-			return _Utils_Tuple2(
-				elm$time$Time$millisToPosix(0),
-				steps);
-		}
-	}
-};
-var mdgriffith$elm_style_animation$Animation$Model$Animation = function (a) {
-	return {$: 'Animation', a: a};
-};
-var mdgriffith$elm_style_animation$Animation$interrupt = F2(
-	function (steps, _n0) {
-		var model = _n0.a;
-		return mdgriffith$elm_style_animation$Animation$Model$Animation(
-			_Utils_update(
-				model,
-				{
-					interruption: A2(
-						elm$core$List$cons,
-						mdgriffith$elm_style_animation$Animation$extractInitialWait(steps),
-						model.interruption),
-					running: true
-				}));
-	});
 var mdgriffith$elm_style_animation$Animation$Model$Spring = function (a) {
 	return {$: 'Spring', a: a};
 };
@@ -7914,6 +7838,20 @@ var mdgriffith$elm_style_animation$Animation$custom = F3(
 var mdgriffith$elm_style_animation$Animation$opacity = function (val) {
 	return A3(mdgriffith$elm_style_animation$Animation$custom, 'opacity', val, '');
 };
+var mdgriffith$elm_style_animation$Animation$Model$Animation = function (a) {
+	return {$: 'Animation', a: a};
+};
+var mdgriffith$elm_style_animation$Animation$queue = F2(
+	function (steps, _n0) {
+		var model = _n0.a;
+		return mdgriffith$elm_style_animation$Animation$Model$Animation(
+			_Utils_update(
+				model,
+				{
+					running: true,
+					steps: _Utils_ap(model.steps, steps)
+				}));
+	});
 var mdgriffith$elm_style_animation$Animation$initialState = function (current) {
 	return mdgriffith$elm_style_animation$Animation$Model$Animation(
 		{
@@ -8375,6 +8313,15 @@ var elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
+var elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(x);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
 var elm$core$List$sortBy = _List_sortBy;
 var elm$core$List$sort = function (xs) {
 	return A2(elm$core$List$sortBy, elm$core$Basics$identity, xs);
@@ -8573,7 +8520,7 @@ var author$project$Main$handleCommand = F3(
 								position.position,
 								author$project$Main$getBulletId(position.position),
 								A2(
-									mdgriffith$elm_style_animation$Animation$interrupt,
+									mdgriffith$elm_style_animation$Animation$queue,
 									_List_fromArray(
 										[
 											A2(
@@ -9099,6 +9046,10 @@ var elm$core$List$partition = F2(
 			_Utils_Tuple2(_List_Nil, _List_Nil),
 			list);
 	});
+var elm$time$Time$posixToMillis = function (_n0) {
+	var millis = _n0.a;
+	return millis;
+};
 var mdgriffith$elm_style_animation$Animation$Model$refreshTiming = F2(
 	function (now, timing) {
 		var dt = elm$time$Time$posixToMillis(now) - elm$time$Time$posixToMillis(timing.current);
@@ -9114,6 +9065,27 @@ var elm$core$List$all = F2(
 			elm$core$List$any,
 			A2(elm$core$Basics$composeL, elm$core$Basics$not, isOkay),
 			list);
+	});
+var elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
 	});
 var mdgriffith$elm_style_animation$Animation$Model$Loop = function (a) {
 	return {$: 'Loop', a: a};
@@ -11484,43 +11456,62 @@ var author$project$Main$bulletsSvg = F2(
 					])),
 			_List_Nil);
 	});
-var elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
-var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
+var elm$svg$Svg$g = elm$svg$Svg$trustedNode('g');
+var elm$svg$Svg$path = elm$svg$Svg$trustedNode('path');
+var elm$svg$Svg$Attributes$transform = _VirtualDom_attribute('transform');
 var author$project$Main$playerSvg = F2(
 	function (model, player) {
+		var yaw = A2(
+			elm$core$Maybe$withDefault,
+			0,
+			elm$core$String$toFloat(player.coordinates.orientation.ang1)) - 135;
+		var r = function () {
+			var _n0 = player.aliveState;
+			switch (_n0.$) {
+				case 'Alive':
+					return 5.0;
+				case 'Dead':
+					return 2.0;
+				default:
+					return 5.0;
+			}
+		}();
+		var cy = ((A2(
+			elm$core$Maybe$withDefault,
+			0,
+			elm$core$String$toFloat(player.coordinates.position.y)) - model.minY) * 800) / (model.maxY - model.minY);
+		var cx = ((A2(
+			elm$core$Maybe$withDefault,
+			0,
+			elm$core$String$toFloat(player.coordinates.position.x)) - model.minX) * 800) / (model.maxX - model.minX);
 		return A2(
-			elm$svg$Svg$circle,
+			elm$svg$Svg$g,
 			_List_fromArray(
 				[
-					elm$svg$Svg$Attributes$cx(
-					elm$core$String$fromFloat(
-						((A2(
-							elm$core$Maybe$withDefault,
-							0,
-							elm$core$String$toFloat(player.coordinates.position.x)) - model.minX) * 800) / (model.maxX - model.minX))),
-					elm$svg$Svg$Attributes$cy(
-					elm$core$String$fromFloat(
-						((A2(
-							elm$core$Maybe$withDefault,
-							0,
-							elm$core$String$toFloat(player.coordinates.position.y)) - model.minY) * 800) / (model.maxY - model.minY))),
-					elm$svg$Svg$Attributes$r(
-					function () {
-						var _n0 = player.aliveState;
-						switch (_n0.$) {
-							case 'Alive':
-								return '5';
-							case 'Dead':
-								return '2';
-							default:
-								return '5';
-						}
-					}()),
-					elm$svg$Svg$Attributes$fill('orange'),
-					elm$svg$Svg$Attributes$stroke('black'),
-					elm$svg$Svg$Attributes$strokeWidth('2')
+					elm$svg$Svg$Attributes$transform(
+					'rotate(' + (elm$core$String$fromFloat(yaw) + (', ' + (elm$core$String$fromFloat(cx) + (', ' + (elm$core$String$fromFloat(cy) + ')'))))))
 				]),
-			_List_Nil);
+			_List_fromArray(
+				[
+					A2(
+					elm$svg$Svg$path,
+					_List_fromArray(
+						[
+							elm$svg$Svg$Attributes$d(
+							'M' + (elm$core$String$fromFloat(cx - r) + (' ' + (elm$core$String$fromFloat(cy) + (' A ' + (elm$core$String$fromFloat(r) + (' ' + (elm$core$String$fromFloat(r) + (', 0, 1, 1, ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy + r) + (' L ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy) + ' Z')))))))))))))))),
+							elm$svg$Svg$Attributes$fill('orange')
+						]),
+					_List_Nil),
+					A2(
+					elm$svg$Svg$path,
+					_List_fromArray(
+						[
+							elm$svg$Svg$Attributes$d(
+							'M' + (elm$core$String$fromFloat(cx - r) + (' ' + (elm$core$String$fromFloat(cy) + (' A ' + (elm$core$String$fromFloat(r) + (' ' + (elm$core$String$fromFloat(r) + (', 0, 0, 0, ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy + r) + (' L ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy) + ' Z')))))))))))))))),
+							elm$svg$Svg$Attributes$fill('aqua')
+						]),
+					_List_Nil)
+				]));
 	});
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected = F2(
 	function (key, _n0) {
@@ -11758,25 +11749,7 @@ var author$project$Main$view = function (model) {
 									function (p) {
 										return 'clientId:' + (p.clientId + (' x:' + (p.coordinates.position.x + (' y:' + (p.coordinates.position.y + (' z:' + p.coordinates.position.z))))));
 									},
-									elm$core$Dict$values(model.players)))),
-							_List_fromArray(
-							[
-								author$project$Main$br,
-								author$project$Main$b('Bullets:'),
-								author$project$Main$br
-							]),
-							A2(
-							elm$core$List$intersperse,
-							author$project$Main$br,
-							A2(
-								elm$core$List$map,
-								elm$html$Html$text,
-								A2(
-									elm$core$List$map,
-									function (bullet) {
-										return 'id:' + (bullet.id + (' x:' + (bullet.coordinates.x + (' y:' + (bullet.coordinates.y + (' z:' + bullet.coordinates.z))))));
-									},
-									elm$core$Dict$values(model.bullets))))
+									elm$core$Dict$values(model.players))))
 						]))),
 				A2(
 				elm$html$Html$p,

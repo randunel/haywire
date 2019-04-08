@@ -104,7 +104,7 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    { send = "Hello World!"
+    { send = "sent from frontend (elm)"
     , log = []
     , url = defaultUrl
     , wasLoaded = False
@@ -343,7 +343,7 @@ handleCommand command message model =
         Bullet_impact -> case (decodeOriginatorImpact message) of
             Just (playerCoords, position) -> handlePlayerCoordinates (
                 handleBulletImpact model (Bullet position.position (getBulletId position.position) (
-                    Animation.interrupt [Animation.toWith (Animation.easing {duration = 4000, ease = (\x -> x ^ 2)}) [Animation.opacity 0], Animation.Messenger.send (AnimationEnded position)] (Animation.style [Animation.opacity 1.0])
+                    Animation.queue [Animation.toWith (Animation.easing {duration = 4000, ease = (\x -> x ^ 2)}) [Animation.opacity 0], Animation.Messenger.send (AnimationEnded position)] (Animation.style [Animation.opacity 1.0])
                     ))
                 ) playerCoords Alive
             Nothing -> appendLog message model
@@ -690,8 +690,8 @@ view model =
                   , br
                   ]
                 , List.intersperse br (List.map text (List.map (\p -> "clientId:" ++ p.clientId ++ " x:" ++ p.coordinates.position.x ++ " y:" ++ p.coordinates.position.y ++ " z:" ++ p.coordinates.position.z) (Dict.values model.players)))
-                , [ br, b "Bullets:", br ]
-                , List.intersperse br (List.map text (List.map (\bullet -> "id:" ++ (bullet.id) ++ " x:" ++ bullet.coordinates.x ++ " y:" ++ bullet.coordinates.y ++ " z:" ++ bullet.coordinates.z) (Dict.values model.bullets)))
+                -- , [ br, b "Bullets:", br ]
+                -- , List.intersperse br (List.map text (List.map (\bullet -> "id:" ++ (bullet.id) ++ " x:" ++ bullet.coordinates.x ++ " y:" ++ bullet.coordinates.y ++ " z:" ++ bullet.coordinates.z) (Dict.values model.bullets)))
                 ]
         , p [] <|
             List.concat
@@ -713,15 +713,35 @@ bulletsSvg model bullet = Svg.circle
     ])
     []
 
-playerSvg model player = Svg.circle
-    [ SvgAttrs.cx <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat player.coordinates.position.x)) - model.minX) * 800 / (model.maxX - model.minX))
-    , SvgAttrs.cy <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat player.coordinates.position.y)) - model.minY) * 800 / (model.maxY - model.minY))
-    , SvgAttrs.r <| case player.aliveState of
-        Alive -> "5"
-        Dead -> "2"
-        Unknown -> "5"
-    , SvgAttrs.fill "orange"
-    , SvgAttrs.stroke "black"
-    , SvgAttrs.strokeWidth "2"
-    ]
-    []
+playerSvg model player =
+    let
+        cx = (((Maybe.withDefault 0 (String.toFloat player.coordinates.position.x)) - model.minX) * 800 / (model.maxX - model.minX))
+        cy = (((Maybe.withDefault 0 (String.toFloat player.coordinates.position.y)) - model.minY) * 800 / (model.maxY - model.minY))
+        r =
+            case player.aliveState of
+                Alive -> 5.0
+                Dead -> 2.0
+                Unknown -> 5.0
+        yaw = (Maybe.withDefault 0 (String.toFloat player.coordinates.orientation.ang1) - 135)
+    in
+        Svg.g
+        [ SvgAttrs.transform ("rotate(" ++ String.fromFloat yaw ++ ", " ++ String.fromFloat cx ++ ", " ++ String.fromFloat cy ++ ")") ]
+        [ Svg.path
+            [ SvgAttrs.d <| "M" ++ (String.fromFloat (cx - r)) ++ " " ++ (String.fromFloat cy)
+                ++ " A " ++ (String.fromFloat r) ++ " " ++ (String.fromFloat r) ++ ", 0, 1, 1, " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy + r))
+                ++ " L " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy)) ++ " Z"
+            , SvgAttrs.fill "orange"
+            -- , SvgAttrs.stroke "black"
+            -- , SvgAttrs.strokeWidth "2"
+            ]
+            []
+        , Svg.path
+            [ SvgAttrs.d <| "M" ++ (String.fromFloat (cx - r)) ++ " " ++ (String.fromFloat cy)
+                ++ " A " ++ (String.fromFloat r) ++ " " ++ (String.fromFloat r) ++ ", 0, 0, 0, " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy + r))
+                ++ " L " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy)) ++ " Z"
+            , SvgAttrs.fill "aqua"
+            -- , SvgAttrs.stroke "black"
+            -- , SvgAttrs.strokeWidth "2"
+            ]
+            []
+        ]
