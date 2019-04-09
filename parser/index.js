@@ -46,7 +46,7 @@ const PARSERS = {
         '1': [userCoords('originator')]
     },
     'player_hurt': {
-        '1': [userCoords('victim'), userCoords('attacker'), healthArmour('remaining'), healthArmour('damage'), int('hitbox')]
+        '1': [userCoords('victim'), team('victim'), userCoords('attacker'), team('attacker'), healthArmour('remaining'), healthArmour('damage'), int('hitbox')]
     },
     'player_jump': {
         '1': [userCoords('originator')]

@@ -37,7 +37,7 @@ cs.on('data', data => {
         console.log('\nCould not parse\n', data);
         return;
     }
-    // if (result.command === 'bullet_impact') {
+    // if (result.command === 'player_death') {
     //     console.log(result);
     // }
     wss.clients.forEach(client => {

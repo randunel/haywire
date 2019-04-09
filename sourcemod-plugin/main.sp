@@ -127,15 +127,23 @@ public Action:HandleUserAttacker(Handle:event, const String:eventName[], bool:do
 }
 
 public Action:HandleUserAttackerHealth(Handle:event, const String:eventName[], bool:dontBroadcast) {
-    new player = GetClientOfUserId(GetEventInt(event, "userid"));
-    new attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
+    new playerUserId = GetEventInt(event, "userid");
+    new player = GetClientOfUserId(playerUserId);
+    new attackerUserId = GetEventInt(event, "attacker");
+    new attacker = GetClientOfUserId(attackerUserId);
+
+    decl String:playerName[32];
+    GetClientName(player, playerName, sizeof(playerName));
+    new playerTeam = GetClientTeam(player);
+    // decl String:attackerName[32];
+    // GetClientName(attacker, attackerName, sizeof(attackerName));
+    new attackerTeam = GetClientTeam(attacker);
+
     new health = GetEventInt(event, "health");
     new armor = GetEventInt(event, "armor");
     new dmg_health = GetEventInt(event, "dmg_health");
     new dmg_armor = GetEventInt(event, "dmg_armor");
     new hitgroup = GetEventInt(event, "hitgroup");
-    // char steamId[32];
-    // new player = GetClientAuthId(GetClientOfUserId(GetEventInt(event, "userid")), AuthId_SteamID64, steamId, sizeof(steamId));
 
     new Float:playerCoords[3];
     GetClientAbsOrigin(player, Float:playerCoords);
@@ -145,22 +153,25 @@ public Action:HandleUserAttackerHealth(Handle:event, const String:eventName[], b
     GetClientAbsOrigin(attacker, Float:attackerCoords);
     new Float:attackerAngles[3];
     GetClientEyeAngles(attacker, Float:attackerAngles);
-    LogToGame("HW->%s->1->%d->%f,%f,%f->%f,%f,%f->%d->%f,%f,%f->%f,%f,%f->%d,%d->%d,%d->%d",
+
+    LogToGame("HW->%s->1->%d->%0.11f,%0.11f,%0.11f->%0.11f,%0.11f,%0.11f->%d->%d->%0.11f,%0.11f,%0.11f->%0.11f,%0.11f,%0.11f->%d->%d,%d->%d,%d->%d",
         eventName,
-        GetEventInt(event, "userid"),
+        playerUserId,
         playerCoords[0],
         playerCoords[1],
         playerCoords[2],
         playerAngles[0],
         playerAngles[1],
         playerAngles[2],
-        GetEventInt(event, "attacker"),
+        playerTeam,
+        attackerUserId,
         attackerCoords[0],
         attackerCoords[1],
         attackerCoords[2],
         attackerAngles[0],
         attackerAngles[1],
         attackerAngles[2],
+        attackerTeam,
         health,
         armor,
         dmg_health,

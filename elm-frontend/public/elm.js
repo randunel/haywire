@@ -7466,7 +7466,7 @@ var author$project$Main$Bullet = F3(
 		return {coordinates: coordinates, id: id, style: style};
 	});
 var author$project$Main$Dead = {$: 'Dead'};
-var author$project$Main$Unknown = {$: 'Unknown'};
+var author$project$Main$UnknownAliveState = {$: 'UnknownAliveState'};
 var author$project$Main$PlayerCoordinates = F3(
 	function (clientId, position, orientation) {
 		return {clientId: clientId, orientation: orientation, position: position};
@@ -7496,27 +7496,32 @@ var elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
 		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
 	});
-var author$project$Main$originatorDecoder = A4(
-	elm$json$Json$Decode$map3,
-	author$project$Main$PlayerCoordinates,
-	A2(
-		elm$json$Json$Decode$at,
-		_List_fromArray(
-			['originator', 'clientId']),
-		author$project$Main$clientIdDecoder),
-	A2(
-		elm$json$Json$Decode$at,
-		_List_fromArray(
-			['originator', 'position']),
-		author$project$Main$coordinatesDecoder),
-	A2(
-		elm$json$Json$Decode$at,
-		_List_fromArray(
-			['originator', 'orientation']),
-		author$project$Main$anglesDecoder));
+var author$project$Main$originatorDecoder = function (key) {
+	return A4(
+		elm$json$Json$Decode$map3,
+		author$project$Main$PlayerCoordinates,
+		A2(
+			elm$json$Json$Decode$at,
+			_List_fromArray(
+				[key, 'clientId']),
+			author$project$Main$clientIdDecoder),
+		A2(
+			elm$json$Json$Decode$at,
+			_List_fromArray(
+				[key, 'position']),
+			author$project$Main$coordinatesDecoder),
+		A2(
+			elm$json$Json$Decode$at,
+			_List_fromArray(
+				[key, 'orientation']),
+			author$project$Main$anglesDecoder));
+};
 var elm$json$Json$Decode$decodeString = _Json_runOnString;
 var author$project$Main$decodeOriginator = function (message) {
-	var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$originatorDecoder, message);
+	var _n0 = A2(
+		elm$json$Json$Decode$decodeString,
+		author$project$Main$originatorDecoder('originator'),
+		message);
 	if (_n0.$ === 'Ok') {
 		var res = _n0.a;
 		return elm$core$Maybe$Just(res);
@@ -7539,7 +7544,10 @@ var author$project$Main$positionDecoder = function (field) {
 			author$project$Main$coordinatesDecoder));
 };
 var author$project$Main$decodeOriginatorImpact = function (message) {
-	var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$originatorDecoder, message);
+	var _n0 = A2(
+		elm$json$Json$Decode$decodeString,
+		author$project$Main$originatorDecoder('originator'),
+		message);
 	if (_n0.$ === 'Ok') {
 		var originator = _n0.a;
 		var _n1 = A2(
@@ -7559,47 +7567,47 @@ var author$project$Main$decodeOriginatorImpact = function (message) {
 		return elm$core$Maybe$Nothing;
 	}
 };
-var author$project$Main$attackerDecoder = A4(
-	elm$json$Json$Decode$map3,
-	author$project$Main$PlayerCoordinates,
-	A2(
-		elm$json$Json$Decode$at,
-		_List_fromArray(
-			['attacker', 'clientId']),
-		author$project$Main$clientIdDecoder),
-	A2(
-		elm$json$Json$Decode$at,
-		_List_fromArray(
-			['attacker', 'position']),
-		author$project$Main$coordinatesDecoder),
-	A2(
-		elm$json$Json$Decode$at,
-		_List_fromArray(
-			['attacker', 'orientation']),
-		author$project$Main$anglesDecoder));
-var author$project$Main$victimDecoder = A4(
-	elm$json$Json$Decode$map3,
-	author$project$Main$PlayerCoordinates,
-	A2(
-		elm$json$Json$Decode$at,
-		_List_fromArray(
-			['victim', 'clientId']),
-		author$project$Main$clientIdDecoder),
-	A2(
-		elm$json$Json$Decode$at,
-		_List_fromArray(
-			['victim', 'position']),
-		author$project$Main$coordinatesDecoder),
-	A2(
-		elm$json$Json$Decode$at,
-		_List_fromArray(
-			['victim', 'orientation']),
-		author$project$Main$anglesDecoder));
+var author$project$Main$TeamPlayerCoordinates = F4(
+	function (clientId, position, orientation, team) {
+		return {clientId: clientId, orientation: orientation, position: position, team: team};
+	});
+var elm$json$Json$Decode$map4 = _Json_map4;
+var author$project$Main$teamDecoder = function (key) {
+	return A5(
+		elm$json$Json$Decode$map4,
+		author$project$Main$TeamPlayerCoordinates,
+		A2(
+			elm$json$Json$Decode$at,
+			_List_fromArray(
+				[key, 'clientId']),
+			author$project$Main$clientIdDecoder),
+		A2(
+			elm$json$Json$Decode$at,
+			_List_fromArray(
+				[key, 'position']),
+			author$project$Main$coordinatesDecoder),
+		A2(
+			elm$json$Json$Decode$at,
+			_List_fromArray(
+				[key, 'orientation']),
+			author$project$Main$anglesDecoder),
+		A2(
+			elm$json$Json$Decode$at,
+			_List_fromArray(
+				[key, 'team']),
+			elm$json$Json$Decode$string));
+};
 var author$project$Main$decodeVictimAttacker = function (message) {
-	var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$victimDecoder, message);
+	var _n0 = A2(
+		elm$json$Json$Decode$decodeString,
+		author$project$Main$teamDecoder('victim'),
+		message);
 	if (_n0.$ === 'Ok') {
 		var victim = _n0.a;
-		var _n1 = A2(elm$json$Json$Decode$decodeString, author$project$Main$attackerDecoder, message);
+		var _n1 = A2(
+			elm$json$Json$Decode$decodeString,
+			author$project$Main$teamDecoder('attacker'),
+			message);
 		if (_n1.$ === 'Ok') {
 			var attacker = _n1.a;
 			return elm$core$Maybe$Just(
@@ -7657,10 +7665,11 @@ var author$project$Main$handleBulletImpact = F2(
 						elm$core$String$toFloat(bullet.coordinates.y)))
 			});
 	});
-var author$project$Main$Player = F3(
-	function (clientId, coordinates, aliveState) {
-		return {aliveState: aliveState, clientId: clientId, coordinates: coordinates};
+var author$project$Main$Player = F4(
+	function (clientId, coordinates, team, aliveState) {
+		return {aliveState: aliveState, clientId: clientId, coordinates: coordinates, team: team};
 	});
+var author$project$Main$UnknownTeam = {$: 'UnknownTeam'};
 var author$project$Main$handlePlayerCoordinates = F3(
 	function (model, playerCoords, aliveState) {
 		return _Utils_update(
@@ -7697,13 +7706,70 @@ var author$project$Main$handlePlayerCoordinates = F3(
 				players: A3(
 					elm$core$Dict$insert,
 					playerCoords.clientId,
-					A3(
+					A4(
 						author$project$Main$Player,
 						playerCoords.clientId,
 						playerCoords,
 						function () {
-							if (aliveState.$ === 'Unknown') {
-								var _n1 = A2(elm$core$Dict$get, playerCoords.clientId, model.players);
+							var _n0 = A2(elm$core$Dict$get, playerCoords.clientId, model.players);
+							if (_n0.$ === 'Just') {
+								var p = _n0.a;
+								return p.team;
+							} else {
+								return author$project$Main$UnknownTeam;
+							}
+						}(),
+						function () {
+							if (aliveState.$ === 'UnknownAliveState') {
+								var _n2 = A2(elm$core$Dict$get, playerCoords.clientId, model.players);
+								if (_n2.$ === 'Just') {
+									var p = _n2.a;
+									return p.aliveState;
+								} else {
+									return aliveState;
+								}
+							} else {
+								return aliveState;
+							}
+						}()),
+					model.players)
+			});
+	});
+var author$project$Main$CTTeam = {$: 'CTTeam'};
+var author$project$Main$TTeam = {$: 'TTeam'};
+var author$project$Main$playerFromTeamCoords = F2(
+	function (tpCoords, aliveState) {
+		return A4(
+			author$project$Main$Player,
+			tpCoords.clientId,
+			A3(author$project$Main$PlayerCoordinates, tpCoords.clientId, tpCoords.position, tpCoords.orientation),
+			function () {
+				var _n0 = tpCoords.team;
+				switch (_n0) {
+					case '3':
+						return author$project$Main$CTTeam;
+					case '2':
+						return author$project$Main$TTeam;
+					default:
+						return author$project$Main$UnknownTeam;
+				}
+			}(),
+			aliveState);
+	});
+var author$project$Main$handlePlayerTeam = F3(
+	function (tpCoords, aliveState, model) {
+		return _Utils_update(
+			model,
+			{
+				players: A3(
+					elm$core$Dict$insert,
+					tpCoords.clientId,
+					A2(
+						author$project$Main$playerFromTeamCoords,
+						tpCoords,
+						function () {
+							if (aliveState.$ === 'UnknownAliveState') {
+								var _n1 = A2(elm$core$Dict$get, tpCoords.clientId, model.players);
 								if (_n1.$ === 'Just') {
 									var p = _n1.a;
 									return p.aliveState;
@@ -7716,6 +7782,14 @@ var author$project$Main$handlePlayerCoordinates = F3(
 						}()),
 					model.players)
 			});
+	});
+var author$project$Main$handleVictimAttacker = F4(
+	function (victim, attacker, victimAliveState, model) {
+		return A3(
+			author$project$Main$handlePlayerTeam,
+			attacker,
+			author$project$Main$Alive,
+			A3(author$project$Main$handlePlayerTeam, victim, victimAliveState, model));
 	});
 var author$project$Main$Bullet_impact = {$: 'Bullet_impact'};
 var author$project$Main$Buytime_ended = {$: 'Buytime_ended'};
@@ -8557,7 +8631,7 @@ var author$project$Main$handleCommand = F3(
 				var _n3 = author$project$Main$decodeOriginator(message);
 				if (_n3.$ === 'Just') {
 					var playerCoords = _n3.a;
-					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$Unknown);
+					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$UnknownAliveState);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8565,7 +8639,7 @@ var author$project$Main$handleCommand = F3(
 				var _n4 = author$project$Main$decodeOriginator(message);
 				if (_n4.$ === 'Just') {
 					var playerCoords = _n4.a;
-					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$Unknown);
+					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$UnknownAliveState);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8573,7 +8647,7 @@ var author$project$Main$handleCommand = F3(
 				var _n5 = author$project$Main$decodeOriginator(message);
 				if (_n5.$ === 'Just') {
 					var playerCoords = _n5.a;
-					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$Unknown);
+					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$UnknownAliveState);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8581,7 +8655,7 @@ var author$project$Main$handleCommand = F3(
 				var _n6 = author$project$Main$decodeOriginator(message);
 				if (_n6.$ === 'Just') {
 					var playerCoords = _n6.a;
-					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$Unknown);
+					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$UnknownAliveState);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8589,7 +8663,7 @@ var author$project$Main$handleCommand = F3(
 				var _n7 = author$project$Main$decodeOriginator(message);
 				if (_n7.$ === 'Just') {
 					var playerCoords = _n7.a;
-					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$Unknown);
+					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$UnknownAliveState);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8597,7 +8671,7 @@ var author$project$Main$handleCommand = F3(
 				var _n8 = author$project$Main$decodeOriginator(message);
 				if (_n8.$ === 'Just') {
 					var playerCoords = _n8.a;
-					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$Unknown);
+					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$UnknownAliveState);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8605,7 +8679,7 @@ var author$project$Main$handleCommand = F3(
 				var _n9 = author$project$Main$decodeOriginator(message);
 				if (_n9.$ === 'Just') {
 					var playerCoords = _n9.a;
-					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$Unknown);
+					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$UnknownAliveState);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8613,7 +8687,7 @@ var author$project$Main$handleCommand = F3(
 				var _n10 = author$project$Main$decodeOriginator(message);
 				if (_n10.$ === 'Just') {
 					var playerCoords = _n10.a;
-					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$Unknown);
+					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$UnknownAliveState);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8631,11 +8705,7 @@ var author$project$Main$handleCommand = F3(
 					var _n13 = _n12.a;
 					var victim = _n13.a;
 					var attacker = _n13.b;
-					return A3(
-						author$project$Main$handlePlayerCoordinates,
-						A3(author$project$Main$handlePlayerCoordinates, model, victim, author$project$Main$Dead),
-						attacker,
-						author$project$Main$Alive);
+					return A4(author$project$Main$handleVictimAttacker, victim, attacker, author$project$Main$Dead, model);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8653,11 +8723,7 @@ var author$project$Main$handleCommand = F3(
 					var _n16 = _n15.a;
 					var victim = _n16.a;
 					var attacker = _n16.b;
-					return A3(
-						author$project$Main$handlePlayerCoordinates,
-						A3(author$project$Main$handlePlayerCoordinates, model, victim, author$project$Main$Alive),
-						attacker,
-						author$project$Main$Alive);
+					return A4(author$project$Main$handleVictimAttacker, victim, attacker, author$project$Main$Alive, model);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8685,7 +8751,7 @@ var author$project$Main$handleCommand = F3(
 				var _n19 = author$project$Main$decodeOriginator(message);
 				if (_n19.$ === 'Just') {
 					var playerCoords = _n19.a;
-					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$Unknown);
+					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$UnknownAliveState);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8693,7 +8759,7 @@ var author$project$Main$handleCommand = F3(
 				var _n20 = author$project$Main$decodeOriginator(message);
 				if (_n20.$ === 'Just') {
 					var playerCoords = _n20.a;
-					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$Unknown);
+					return A3(author$project$Main$handlePlayerCoordinates, model, playerCoords, author$project$Main$UnknownAliveState);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -11466,8 +11532,8 @@ var author$project$Main$playerSvg = F2(
 			0,
 			elm$core$String$toFloat(player.coordinates.orientation.ang1)) - 135;
 		var r = function () {
-			var _n0 = player.aliveState;
-			switch (_n0.$) {
+			var _n1 = player.aliveState;
+			switch (_n1.$) {
 				case 'Alive':
 					return 5.0;
 				case 'Dead':
@@ -11499,7 +11565,18 @@ var author$project$Main$playerSvg = F2(
 						[
 							elm$svg$Svg$Attributes$d(
 							'M' + (elm$core$String$fromFloat(cx - r) + (' ' + (elm$core$String$fromFloat(cy) + (' A ' + (elm$core$String$fromFloat(r) + (' ' + (elm$core$String$fromFloat(r) + (', 0, 1, 1, ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy + r) + (' L ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy) + ' Z')))))))))))))))),
-							elm$svg$Svg$Attributes$fill('orange')
+							elm$svg$Svg$Attributes$fill(
+							function () {
+								var _n0 = player.team;
+								switch (_n0.$) {
+									case 'UnknownTeam':
+										return 'orange';
+									case 'CTTeam':
+										return 'blue';
+									default:
+										return 'red';
+								}
+							}())
 						]),
 					_List_Nil),
 					A2(

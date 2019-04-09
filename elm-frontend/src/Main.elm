@@ -135,12 +135,13 @@ type alias Entity =
 type alias Player =
     { clientId : ClientId
     , coordinates : PlayerCoordinates
+    , team : Team
     , aliveState : AliveState
     }
 
 type AliveState = Alive
     | Dead
-    | Unknown
+    | UnknownAliveState
 
 type alias Position =
     { position : Coordinates }
@@ -150,6 +151,17 @@ type alias PlayerCoordinates =
     , position : Coordinates
     , orientation : Angles
     }
+
+type alias TeamPlayerCoordinates =
+    { clientId : ClientId
+    , position : Coordinates
+    , orientation : Angles
+    , team : String
+    }
+
+type Team = UnknownTeam
+    | CTTeam
+    | TTeam
 
 type Command =
     Bullet_impact
@@ -291,7 +303,6 @@ update msg model =
         AnimationEnded position ->
             { model
                 | bullets = Dict.remove (getBulletId position.position) model.bullets
-                -- , log = ("Removed " ++ (getBulletId position.position)) :: model.log
             }
                 |> withNoCmd
 
@@ -350,40 +361,40 @@ handleCommand command message model =
         Buytime_ended -> model
         Cs_pre_restart -> model
         Decoy_detonate -> case (decodeOriginator message) of
-            Just playerCoords -> handlePlayerCoordinates model playerCoords Unknown
+            Just playerCoords -> handlePlayerCoordinates model playerCoords UnknownAliveState
             Nothing -> appendLog message model
         Decoy_firing -> case (decodeOriginator message) of
-            Just playerCoords -> handlePlayerCoordinates model playerCoords Unknown
+            Just playerCoords -> handlePlayerCoordinates model playerCoords UnknownAliveState
             Nothing -> appendLog message model
         Decoy_started -> case (decodeOriginator message) of
-            Just playerCoords -> handlePlayerCoordinates model playerCoords Unknown
+            Just playerCoords -> handlePlayerCoordinates model playerCoords UnknownAliveState
             Nothing -> appendLog message model
         Flashbang_detonate -> case (decodeOriginator message) of
-            Just playerCoords -> handlePlayerCoordinates model playerCoords Unknown
+            Just playerCoords -> handlePlayerCoordinates model playerCoords UnknownAliveState
             Nothing -> appendLog message model
         Grenade_bounce -> case (decodeOriginator message) of
-            Just playerCoords -> handlePlayerCoordinates model playerCoords Unknown
+            Just playerCoords -> handlePlayerCoordinates model playerCoords UnknownAliveState
             Nothing -> appendLog message model
         Hegrenade_detonate -> case (decodeOriginator message) of
-            Just playerCoords -> handlePlayerCoordinates model playerCoords Unknown
+            Just playerCoords -> handlePlayerCoordinates model playerCoords UnknownAliveState
             Nothing -> appendLog message model
         Molotov_detonate -> case (decodeOriginator message) of
-            Just playerCoords -> handlePlayerCoordinates model playerCoords Unknown
+            Just playerCoords -> handlePlayerCoordinates model playerCoords UnknownAliveState
             Nothing -> appendLog message model
         Player_activate -> case (decodeOriginator message) of
-            Just playerCoords -> handlePlayerCoordinates model playerCoords Unknown
+            Just playerCoords -> handlePlayerCoordinates model playerCoords UnknownAliveState
             Nothing -> appendLog message model
         Player_blind -> case (decodeOriginator message) of
             Just playerCoords -> handlePlayerCoordinates model playerCoords Alive
             Nothing -> appendLog message model
         Player_death -> case (decodeVictimAttacker message) of
-            Just (victim, attacker) -> handlePlayerCoordinates (handlePlayerCoordinates model victim Dead) attacker Alive
+            Just (victim, attacker) -> handleVictimAttacker victim attacker Dead model
             Nothing -> appendLog message model
         Player_footstep -> case (decodeOriginator message) of
             Just playerCoords -> handlePlayerCoordinates model playerCoords Alive
             Nothing -> appendLog message model
         Player_hurt -> case (decodeVictimAttacker message) of
-            Just (victim, attacker) -> handlePlayerCoordinates (handlePlayerCoordinates model victim Alive) attacker Alive
+            Just (victim, attacker) -> handleVictimAttacker victim attacker Alive model
             Nothing -> appendLog message model
         Player_jump -> case (decodeOriginator message) of
             Just playerCoords -> handlePlayerCoordinates model playerCoords Alive
@@ -393,10 +404,10 @@ handleCommand command message model =
             Nothing -> appendLog message model
         Round_freeze_end -> { model | bullets = Dict.empty }
         Smokegrenade_detonate -> case (decodeOriginator message) of
-            Just playerCoords -> handlePlayerCoordinates model playerCoords Unknown
+            Just playerCoords -> handlePlayerCoordinates model playerCoords UnknownAliveState
             Nothing -> appendLog message model
         Smokegrenade_expired -> case (decodeOriginator message) of
-            Just playerCoords -> handlePlayerCoordinates model playerCoords Unknown
+            Just playerCoords -> handlePlayerCoordinates model playerCoords UnknownAliveState
             Nothing -> appendLog message model
         Weapon_reload -> case (decodeOriginator message) of
             Just playerCoords -> handlePlayerCoordinates model playerCoords Alive
@@ -405,6 +416,36 @@ handleCommand command message model =
             Just playerCoords -> handlePlayerCoordinates model playerCoords Alive
             Nothing -> appendLog message model
         _ -> appendLog message model
+
+playerFromTeamCoords : TeamPlayerCoordinates -> AliveState -> Player
+playerFromTeamCoords tpCoords aliveState =
+    Player
+        tpCoords.clientId
+        (PlayerCoordinates tpCoords.clientId tpCoords.position tpCoords.orientation)
+        (case tpCoords.team of
+            "3" -> CTTeam
+            "2" -> TTeam
+            _ -> UnknownTeam
+        )
+        aliveState
+
+handleVictimAttacker : TeamPlayerCoordinates -> TeamPlayerCoordinates -> AliveState -> Model -> Model
+handleVictimAttacker victim attacker victimAliveState model =
+    handlePlayerTeam attacker Alive (handlePlayerTeam victim victimAliveState model)
+
+handlePlayerTeam : TeamPlayerCoordinates -> AliveState -> Model -> Model
+handlePlayerTeam tpCoords aliveState model =
+    {
+        model | players =
+            Dict.insert tpCoords.clientId (playerFromTeamCoords tpCoords (
+                case aliveState of
+                    UnknownAliveState ->
+                        case Dict.get tpCoords.clientId model.players of
+                            Just p -> p.aliveState
+                            _ -> aliveState
+                    _ -> aliveState
+            )) model.players
+    }
 
 handleBulletImpact : Model -> Bullet -> Model
 handleBulletImpact model bullet =
@@ -420,47 +461,39 @@ handlePlayerCoordinates : Model -> PlayerCoordinates -> AliveState -> Model
 handlePlayerCoordinates model playerCoords aliveState =
     {
         model | players =
-            Dict.insert playerCoords.clientId (Player playerCoords.clientId playerCoords (
-                case aliveState of
-                    Unknown ->
+            Dict.insert playerCoords.clientId (Player playerCoords.clientId playerCoords
+                ( case Dict.get playerCoords.clientId model.players of
+                    Just p -> p.team
+                    _ -> UnknownTeam
+                )
+                ( case aliveState of
+                    UnknownAliveState ->
                         case Dict.get playerCoords.clientId model.players of
                             Just p -> p.aliveState
                             _ -> aliveState
                     _ -> aliveState
-            )) model.players
+                )) model.players
         , minX = min model.minX (Maybe.withDefault model.minX (String.toFloat playerCoords.position.x))
         , minY = min model.minY (Maybe.withDefault model.minY (String.toFloat playerCoords.position.y))
         , maxX = max model.maxX (Maybe.withDefault model.maxX (String.toFloat playerCoords.position.x))
         , maxY = max model.maxY (Maybe.withDefault model.maxY (String.toFloat playerCoords.position.y))
     }
 
-decodeVictimAttacker : String -> Maybe (PlayerCoordinates, PlayerCoordinates)
+teamToPlayerCoordinates : TeamPlayerCoordinates -> PlayerCoordinates
+teamToPlayerCoordinates teamPC =
+    PlayerCoordinates teamPC.clientId teamPC.position teamPC.orientation
+
+decodeVictimAttacker : String -> Maybe (TeamPlayerCoordinates, TeamPlayerCoordinates)
 decodeVictimAttacker message =
-    case Json.Decode.decodeString victimDecoder message of
-        Ok victim -> case Json.Decode.decodeString attackerDecoder message of
+    case Json.Decode.decodeString (teamDecoder "victim") message of
+        Ok victim -> case Json.Decode.decodeString (teamDecoder "attacker") message of
             Ok attacker -> Just (victim, attacker)
             Err err -> Nothing
         Err err -> Nothing
 
-victimDecoder : Decoder PlayerCoordinates
-victimDecoder =
-    ( Json.Decode.map3 PlayerCoordinates
-        ( at [ "victim", "clientId" ] clientIdDecoder )
-        ( at [ "victim", "position" ] coordinatesDecoder )
-        ( at [ "victim", "orientation" ] anglesDecoder )
-    )
-
-attackerDecoder : Decoder PlayerCoordinates
-attackerDecoder =
-    ( Json.Decode.map3 PlayerCoordinates
-        ( at [ "attacker", "clientId" ] clientIdDecoder )
-        ( at [ "attacker", "position" ] coordinatesDecoder )
-        ( at [ "attacker", "orientation" ] anglesDecoder )
-    )
-
 decodeOriginatorImpact : String -> Maybe (PlayerCoordinates, Position)
 decodeOriginatorImpact message =
-    case Json.Decode.decodeString originatorDecoder message of
+    case Json.Decode.decodeString (originatorDecoder "originator") message of
         Ok originator -> case Json.Decode.decodeString (positionDecoder "impact") message of
             Ok position -> Just (originator, position)
             Err err -> Nothing
@@ -468,9 +501,18 @@ decodeOriginatorImpact message =
 
 decodeOriginator : String -> Maybe PlayerCoordinates
 decodeOriginator message =
-    case Json.Decode.decodeString originatorDecoder message of
+    case Json.Decode.decodeString (originatorDecoder "originator") message of
         Ok res -> Just res
         Err err -> Nothing
+
+teamDecoder : String -> Decoder TeamPlayerCoordinates
+teamDecoder key =
+    ( Json.Decode.map4 TeamPlayerCoordinates
+        ( at [ key, "clientId" ] clientIdDecoder )
+        ( at [ key, "position" ] coordinatesDecoder )
+        ( at [ key, "orientation" ] anglesDecoder )
+        ( at [ key, "team" ] string )
+    )
 
 positionDecoder : String -> Decoder Position
 positionDecoder field =
@@ -478,12 +520,12 @@ positionDecoder field =
         ( at [ field, "position" ] coordinatesDecoder )
     )
 
-originatorDecoder : Decoder PlayerCoordinates
-originatorDecoder =
+originatorDecoder : String -> Decoder PlayerCoordinates
+originatorDecoder key =
     ( Json.Decode.map3 PlayerCoordinates
-        ( at [ "originator", "clientId" ] clientIdDecoder )
-        ( at [ "originator", "position" ] coordinatesDecoder )
-        ( at [ "originator", "orientation" ] anglesDecoder )
+        ( at [ key, "clientId" ] clientIdDecoder )
+        ( at [ key, "position" ] coordinatesDecoder )
+        ( at [ key, "orientation" ] anglesDecoder )
     )
 
 clientIdDecoder : Decoder ClientId
@@ -721,7 +763,7 @@ playerSvg model player =
             case player.aliveState of
                 Alive -> 5.0
                 Dead -> 2.0
-                Unknown -> 5.0
+                UnknownAliveState -> 5.0
         yaw = (Maybe.withDefault 0 (String.toFloat player.coordinates.orientation.ang1) - 135)
     in
         Svg.g
@@ -730,9 +772,11 @@ playerSvg model player =
             [ SvgAttrs.d <| "M" ++ (String.fromFloat (cx - r)) ++ " " ++ (String.fromFloat cy)
                 ++ " A " ++ (String.fromFloat r) ++ " " ++ (String.fromFloat r) ++ ", 0, 1, 1, " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy + r))
                 ++ " L " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy)) ++ " Z"
-            , SvgAttrs.fill "orange"
-            -- , SvgAttrs.stroke "black"
-            -- , SvgAttrs.strokeWidth "2"
+            , SvgAttrs.fill (case player.team of
+                UnknownTeam -> "orange"
+                CTTeam -> "blue"
+                TTeam -> "red"
+                )
             ]
             []
         , Svg.path
@@ -740,8 +784,6 @@ playerSvg model player =
                 ++ " A " ++ (String.fromFloat r) ++ " " ++ (String.fromFloat r) ++ ", 0, 0, 0, " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy + r))
                 ++ " L " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy)) ++ " Z"
             , SvgAttrs.fill "aqua"
-            -- , SvgAttrs.stroke "black"
-            -- , SvgAttrs.strokeWidth "2"
             ]
             []
         ]
