@@ -154,7 +154,7 @@ public Action:HandleUserAttackerHealth(Handle:event, const String:eventName[], b
     new Float:attackerAngles[3];
     GetClientEyeAngles(attacker, Float:attackerAngles);
 
-    LogToGame("HW->%s->1->%d->%0.11f,%0.11f,%0.11f->%0.11f,%0.11f,%0.11f->%d->%d->%0.11f,%0.11f,%0.11f->%0.11f,%0.11f,%0.11f->%d->%d,%d->%d,%d->%d",
+    LogToGame("HW->%s->1->%d->%f,%f,%f->%f,%f,%f->%d->%d->%f,%f,%f->%f,%f,%f->%d->%d,%d->%d,%d->%d",
         eventName,
         playerUserId,
         playerCoords[0],
