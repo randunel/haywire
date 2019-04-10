@@ -154,7 +154,7 @@ public Action:HandleUserAttackerHealth(Handle:event, const String:eventName[], b
     new Float:attackerAngles[3];
     GetClientEyeAngles(attacker, Float:attackerAngles);
 
-    LogToGame("HW->%s->1->%d->%f,%f,%f->%f,%f,%f->%d->%d->%f,%f,%f->%f,%f,%f->%d->%d,%d->%d,%d->%d",
+    LogToGame("HW->%s->1->%d->%f,%f,%f->%f,%f,%f->%d->%d->%f,%f,%f->%f,%f,%f->%d->%d,%d->%d,%d->%d->%s",
         eventName,
         playerUserId,
         playerCoords[0],
@@ -176,7 +176,8 @@ public Action:HandleUserAttackerHealth(Handle:event, const String:eventName[], b
         armor,
         dmg_health,
         dmg_armor,
-        hitgroup
+        hitgroup,
+        playerName
     );
     return Plugin_Handled;
 }
