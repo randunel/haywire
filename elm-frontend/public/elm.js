@@ -7481,7 +7481,6 @@ var author$project$Main$anglesDecoder = A4(
 	A2(elm$json$Json$Decode$field, 'ang0', elm$json$Json$Decode$string),
 	A2(elm$json$Json$Decode$field, 'ang1', elm$json$Json$Decode$string),
 	A2(elm$json$Json$Decode$field, 'ang2', elm$json$Json$Decode$string));
-var author$project$Main$clientIdDecoder = elm$json$Json$Decode$string;
 var author$project$Main$Coordinates = F3(
 	function (x, y, z) {
 		return {x: x, y: y, z: z};
@@ -7504,7 +7503,7 @@ var author$project$Main$originatorDecoder = function (key) {
 			elm$json$Json$Decode$at,
 			_List_fromArray(
 				[key, 'clientId']),
-			author$project$Main$clientIdDecoder),
+			elm$json$Json$Decode$string),
 		A2(
 			elm$json$Json$Decode$at,
 			_List_fromArray(
@@ -7533,14 +7532,14 @@ var author$project$Main$decodeOriginator = function (message) {
 var author$project$Main$Position = function (position) {
 	return {position: position};
 };
-var author$project$Main$positionDecoder = function (field) {
+var author$project$Main$positionDecoder = function (key) {
 	return A2(
 		elm$json$Json$Decode$map,
 		author$project$Main$Position,
 		A2(
 			elm$json$Json$Decode$at,
 			_List_fromArray(
-				[field, 'position']),
+				[key, 'position']),
 			author$project$Main$coordinatesDecoder));
 };
 var author$project$Main$decodeOriginatorImpact = function (message) {
@@ -7580,7 +7579,7 @@ var author$project$Main$teamDecoder = function (key) {
 			elm$json$Json$Decode$at,
 			_List_fromArray(
 				[key, 'clientId']),
-			author$project$Main$clientIdDecoder),
+			elm$json$Json$Decode$string),
 		A2(
 			elm$json$Json$Decode$at,
 			_List_fromArray(
@@ -8787,8 +8786,8 @@ var author$project$Main$handleMessage = F2(
 	function (model, message) {
 		var _n0 = A2(elm$json$Json$Decode$decodeString, author$project$Main$commandDecoder, message);
 		if (_n0.$ === 'Ok') {
-			var res = _n0.a;
-			return A3(author$project$Main$handleCommand, res, message, model);
+			var command = _n0.a;
+			return A3(author$project$Main$handleCommand, command, message, model);
 		} else {
 			var err = _n0.a;
 			return A2(author$project$Main$appendLog, 'Received unexpected ' + message, model);

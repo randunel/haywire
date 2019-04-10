@@ -1,36 +1,20 @@
 port module Main exposing (main)
 
-{-| WebSocketClient Example
--}
-
 import Browser
-import Cmd.Extra exposing (addCmd, addCmds, withCmd, withCmds, withNoCmd)
+import Cmd.Extra
 import Dict exposing (Dict)
-import Html exposing (Html, a, button, div, h1, input, p, span, text)
-import Html.Attributes exposing (checked, disabled, href, size, style, type_, value)
-import Html.Events exposing (onClick, onInput)
+import Html exposing (Html)
+import Html.Attributes
+import Html.Events
 import Svg exposing (Svg)
 import Svg.Attributes as SvgAttrs
 import Svg.Events as SvgEvents
 import Animation
 import Animation.Messenger
-import Json.Encode exposing (Value)
-import Json.Decode exposing (Decoder, field, string, float, at)
+import Json.Encode
+import Json.Decode
 import PortFunnel.WebSocket as WebSocket exposing (Response(..))
 import PortFunnels exposing (FunnelDict, Handler(..), State)
-
-
-
-{- This section contains boilerplate that you'll always need.
-
-   First, copy PortFunnels.elm into your project, and modify it
-   to support all the funnel modules you use.
-
-   Then update the `handlers` list with an entry for each funnel.
-
-   Those handler functions are the meat of your interaction with each
-   funnel module.
--}
 
 
 handlers : List (Handler Model Msg)
@@ -52,16 +36,12 @@ funnelDict =
     PortFunnels.makeFunnelDict handlers getCmdPort
 
 
-{-| Get a possibly simulated output port.
--}
-getCmdPort : String -> Model -> (Value -> Cmd Msg)
+getCmdPort : String -> Model -> (Json.Encode.Value -> Cmd Msg)
 getCmdPort moduleName model =
     PortFunnels.getCmdPort Process moduleName False
 
 
-{-| The real output port.
--}
-cmdPort : Value -> Cmd Msg
+cmdPort : Json.Encode.Value -> Cmd Msg
 cmdPort =
     PortFunnels.getCmdPort Process "" False
 
@@ -119,7 +99,8 @@ init _ =
     , maxX = 0
     , maxY = 0
     }
-    |> withNoCmd
+    |> Cmd.Extra.withNoCmd
+
 
 type alias Bullet =
     { coordinates : Coordinates
@@ -215,7 +196,7 @@ type Msg =
     | Connect
     | Close
     | Send
-    | Process Value
+    | Process Json.Encode.Value
     | Animate Animation.Msg
     | AnimationEnded Position
 
@@ -224,10 +205,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         UpdateSend newsend ->
-            { model | send = newsend } |> withNoCmd
+            { model | send = newsend } |> Cmd.Extra.withNoCmd
 
         UpdateUrl url ->
-            { model | url = url } |> withNoCmd
+            { model | url = url } |> Cmd.Extra.withNoCmd
 
         ToggleAutoReopen ->
             let
@@ -250,14 +231,14 @@ update msg model =
                                 socketState
                     }
             }
-                |> withNoCmd
+                |> Cmd.Extra.withNoCmd
 
         Connect ->
             { model
                 | log =
                     ("Connecting to " ++ model.url) :: model.log
             }
-                |> withCmd
+                |> Cmd.Extra.withCmd
                     (WebSocket.makeOpenWithKey model.key model.url
                         |> send model
                     )
@@ -267,7 +248,7 @@ update msg model =
                 | log =
                     ("Sending \"" ++ model.send ++ "\"") :: model.log
             }
-                |> withCmd
+                |> Cmd.Extra.withCmd
                     (WebSocket.makeSend model.key model.send
                         |> send model
                     )
@@ -276,7 +257,7 @@ update msg model =
             { model
                 | log = "Closing" :: model.log
             }
-                |> withCmd
+                |> Cmd.Extra.withCmd
                     (WebSocket.makeClose model.key
                         |> send model
                     )
@@ -286,7 +267,7 @@ update msg model =
                 PortFunnels.processValue funnelDict value model.state model
             of
                 Err error ->
-                    { model | error = Just error } |> withNoCmd
+                    { model | error = Just error } |> Cmd.Extra.withNoCmd
 
                 Ok res ->
                     res
@@ -304,16 +285,8 @@ update msg model =
             { model
                 | bullets = Dict.remove (getBulletId position.position) model.bullets
             }
-                |> withNoCmd
+                |> Cmd.Extra.withNoCmd
 
-
-updateBulletAnimation : Animation.Msg -> Bullet -> (Bullet, Cmd Msg)
-updateBulletAnimation animationMsg bullet =
-    let
-        (style, cmd) =
-            Animation.Messenger.update animationMsg bullet.style
-    in
-        ({ bullet | style = style }, cmd)
 
 send : Model -> WebSocket.Message -> Cmd Msg
 send model message =
@@ -330,19 +303,31 @@ doIsLoaded model =
     else
         model
 
+
+updateBulletAnimation : Animation.Msg -> Bullet -> (Bullet, Cmd Msg)
+updateBulletAnimation animationMsg bullet =
+    let
+        (style, cmd) =
+            Animation.Messenger.update animationMsg bullet.style
+    in
+        ({ bullet | style = style }, cmd)
+
+
 appendLog : String -> Model -> Model
 appendLog str model =
     { model | log = str :: model.log }
 
+
 handleMessage : Model -> String -> Model
 handleMessage model message =
     case Json.Decode.decodeString commandDecoder message of
-        Ok res -> handleCommand res message model
+        Ok command -> handleCommand command message model
         Err err -> appendLog ("Received unexpected " ++ message) model
 
-commandDecoder : Decoder String
+
+commandDecoder : Json.Decode.Decoder String
 commandDecoder =
-    field "command" string
+    Json.Decode.field "command" Json.Decode.string
 
 getBulletId : Coordinates -> String
 getBulletId coordinates =
@@ -505,47 +490,43 @@ decodeOriginator message =
         Ok res -> Just res
         Err err -> Nothing
 
-teamDecoder : String -> Decoder TeamPlayerCoordinates
+teamDecoder : String -> Json.Decode.Decoder TeamPlayerCoordinates
 teamDecoder key =
     ( Json.Decode.map4 TeamPlayerCoordinates
-        ( at [ key, "clientId" ] clientIdDecoder )
-        ( at [ key, "position" ] coordinatesDecoder )
-        ( at [ key, "orientation" ] anglesDecoder )
-        ( at [ key, "team" ] string )
+        ( Json.Decode.at [ key, "clientId" ] Json.Decode.string )
+        ( Json.Decode.at [ key, "position" ] coordinatesDecoder )
+        ( Json.Decode.at [ key, "orientation" ] anglesDecoder )
+        ( Json.Decode.at [ key, "team" ] Json.Decode.string )
     )
 
-positionDecoder : String -> Decoder Position
-positionDecoder field =
+positionDecoder : String -> Json.Decode.Decoder Position
+positionDecoder key =
     ( Json.Decode.map Position
-        ( at [ field, "position" ] coordinatesDecoder )
+        ( Json.Decode.at [ key, "position" ] coordinatesDecoder )
     )
 
-originatorDecoder : String -> Decoder PlayerCoordinates
+originatorDecoder : String -> Json.Decode.Decoder PlayerCoordinates
 originatorDecoder key =
     ( Json.Decode.map3 PlayerCoordinates
-        ( at [ key, "clientId" ] clientIdDecoder )
-        ( at [ key, "position" ] coordinatesDecoder )
-        ( at [ key, "orientation" ] anglesDecoder )
+        ( Json.Decode.at [ key, "clientId" ] Json.Decode.string )
+        ( Json.Decode.at [ key, "position" ] coordinatesDecoder )
+        ( Json.Decode.at [ key, "orientation" ] anglesDecoder )
     )
 
-clientIdDecoder : Decoder ClientId
-clientIdDecoder =
-    string
-
-coordinatesDecoder : Decoder Coordinates
+coordinatesDecoder : Json.Decode.Decoder Coordinates
 coordinatesDecoder =
     ( Json.Decode.map3 Coordinates
-        ( field "x" string )
-        ( field "y" string )
-        ( field "z" string )
+        ( Json.Decode.field "x" Json.Decode.string )
+        ( Json.Decode.field "y" Json.Decode.string )
+        ( Json.Decode.field "z" Json.Decode.string )
     )
 
-anglesDecoder : Decoder Angles
+anglesDecoder : Json.Decode.Decoder Angles
 anglesDecoder =
     ( Json.Decode.map3 Angles
-        ( field "ang0" string )
-        ( field "ang1" string )
-        ( field "ang2" string )
+        ( Json.Decode.field "ang0" Json.Decode.string )
+        ( Json.Decode.field "ang1" Json.Decode.string )
+        ( Json.Decode.field "ang2" Json.Decode.string )
     )
 
 stringToCommand : String -> Command
@@ -589,11 +570,11 @@ socketHandler response state mdl =
     case response of
         WebSocket.MessageReceivedResponse { message } ->
             handleMessage model message
-                |> withNoCmd
+                |> Cmd.Extra.withNoCmd
 
         WebSocket.ConnectedResponse r ->
             { model | log = ("Connected: " ++ r.description) :: model.log }
-                |> withNoCmd
+                |> Cmd.Extra.withNoCmd
 
         WebSocket.ClosedResponse { code, wasClean, expected } ->
             { model
@@ -601,24 +582,24 @@ socketHandler response state mdl =
                     ("Closed, " ++ closedString code wasClean expected)
                         :: model.log
             }
-                |> withNoCmd
+                |> Cmd.Extra.withNoCmd
 
         WebSocket.ErrorResponse error ->
             { model | log = WebSocket.errorToString error :: model.log }
-                |> withNoCmd
+                |> Cmd.Extra.withNoCmd
 
         _ ->
             case WebSocket.reconnectedResponses response of
                 [] ->
-                    model |> withNoCmd
+                    model |> Cmd.Extra.withNoCmd
 
                 [ ReconnectedResponse r ] ->
                     { model | log = ("Reconnected: " ++ r.description) :: model.log }
-                        |> withNoCmd
+                        |> Cmd.Extra.withNoCmd
 
                 list ->
                     { model | log = ("list") :: model.log }
-                        |> withNoCmd
+                        |> Cmd.Extra.withNoCmd
 
 
 closedString : WebSocket.ClosedCode -> Bool -> Bool -> String
@@ -647,7 +628,7 @@ closedString code wasClean expected =
 
 b : String -> Html Msg
 b string =
-    Html.b [] [ text string ]
+    Html.b [] [ Html.text string ]
 
 
 br : Html msg
@@ -657,7 +638,7 @@ br =
 
 docp : String -> Html Msg
 docp string =
-    p [] [ text string ]
+    Html.p [] [ Html.text string ]
 
 
 view : Model -> Html Msg
@@ -666,51 +647,51 @@ view model =
         isConnected =
             WebSocket.isConnected model.key model.state.websocket
     in
-    div
-        [ style "width" "90%"
-        , style "margin" "auto"
-        , style "margin-top" "1em"
-        , style "padding" "1em"
-        , style "border" "solid"
+    Html.div
+        [ Html.Attributes.style "width" "90%"
+        , Html.Attributes.style "margin" "auto"
+        , Html.Attributes.style "margin-top" "1em"
+        , Html.Attributes.style "padding" "1em"
+        , Html.Attributes.style "border" "solid"
         ]
-        [ h1 [] [ text "Haywire sample" ]
-        , p []
-            [ input
-                [ value model.send
-                , onInput UpdateSend
-                , size 50
+        [ Html.h1 [] [ Html.text "Haywire sample" ]
+        , Html.p []
+            [ Html.input
+                [ Html.Attributes.value model.send
+                , Html.Events.onInput UpdateSend
+                , Html.Attributes.size 50
                 ]
                 []
-            , text " "
-            , button
-                [ onClick Send
-                , disabled (not isConnected)
+            , Html.text " "
+            , Html.button
+                [ Html.Events.onClick Send
+                , Html.Attributes.disabled (not isConnected)
                 ]
-                [ text "Send" ]
+                [ Html.text "Send" ]
             ]
-        , p []
+        , Html.p []
             [ b "url: "
-            , input
-                [ value model.url
-                , onInput UpdateUrl
-                , size 30
-                , disabled isConnected
+            , Html.input
+                [ Html.Attributes.value model.url
+                , Html.Events.onInput UpdateUrl
+                , Html.Attributes.size 30
+                , Html.Attributes.disabled isConnected
                 ]
                 []
-            , text " "
+            , Html.text " "
             , if isConnected then
-                button [ onClick Close ]
-                    [ text "Close" ]
+                Html.button [ Html.Events.onClick Close ]
+                    [ Html.text "Close" ]
 
               else
-                button [ onClick Connect ]
-                    [ text "Connect" ]
+                Html.button [ Html.Events.onClick Connect ]
+                    [ Html.text "Connect" ]
             , br
             , b "auto reopen: "
-            , input
-                [ type_ "checkbox"
-                , onClick ToggleAutoReopen
-                , checked <|
+            , Html.input
+                [ Html.Attributes.type_ "checkbox"
+                , Html.Events.onClick ToggleAutoReopen
+                , Html.Attributes.checked <|
                     WebSocket.willAutoReopen
                         model.key
                         model.state.websocket
@@ -726,21 +707,21 @@ view model =
                 ++
                 (List.map (bulletsSvg model) (Dict.values model.bullets))
             )
-        , p [] <|
+        , Html.p [] <|
             List.concat
                 [ [ b "Players:"
                   , br
                   ]
-                , List.intersperse br (List.map text (List.map (\p -> "clientId:" ++ p.clientId ++ " x:" ++ p.coordinates.position.x ++ " y:" ++ p.coordinates.position.y ++ " z:" ++ p.coordinates.position.z) (Dict.values model.players)))
+                , List.intersperse br (List.map Html.text (List.map (\p -> "clientId:" ++ p.clientId ++ " x:" ++ p.coordinates.position.x ++ " y:" ++ p.coordinates.position.y ++ " z:" ++ p.coordinates.position.z) (Dict.values model.players)))
                 -- , [ br, b "Bullets:", br ]
-                -- , List.intersperse br (List.map text (List.map (\bullet -> "id:" ++ (bullet.id) ++ " x:" ++ bullet.coordinates.x ++ " y:" ++ bullet.coordinates.y ++ " z:" ++ bullet.coordinates.z) (Dict.values model.bullets)))
+                -- , List.intersperse br (List.map Html.text (List.map (\bullet -> "id:" ++ (bullet.id) ++ " x:" ++ bullet.coordinates.x ++ " y:" ++ bullet.coordinates.y ++ " z:" ++ bullet.coordinates.z) (Dict.values model.bullets)))
                 ]
-        , p [] <|
+        , Html.p [] <|
             List.concat
                 [ [ b "Log:"
                   , br
                   ]
-                , List.intersperse br (List.map text model.log)
+                , List.intersperse br (List.map Html.text model.log)
                 ]
         ]
 
