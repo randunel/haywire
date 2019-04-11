@@ -113,7 +113,7 @@ type alias Entity =
 
 type alias Bullet =
     { coordinates : Coordinates
-    , id : String
+    , id : BulletId
     , style : Animation.Messenger.State Msg
     }
 
@@ -127,9 +127,6 @@ type alias Player =
 type AliveState = Alive
     | Dead
     | UnknownAliveState
-
-type alias Position =
-    { position : Coordinates }
 
 type alias PlayerCoordinates =
     { clientId : ClientId
@@ -177,6 +174,9 @@ type Command =
 type alias ClientId =
     String
 
+type alias BulletId =
+    String
+
 type alias Coordinates =
     { x : String
     , y : String
@@ -202,7 +202,7 @@ type Msg =
     | Send
     | Process Json.Encode.Value
     | Animate Animation.Msg
-    | AnimationEnded Position
+    | AnimationEnded BulletId
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -285,9 +285,9 @@ update msg model =
             in
                 ({ model | bullets = Dict.fromList (List.map (\bullet -> (bullet.id, bullet)) bulletsList) }, Cmd.batch cmds)
 
-        AnimationEnded position ->
+        AnimationEnded bulletId ->
             { model
-                | bullets = Dict.remove (getBulletId position.position) model.bullets
+                | bullets = Dict.remove bulletId model.bullets
             }
                 |> Cmd.Extra.withNoCmd
 
@@ -308,15 +308,6 @@ doIsLoaded model =
         model
 
 
-updateBulletAnimation : Animation.Msg -> Bullet -> (Bullet, Cmd Msg)
-updateBulletAnimation animationMsg bullet =
-    let
-        (style, cmd) =
-            Animation.Messenger.update animationMsg bullet.style
-    in
-        ({ bullet | style = style }, cmd)
-
-
 appendLog : String -> Model -> Model
 appendLog str model =
     { model | log = str :: model.log }
@@ -333,22 +324,24 @@ commandDecoder : Json.Decode.Decoder String
 commandDecoder =
     Json.Decode.field "command" Json.Decode.string
 
-getBulletId : Coordinates -> String
-getBulletId coordinates =
-    "bullet-" ++ coordinates.x ++ "-" ++ coordinates.y ++ "-" ++ coordinates.z
 
 handleCommand : String -> String -> Model -> Model
 handleCommand command message model =
     case stringToCommand command of
 
-        Bullet_impact -> case (decodeOriginatorImpact message) of
-            Just (playerCoords, position) ->
-                (
-                handleBulletImpact model (Bullet position.position (getBulletId position.position) (
-                    Animation.queue [Animation.toWith (Animation.easing {duration = 4000, ease = (\x -> x ^ 2)}) [Animation.opacity 0], Animation.Messenger.send (AnimationEnded position)] (Animation.style [Animation.opacity 1.0])
-                    ))
-                )
-                |> handlePlayerCoordinates playerCoords Alive
+        Bullet_impact -> case decodeOriginatorImpact message of
+            Just ( playerCoordinates, coordinates ) ->
+                let
+                    bulletId = getBulletId coordinates
+                in
+                    let
+                        bullet =
+                            getBulletAnimation bulletId
+                            |> Bullet coordinates bulletId
+                    in
+                        model
+                        |> handleBulletImpact bullet
+                        |> handlePlayerCoordinates playerCoordinates Alive
             Nothing -> appendLog message model
 
         Buytime_ended -> model
@@ -356,107 +349,107 @@ handleCommand command message model =
         Cs_pre_restart -> model
 
         Decoy_detonate -> case decodeOriginatorEntity message of
-            Just ( playerCoords, entity ) ->
+            Just ( playerCoordinates, entity ) ->
                 model
-                |> handlePlayerCoordinates playerCoords UnknownAliveState
+                |> handlePlayerCoordinates playerCoordinates UnknownAliveState
                 |> handleEntity entity
             Nothing -> appendLog message model
 
         Decoy_firing -> case (decodeOriginatorEntity message) of
-            Just ( playerCoords, entity ) ->
+            Just ( playerCoordinates, entity ) ->
                 model
-                |> handlePlayerCoordinates playerCoords UnknownAliveState
+                |> handlePlayerCoordinates playerCoordinates UnknownAliveState
                 |> handleEntity entity
             Nothing -> appendLog message model
         Decoy_started -> case (decodeOriginatorEntity message) of
-            Just ( playerCoords, entity ) ->
+            Just ( playerCoordinates, entity ) ->
                 model
-                |> handlePlayerCoordinates playerCoords UnknownAliveState
+                |> handlePlayerCoordinates playerCoordinates UnknownAliveState
                 |> handleEntity entity
             Nothing -> appendLog message model
         Flashbang_detonate -> case (decodeOriginatorEntity message) of
-            Just ( playerCoords, entity ) ->
+            Just ( playerCoordinates, entity ) ->
                 model
-                |> handlePlayerCoordinates playerCoords UnknownAliveState
+                |> handlePlayerCoordinates playerCoordinates UnknownAliveState
                 |> handleEntity entity
             Nothing -> appendLog message model
         Grenade_bounce -> case (decodeOriginatorEntity message) of
-            Just ( playerCoords, entity ) ->
+            Just ( playerCoordinates, entity ) ->
                 model
-                |> handlePlayerCoordinates playerCoords UnknownAliveState
+                |> handlePlayerCoordinates playerCoordinates UnknownAliveState
                 |> handleEntity entity
             Nothing -> appendLog message model
         Hegrenade_detonate -> case (decodeOriginatorEntity message) of
-            Just ( playerCoords, entity ) ->
+            Just ( playerCoordinates, entity ) ->
                 model
-                |> handlePlayerCoordinates playerCoords UnknownAliveState
+                |> handlePlayerCoordinates playerCoordinates UnknownAliveState
                 |> handleEntity entity
             Nothing -> appendLog message model
         Molotov_detonate -> case (decodeOriginatorEntity message) of
-            Just ( playerCoords, entity ) ->
+            Just ( playerCoordinates, entity ) ->
                 model
-                |> handlePlayerCoordinates playerCoords UnknownAliveState
+                |> handlePlayerCoordinates playerCoordinates UnknownAliveState
                 |> handleEntity entity
             Nothing -> appendLog message model
         Player_activate -> case (decodeOriginator message) of
-            Just playerCoords ->
+            Just playerCoordinates ->
                 model
-                |> handlePlayerCoordinates playerCoords UnknownAliveState
+                |> handlePlayerCoordinates playerCoordinates UnknownAliveState
             Nothing -> appendLog message model
         Player_blind -> case (decodeOriginator message) of
-            Just playerCoords ->
+            Just playerCoordinates ->
                 model
-                |> handlePlayerCoordinates playerCoords Alive
+                |> handlePlayerCoordinates playerCoordinates Alive
             Nothing -> appendLog message model
         Player_death -> case (decodeVictimAttacker message) of
             Just (victim, attacker) -> handleVictimAttacker victim attacker Dead model
             Nothing -> appendLog message model
         Player_footstep -> case (decodeOriginator message) of
-            Just playerCoords ->
+            Just playerCoordinates ->
                 model
-                |> handlePlayerCoordinates playerCoords Alive
+                |> handlePlayerCoordinates playerCoordinates Alive
             Nothing -> appendLog message model
         Player_hurt -> case (decodeVictimAttacker message) of
             Just (victim, attacker) -> handleVictimAttacker victim attacker Alive model
             Nothing -> appendLog message model
         Player_jump -> case (decodeOriginator message) of
-            Just playerCoords ->
+            Just playerCoordinates ->
                 model
-                |> handlePlayerCoordinates playerCoords Alive
+                |> handlePlayerCoordinates playerCoordinates Alive
             Nothing -> appendLog message model
         Player_spawn -> case (decodeOriginator message) of
-            Just playerCoords ->
+            Just playerCoordinates ->
                 model
-                |> handlePlayerCoordinates playerCoords Alive
+                |> handlePlayerCoordinates playerCoordinates Alive
             Nothing -> appendLog message model
         Round_freeze_end -> { model | bullets = Dict.empty }
         Smokegrenade_detonate -> case (decodeOriginatorEntity message) of
-            Just ( playerCoords, entity ) ->
+            Just ( playerCoordinates, entity ) ->
                 model
-                |> handlePlayerCoordinates playerCoords UnknownAliveState
+                |> handlePlayerCoordinates playerCoordinates UnknownAliveState
                 |> handleEntity entity
             Nothing -> appendLog message model
         Smokegrenade_expired -> case (decodeOriginatorEntity message) of
-            Just ( playerCoords, entity ) ->
+            Just ( playerCoordinates, entity ) ->
                 model
-                |> handlePlayerCoordinates playerCoords UnknownAliveState
+                |> handlePlayerCoordinates playerCoordinates UnknownAliveState
                 |> handleEntity entity
             Nothing -> appendLog message model
         Weapon_reload -> case (decodeOriginator message) of
-            Just playerCoords ->
+            Just playerCoordinates ->
                 model
-                |> handlePlayerCoordinates playerCoords Alive
+                |> handlePlayerCoordinates playerCoordinates Alive
             Nothing -> appendLog message model
         Weapon_zoom -> case (decodeOriginator message) of
-            Just playerCoords ->
+            Just playerCoordinates ->
                 model
-                |> handlePlayerCoordinates playerCoords Alive
+                |> handlePlayerCoordinates playerCoordinates Alive
             Nothing -> appendLog message model
         _ -> appendLog message model
 
 
 playerFromPlayerCoordinates : PlayerCoordinates -> AliveState -> Maybe Player -> Player
-playerFromPlayerCoordinates playerCoords aliveState maybePlayer =
+playerFromPlayerCoordinates playerCoordinates aliveState maybePlayer =
     let ( oldTeam, oldAliveState ) =
             case maybePlayer of
                 Just player -> ( player.team, player.aliveState )
@@ -466,31 +459,74 @@ playerFromPlayerCoordinates playerCoords aliveState maybePlayer =
             UnknownAliveState -> oldAliveState
             _ -> aliveState
         )
-        |> Player playerCoords.clientId playerCoords oldTeam
+        |> Player playerCoordinates.clientId playerCoordinates oldTeam
 
 
 handlePlayerCoordinates : PlayerCoordinates -> AliveState -> Model -> Model
-handlePlayerCoordinates playerCoords aliveState model =
-    { model | players =
-        model.players
-        |> Dict.insert playerCoords.clientId
-            ( Dict.get playerCoords.clientId model.players
-            |> playerFromPlayerCoordinates playerCoords aliveState
-            )
-    , minX =
-        String.toFloat playerCoords.position.x
+handlePlayerCoordinates playerCoordinates aliveState model =
+    let
+        updatedModel = updateCanvasSize playerCoordinates.position model
+    in
+        { updatedModel | players =
+            updatedModel.players
+            |> Dict.insert playerCoordinates.clientId (
+                Dict.get playerCoordinates.clientId updatedModel.players
+                |> playerFromPlayerCoordinates playerCoordinates aliveState
+                )
+        }
+
+
+getBulletId : Coordinates -> BulletId
+getBulletId coordinates =
+    "bullet-" ++ coordinates.x ++ "-" ++ coordinates.y ++ "-" ++ coordinates.z
+
+
+handleBulletImpact : Bullet -> Model -> Model
+handleBulletImpact bullet model =
+    let
+        updatedModel = updateCanvasSize bullet.coordinates model
+    in
+    { updatedModel | bullets =
+        Dict.insert bullet.id bullet updatedModel.bullets
+    }
+
+
+getBulletAnimation : BulletId -> Animation.Messenger.State Msg
+getBulletAnimation bulletId =
+    Animation.queue
+    [ Animation.toWith
+        ( Animation.easing { duration = 4000, ease = (\x -> x ^ 2) })
+        [ Animation.opacity 0 ]
+    , Animation.Messenger.send
+        ( AnimationEnded bulletId )
+    ] ( Animation.style [ Animation.opacity 1.0 ])
+
+
+updateBulletAnimation : Animation.Msg -> Bullet -> (Bullet, Cmd Msg)
+updateBulletAnimation animationMsg bullet =
+    let
+        (style, cmd) =
+            Animation.Messenger.update animationMsg bullet.style
+    in
+        ({ bullet | style = style }, cmd)
+
+
+updateCanvasSize : Coordinates -> Model -> Model
+updateCanvasSize coordinates model =
+    { model | minX =
+        String.toFloat coordinates.x
         |> Maybe.withDefault model.minX
         |> min model.minX
     , minY =
-        String.toFloat playerCoords.position.y
+        String.toFloat coordinates.y
         |> Maybe.withDefault model.minY
         |> min model.minY
     , maxX =
-        String.toFloat playerCoords.position.x
+        String.toFloat coordinates.x
         |> Maybe.withDefault model.maxX
         |> max model.maxX
     , maxY =
-        String.toFloat playerCoords.position.y
+        String.toFloat coordinates.y
         |> Maybe.withDefault model.maxY
         |> max model.maxY
     }
@@ -509,14 +545,33 @@ decodeOriginatorEntity message =
         |> Json.Decode.decodeString
         ) message
     of
-        Ok playerCoords ->
+        Ok playerCoordinates ->
             case
                 ( "originator"
                 |> entityDecoder
                 |> Json.Decode.decodeString
                 ) message
             of
-                Ok entity -> Just ( playerCoords, entity )
+                Ok entity -> Just ( playerCoordinates, entity )
+                Err err -> Nothing
+        Err err -> Nothing
+
+
+decodeOriginatorImpact : String -> Maybe (PlayerCoordinates, Coordinates)
+decodeOriginatorImpact message =
+    case
+        ( "originator"
+        |> originatorDecoder
+        |> Json.Decode.decodeString
+        ) message
+    of
+        Ok playerCoordinates ->
+            case
+                ( coordinatesDecoder [ "impact", "position" ]
+                |> Json.Decode.decodeString
+                ) message
+            of
+                Ok coordinates -> Just ( playerCoordinates, coordinates )
                 Err err -> Nothing
         Err err -> Nothing
 
@@ -524,18 +579,26 @@ decodeOriginatorEntity message =
 originatorDecoder : String -> Json.Decode.Decoder PlayerCoordinates
 originatorDecoder key =
     Json.Decode.succeed PlayerCoordinates
-        |> JDPipeline.requiredAt [ key, "clientId" ] Json.Decode.string
-        |> JDPipeline.requiredAt [ key, "position" ] coordinatesDecoder
-        |> JDPipeline.requiredAt [ key, "orientation" ] anglesDecoder
+    |> JDPipeline.requiredAt [ key, "clientId" ] Json.Decode.string
+    |> JDPipeline.requiredAt [ key, "position" ] ( coordinatesDecoder [] )
+    |> JDPipeline.requiredAt [ key, "orientation" ] anglesDecoder
 
 
 entityDecoder : String -> Json.Decode.Decoder Entity
 entityDecoder key =
     Json.Decode.succeed Entity
-        |> JDPipeline.requiredAt [ "entity", "type" ] Json.Decode.string
-        |> JDPipeline.requiredAt [ "entity", "id" ] Json.Decode.string
-        |> JDPipeline.requiredAt [ key, "clientId" ] Json.Decode.string
-        |> JDPipeline.requiredAt [ "entity", "position" ] coordinatesDecoder
+    |> JDPipeline.requiredAt [ "entity", "type" ] Json.Decode.string
+    |> JDPipeline.requiredAt [ "entity", "id" ] Json.Decode.string
+    |> JDPipeline.requiredAt [ key, "clientId" ] Json.Decode.string
+    |> JDPipeline.requiredAt [ "entity", "position" ] ( coordinatesDecoder [])
+
+
+coordinatesDecoder : List String -> Json.Decode.Decoder Coordinates
+coordinatesDecoder nestingKeys =
+    Json.Decode.succeed Coordinates
+    |> JDPipeline.requiredAt (nestingKeys ++ [ "x" ]) Json.Decode.string
+    |> JDPipeline.requiredAt (nestingKeys ++ [ "y" ]) Json.Decode.string
+    |> JDPipeline.requiredAt (nestingKeys ++ [ "z" ]) Json.Decode.string
 
 
 playerFromTeamCoords : TeamPlayerCoordinates -> AliveState -> Player
@@ -549,6 +612,7 @@ playerFromTeamCoords tpCoords aliveState =
             _ -> UnknownTeam
         )
         aliveState
+
 
 handleVictimAttacker : TeamPlayerCoordinates -> TeamPlayerCoordinates -> AliveState -> Model -> Model
 handleVictimAttacker victim attacker victimAliveState model =
@@ -568,16 +632,6 @@ handlePlayerTeam tpCoords aliveState model =
             )) model.players
     }
 
-handleBulletImpact : Model -> Bullet -> Model
-handleBulletImpact model bullet =
-    {
-        model | bullets = Dict.insert bullet.id bullet model.bullets
-        , minX = min model.minX (Maybe.withDefault model.minX (String.toFloat bullet.coordinates.x))
-        , minY = min model.minY (Maybe.withDefault model.minY (String.toFloat bullet.coordinates.y))
-        , maxX = max model.maxX (Maybe.withDefault model.maxX (String.toFloat bullet.coordinates.x))
-        , maxY = max model.maxY (Maybe.withDefault model.maxY (String.toFloat bullet.coordinates.y))
-    }
-
 
 teamToPlayerCoordinates : TeamPlayerCoordinates -> PlayerCoordinates
 teamToPlayerCoordinates teamPC =
@@ -591,13 +645,6 @@ decodeVictimAttacker message =
             Err err -> Nothing
         Err err -> Nothing
 
-decodeOriginatorImpact : String -> Maybe (PlayerCoordinates, Position)
-decodeOriginatorImpact message =
-    case Json.Decode.decodeString (originatorDecoder "originator") message of
-        Ok originator -> case Json.Decode.decodeString (positionDecoder "impact") message of
-            Ok position -> Just (originator, position)
-            Err err -> Nothing
-        Err err -> Nothing
 
 decodeOriginator : String -> Maybe PlayerCoordinates
 decodeOriginator message =
@@ -610,24 +657,9 @@ teamDecoder : String -> Json.Decode.Decoder TeamPlayerCoordinates
 teamDecoder key =
     ( Json.Decode.map4 TeamPlayerCoordinates
         ( Json.Decode.at [ key, "clientId" ] Json.Decode.string )
-        ( Json.Decode.at [ key, "position" ] coordinatesDecoder )
+        ( Json.Decode.at [ key, "position" ] (coordinatesDecoder []) )
         ( Json.Decode.at [ key, "orientation" ] anglesDecoder )
         ( Json.Decode.at [ key, "team" ] Json.Decode.string )
-    )
-
-positionDecoder : String -> Json.Decode.Decoder Position
-positionDecoder key =
-    ( Json.Decode.map Position
-        ( Json.Decode.at [ key, "position" ] coordinatesDecoder )
-    )
-
-
-coordinatesDecoder : Json.Decode.Decoder Coordinates
-coordinatesDecoder =
-    ( Json.Decode.map3 Coordinates
-        ( Json.Decode.field "x" Json.Decode.string )
-        ( Json.Decode.field "y" Json.Decode.string )
-        ( Json.Decode.field "z" Json.Decode.string )
     )
 
 anglesDecoder : Json.Decode.Decoder Angles
