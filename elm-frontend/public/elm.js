@@ -4808,7 +4808,7 @@ var billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState = billstc
 var author$project$PortFunnels$initialState = {websocket: billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState};
 var author$project$Main$init = function (_n0) {
 	return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
-		{bullets: elm$core$Dict$empty, entities: elm$core$Dict$empty, error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, maxX: 0, maxY: 0, minX: 0, minY: 0, players: elm$core$Dict$empty, send: 'sent from frontend (elm)', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, wasLoaded: false});
+		{bullets: elm$core$Dict$empty, bulletsResetCount: 200, entities: elm$core$Dict$empty, entitiesResetCount: 200, error: elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, maxX: 0, maxY: 0, minX: 0, minY: 0, players: elm$core$Dict$empty, send: 'sent from frontend (elm)', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, wasLoaded: false});
 };
 var author$project$Main$Animate = function (a) {
 	return {$: 'Animate', a: a};
@@ -8504,53 +8504,36 @@ var author$project$Main$getBullet = function (coordinates) {
 		bulletId,
 		author$project$Main$getBulletAnimation(bulletId));
 };
-var elm$core$Basics$min = F2(
-	function (x, y) {
-		return (_Utils_cmp(x, y) < 0) ? x : y;
+var elm$core$Dict$sizeHelp = F2(
+	function (n, dict) {
+		sizeHelp:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return n;
+			} else {
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$n = A2(elm$core$Dict$sizeHelp, n + 1, right),
+					$temp$dict = left;
+				n = $temp$n;
+				dict = $temp$dict;
+				continue sizeHelp;
+			}
+		}
 	});
-var elm$core$String$toFloat = _String_toFloat;
-var author$project$Main$updateCanvasSize = F2(
-	function (coordinates, model) {
-		return _Utils_update(
-			model,
-			{
-				maxX: A2(
-					elm$core$Basics$max,
-					model.maxX,
-					A2(
-						elm$core$Maybe$withDefault,
-						model.maxX,
-						elm$core$String$toFloat(coordinates.x))),
-				maxY: A2(
-					elm$core$Basics$max,
-					model.maxY,
-					A2(
-						elm$core$Maybe$withDefault,
-						model.maxY,
-						elm$core$String$toFloat(coordinates.y))),
-				minX: A2(
-					elm$core$Basics$min,
-					model.minX,
-					A2(
-						elm$core$Maybe$withDefault,
-						model.minX,
-						elm$core$String$toFloat(coordinates.x))),
-				minY: A2(
-					elm$core$Basics$min,
-					model.minY,
-					A2(
-						elm$core$Maybe$withDefault,
-						model.minY,
-						elm$core$String$toFloat(coordinates.y)))
-			});
-	});
+var elm$core$Dict$size = function (dict) {
+	return A2(elm$core$Dict$sizeHelp, 0, dict);
+};
 var author$project$Main$handleBulletImpact = F2(
 	function (bullet, model) {
-		var updatedModel = A2(author$project$Main$updateCanvasSize, bullet.coordinates, model);
-		return _Utils_update(
-			updatedModel,
+		return (_Utils_cmp(
+			elm$core$Dict$size(model.bullets),
+			model.bulletsResetCount) > 0) ? _Utils_update(
+			model,
+			{bullets: elm$core$Dict$empty}) : _Utils_update(
+			model,
 			{
-				bullets: A3(elm$core$Dict$insert, bullet.id, bullet, updatedModel.bullets)
+				bullets: A3(elm$core$Dict$insert, bullet.id, bullet, model.bullets)
 			});
 	});
 var author$project$Main$handleEntity = F2(
@@ -8643,6 +8626,46 @@ var author$project$Main$handlePlayer = F3(
 			model,
 			{
 				players: A3(elm$core$Dict$insert, playerDetails.clientId, player, model.players)
+			});
+	});
+var elm$core$Basics$min = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) < 0) ? x : y;
+	});
+var elm$core$String$toFloat = _String_toFloat;
+var author$project$Main$updateCanvasSize = F2(
+	function (coordinates, model) {
+		return _Utils_update(
+			model,
+			{
+				maxX: A2(
+					elm$core$Basics$max,
+					model.maxX,
+					A2(
+						elm$core$Maybe$withDefault,
+						model.maxX,
+						elm$core$String$toFloat(coordinates.x))),
+				maxY: A2(
+					elm$core$Basics$max,
+					model.maxY,
+					A2(
+						elm$core$Maybe$withDefault,
+						model.maxY,
+						elm$core$String$toFloat(coordinates.y))),
+				minX: A2(
+					elm$core$Basics$min,
+					model.minX,
+					A2(
+						elm$core$Maybe$withDefault,
+						model.minX,
+						elm$core$String$toFloat(coordinates.x))),
+				minY: A2(
+					elm$core$Basics$min,
+					model.minY,
+					A2(
+						elm$core$Maybe$withDefault,
+						model.minY,
+						elm$core$String$toFloat(coordinates.y)))
 			});
 	});
 var author$project$Main$handleCommand = F3(

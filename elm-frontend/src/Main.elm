@@ -66,11 +66,13 @@ type alias Model =
     , error : Maybe String
     , players : Dict.Dict String Player
     , entities : Dict.Dict String Entity
-    , bullets : Dict.Dict String Bullet
+    , bullets : Dict.Dict BulletId Bullet
     , minX : Float
     , minY : Float
     , maxX : Float
     , maxY : Float
+    , bulletsResetCount : Int
+    , entitiesResetCount : Int
     }
 
 
@@ -99,6 +101,8 @@ init _ =
     , minY = 0
     , maxX = 0
     , maxY = 0
+    , bulletsResetCount = 200
+    , entitiesResetCount = 200
     }
     |> Cmd.Extra.withNoCmd
 
@@ -122,6 +126,7 @@ type alias Player =
     , position : Position
     , team : Team
     , aliveState : AliveState
+    , name : String
     }
 
 type AliveState = Alive
@@ -138,6 +143,7 @@ type alias DecodedPlayerDetails =
     , coordinates : Coordinates
     , orientation : Angles
     , team : String
+    , name : String
     }
 
 type Team = UnknownTeam
@@ -502,6 +508,7 @@ handlePlayer playerDetails aliveState model =
             |> updatePlayerCoordinates playerDetails
             |> updatePlayerTeam playerDetails.team
             |> updatePlayerAliveState aliveState
+            |> updatePlayerName playerDetails.name
     in
     { model | players =
         model.players
@@ -527,6 +534,15 @@ updatePlayerTeam team player =
     }
 
 
+updatePlayerName : String -> Player -> Player
+updatePlayerName name player =
+    { player | name =
+        case name of
+            "" -> player.name
+            _ -> name
+    }
+
+
 updatePlayerAliveState : AliveState -> Player -> Player
 updatePlayerAliveState aliveState player =
     { player | aliveState =
@@ -545,6 +561,7 @@ findOrCreatePlayer clientId players =
             ( Position ( Coordinates "" "" "" ) ( Angles "" "" "" ) )
             UnknownTeam
             UnknownAliveState
+            ""
 
 
 handleEntity : Entity -> Model -> Model
@@ -554,12 +571,13 @@ handleEntity entity model =
 
 handleBulletImpact : Bullet -> Model -> Model
 handleBulletImpact bullet model =
-    let
-        updatedModel = updateCanvasSize bullet.coordinates model
-    in
-    { updatedModel | bullets =
-        Dict.insert bullet.id bullet updatedModel.bullets
-    }
+    if Dict.size model.bullets > model.bulletsResetCount then
+        { model | bullets = Dict.empty
+        }
+    else
+        { model | bullets =
+            Dict.insert bullet.id bullet model.bullets
+        }
 
 
 getBulletId : Coordinates -> BulletId
@@ -686,6 +704,7 @@ originatorTeamDecoder nestingKeys =
     |> JDPipeline.requiredAt (nestingKeys ++ [ "coordinates" ])(coordinatesDecoder [])
     |> JDPipeline.requiredAt (nestingKeys ++ [ "orientation" ]) anglesDecoder
     |> JDPipeline.optionalAt (nestingKeys ++ [ "team" ]) Json.Decode.string "undefined-team"
+    |> JDPipeline.optionalAt (nestingKeys ++ [ "name" ]) Json.Decode.string ""
 
 
 entityDecoder : String -> Json.Decode.Decoder Entity
@@ -899,6 +918,8 @@ view model =
                 , List.intersperse br (List.map Html.text (List.map (\p -> "clientId:" ++ p.clientId ++ " x:" ++ p.position.coordinates.x ++ " y:" ++ p.position.coordinates.y ++ " z:" ++ p.position.coordinates.z) (Dict.values model.players)))
                 -- , [ br, b "Bullets:", br ]
                 -- , List.intersperse br (List.map Html.text (List.map (\bullet -> "id:" ++ (bullet.id) ++ " x:" ++ bullet.coordinates.x ++ " y:" ++ bullet.coordinates.y ++ " z:" ++ bullet.coordinates.z) (Dict.values model.bullets)))
+                -- , [ br, b "BulletsCount:", br ]
+                -- , [ br, Html.text (String.fromInt (Dict.size model.bullets)), br ]
                 ]
         , Html.p [] <|
             List.concat
