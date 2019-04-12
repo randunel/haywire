@@ -7558,9 +7558,9 @@ var NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt = F3(
 			A2(elm$json$Json$Decode$at, path, valDecoder),
 			decoder);
 	});
-var author$project$Main$DecodedPlayerDetails = F4(
-	function (clientId, coordinates, orientation, team) {
-		return {clientId: clientId, coordinates: coordinates, orientation: orientation, team: team};
+var author$project$Main$DecodedPlayerDetails = F5(
+	function (clientId, coordinates, orientation, team, name) {
+		return {clientId: clientId, coordinates: coordinates, name: name, orientation: orientation, team: team};
 	});
 var author$project$Main$Angles = F3(
 	function (ang0, ang1, ang2) {
@@ -7613,31 +7613,39 @@ var author$project$Main$originatorTeamDecoder = function (nestingKeys) {
 		_Utils_ap(
 			nestingKeys,
 			_List_fromArray(
-				['team'])),
+				['name'])),
 		elm$json$Json$Decode$string,
-		'undefined-team',
-		A3(
-			NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
+		'',
+		A4(
+			NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$optionalAt,
 			_Utils_ap(
 				nestingKeys,
 				_List_fromArray(
-					['orientation'])),
-			author$project$Main$anglesDecoder,
+					['team'])),
+			elm$json$Json$Decode$string,
+			'undefined-team',
 			A3(
 				NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
 				_Utils_ap(
 					nestingKeys,
 					_List_fromArray(
-						['coordinates'])),
-				author$project$Main$coordinatesDecoder(_List_Nil),
+						['orientation'])),
+				author$project$Main$anglesDecoder,
 				A3(
 					NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
 					_Utils_ap(
 						nestingKeys,
 						_List_fromArray(
-							['clientId'])),
-					elm$json$Json$Decode$string,
-					elm$json$Json$Decode$succeed(author$project$Main$DecodedPlayerDetails)))));
+							['coordinates'])),
+					author$project$Main$coordinatesDecoder(_List_Nil),
+					A3(
+						NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
+						_Utils_ap(
+							nestingKeys,
+							_List_fromArray(
+								['clientId'])),
+						elm$json$Json$Decode$string,
+						elm$json$Json$Decode$succeed(author$project$Main$DecodedPlayerDetails))))));
 };
 var elm$json$Json$Decode$decodeString = _Json_runOnString;
 var author$project$Main$decodeOriginator = function (message) {
@@ -8540,9 +8548,9 @@ var author$project$Main$handleEntity = F2(
 	function (entity, model) {
 		return model;
 	});
-var author$project$Main$Player = F4(
-	function (clientId, position, team, aliveState) {
-		return {aliveState: aliveState, clientId: clientId, position: position, team: team};
+var author$project$Main$Player = F5(
+	function (clientId, position, team, aliveState, name) {
+		return {aliveState: aliveState, clientId: clientId, name: name, position: position, team: team};
 	});
 var author$project$Main$Position = F2(
 	function (coordinates, orientation) {
@@ -8556,7 +8564,7 @@ var author$project$Main$findOrCreatePlayer = F2(
 			var player = _n0.a;
 			return player;
 		} else {
-			return A4(
+			return A5(
 				author$project$Main$Player,
 				clientId,
 				A2(
@@ -8564,7 +8572,8 @@ var author$project$Main$findOrCreatePlayer = F2(
 					A3(author$project$Main$Coordinates, '', '', ''),
 					A3(author$project$Main$Angles, '', '', '')),
 				author$project$Main$UnknownTeam,
-				author$project$Main$UnknownAliveState);
+				author$project$Main$UnknownAliveState,
+				'');
 		}
 	});
 var author$project$Main$updatePlayerAliveState = F2(
@@ -8587,6 +8596,20 @@ var author$project$Main$updatePlayerCoordinates = F2(
 			player,
 			{
 				position: A2(author$project$Main$Position, playerDetails.coordinates, playerDetails.orientation)
+			});
+	});
+var author$project$Main$updatePlayerName = F2(
+	function (name, player) {
+		return _Utils_update(
+			player,
+			{
+				name: function () {
+					if (name === '') {
+						return player.name;
+					} else {
+						return name;
+					}
+				}()
 			});
 	});
 var author$project$Main$CTTeam = {$: 'CTTeam'};
@@ -8613,15 +8636,18 @@ var author$project$Main$updatePlayerTeam = F2(
 var author$project$Main$handlePlayer = F3(
 	function (playerDetails, aliveState, model) {
 		var player = A2(
-			author$project$Main$updatePlayerAliveState,
-			aliveState,
+			author$project$Main$updatePlayerName,
+			playerDetails.name,
 			A2(
-				author$project$Main$updatePlayerTeam,
-				playerDetails.team,
+				author$project$Main$updatePlayerAliveState,
+				aliveState,
 				A2(
-					author$project$Main$updatePlayerCoordinates,
-					playerDetails,
-					A2(author$project$Main$findOrCreatePlayer, playerDetails.clientId, model.players))));
+					author$project$Main$updatePlayerTeam,
+					playerDetails.team,
+					A2(
+						author$project$Main$updatePlayerCoordinates,
+						playerDetails,
+						A2(author$project$Main$findOrCreatePlayer, playerDetails.clientId, model.players)))));
 		return _Utils_update(
 			model,
 			{
@@ -11179,7 +11205,6 @@ var elm$svg$Svg$circle = elm$svg$Svg$trustedNode('circle');
 var elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
 var elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
-var elm$svg$Svg$Attributes$id = _VirtualDom_attribute('id');
 var elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
 var elm$core$List$concatMap = F2(
 	function (f, list) {
@@ -11729,25 +11754,29 @@ var author$project$Main$bulletsSvg = F2(
 				_List_fromArray(
 					[
 						elm$svg$Svg$Attributes$cx(
-						elm$core$String$fromFloat(
-							((A2(
+						function () {
+							var x = A2(
 								elm$core$Maybe$withDefault,
 								0,
-								elm$core$String$toFloat(bullet.coordinates.x)) - model.minX) * 800) / (model.maxX - model.minX))),
+								elm$core$String$toFloat(bullet.coordinates.x));
+							return elm$core$String$fromFloat(((x - model.minX) * 800) / (model.maxX - model.minX));
+						}()),
 						elm$svg$Svg$Attributes$cy(
-						elm$core$String$fromFloat(
-							((A2(
+						function () {
+							var y = A2(
 								elm$core$Maybe$withDefault,
 								0,
-								elm$core$String$toFloat(bullet.coordinates.y)) - model.minY) * 800) / (model.maxY - model.minY))),
+								elm$core$String$toFloat(bullet.coordinates.y));
+							return elm$core$String$fromFloat(((y - model.minY) * 800) / (model.maxY - model.minY));
+						}()),
 						elm$svg$Svg$Attributes$r('1'),
-						elm$svg$Svg$Attributes$fill('black'),
-						elm$svg$Svg$Attributes$id(bullet.id)
+						elm$svg$Svg$Attributes$fill('black')
 					])),
 			_List_Nil);
 	});
 var elm$svg$Svg$g = elm$svg$Svg$trustedNode('g');
 var elm$svg$Svg$path = elm$svg$Svg$trustedNode('path');
+var elm$svg$Svg$text_ = elm$svg$Svg$trustedNode('text');
 var elm$svg$Svg$Attributes$transform = _VirtualDom_attribute('transform');
 var author$project$Main$playerSvg = F2(
 	function (model, player) {
@@ -11811,7 +11840,20 @@ var author$project$Main$playerSvg = F2(
 							'M' + (elm$core$String$fromFloat(cx - r) + (' ' + (elm$core$String$fromFloat(cy) + (' A ' + (elm$core$String$fromFloat(r) + (' ' + (elm$core$String$fromFloat(r) + (', 0, 0, 0, ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy + r) + (' L ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy) + ' Z')))))))))))))))),
 							elm$svg$Svg$Attributes$fill('aqua')
 						]),
-					_List_Nil)
+					_List_Nil),
+					A2(
+					elm$svg$Svg$text_,
+					_List_fromArray(
+						[
+							elm$svg$Svg$Attributes$x(
+							elm$core$String$fromFloat(cx + 3)),
+							elm$svg$Svg$Attributes$y(
+							elm$core$String$fromFloat(cy + 5))
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text(player.name)
+						]))
 				]));
 	});
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected = F2(
@@ -12048,7 +12090,7 @@ var author$project$Main$view = function (model) {
 								A2(
 									elm$core$List$map,
 									function (p) {
-										return 'clientId:' + (p.clientId + (' x:' + (p.position.coordinates.x + (' y:' + (p.position.coordinates.y + (' z:' + p.position.coordinates.z))))));
+										return 'name: ' + (p.name + (' x:' + (p.position.coordinates.x + (' y:' + (p.position.coordinates.y + (' z:' + p.position.coordinates.z))))));
 									},
 									elm$core$Dict$values(model.players))))
 						]))),

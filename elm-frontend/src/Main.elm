@@ -915,11 +915,7 @@ view model =
                 [ [ b "Players:"
                   , br
                   ]
-                , List.intersperse br (List.map Html.text (List.map (\p -> "clientId:" ++ p.clientId ++ " x:" ++ p.position.coordinates.x ++ " y:" ++ p.position.coordinates.y ++ " z:" ++ p.position.coordinates.z) (Dict.values model.players)))
-                -- , [ br, b "Bullets:", br ]
-                -- , List.intersperse br (List.map Html.text (List.map (\bullet -> "id:" ++ (bullet.id) ++ " x:" ++ bullet.coordinates.x ++ " y:" ++ bullet.coordinates.y ++ " z:" ++ bullet.coordinates.z) (Dict.values model.bullets)))
-                -- , [ br, b "BulletsCount:", br ]
-                -- , [ br, Html.text (String.fromInt (Dict.size model.bullets)), br ]
+                , List.intersperse br (List.map Html.text (List.map (\p -> "name: " ++ p.name ++ " x:" ++ p.position.coordinates.x ++ " y:" ++ p.position.coordinates.y ++ " z:" ++ p.position.coordinates.z) (Dict.values model.players)))
                 ]
         , Html.p [] <|
             List.concat
@@ -931,31 +927,65 @@ view model =
         ]
 
 bulletsSvg model bullet = Svg.circle
-    (Animation.render bullet.style
+    ( Animation.render bullet.style
     ++
-    [ SvgAttrs.cx <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat bullet.coordinates.x)) - model.minX) * 800 / (model.maxX - model.minX))
-    , SvgAttrs.cy <| String.fromFloat (((Maybe.withDefault 0 (String.toFloat bullet.coordinates.y)) - model.minY) * 800 / (model.maxY - model.minY))
+    [ SvgAttrs.cx <|
+        let x =
+                bullet.coordinates.x
+                |> String.toFloat
+                |> Maybe.withDefault 0
+        in
+            ( x - model.minX ) * 800 / ( model.maxX - model.minX )
+            |> String.fromFloat
+    , SvgAttrs.cy <|
+        let y =
+                bullet.coordinates.y
+                |> String.toFloat
+                |> Maybe.withDefault 0
+        in
+            ( y - model.minY ) * 800 / ( model.maxY - model.minY )
+            |> String.fromFloat
     , SvgAttrs.r <| "1"
     , SvgAttrs.fill "black"
-    , SvgAttrs.id bullet.id
     ])
     []
 
 playerSvg model player =
     let
-        cx = (((Maybe.withDefault 0 (String.toFloat player.position.coordinates.x)) - model.minX) * 800 / (model.maxX - model.minX))
-        cy = (((Maybe.withDefault 0 (String.toFloat player.position.coordinates.y)) - model.minY) * 800 / (model.maxY - model.minY))
+        cx =
+            ( ( player.position.coordinates.x
+            |> String.toFloat
+            |> Maybe.withDefault 0
+            ) - model.minX ) * 800 / ( model.maxX - model.minX )
+        cy =
+            ( ( player.position.coordinates.y
+            |> String.toFloat
+            |> Maybe.withDefault 0
+            ) - model.minY ) * 800 / ( model.maxY - model.minY )
         r =
             case player.aliveState of
                 Alive -> 5.0
                 Dead -> 2.0
                 UnknownAliveState -> 5.0
-        yaw = (Maybe.withDefault 0 (String.toFloat player.position.orientation.ang1) - 135)
+        yaw =
+            ( player.position.orientation.ang1
+            |> String.toFloat
+            |> Maybe.withDefault 0
+            ) - 135
     in
         Svg.g
-        [ SvgAttrs.transform ("rotate(" ++ String.fromFloat yaw ++ ", " ++ String.fromFloat cx ++ ", " ++ String.fromFloat cy ++ ")") ]
+        [ SvgAttrs.transform <|
+            "rotate("
+            ++ String.fromFloat yaw
+            ++ ", "
+            ++ String.fromFloat cx
+            ++ ", "
+            ++ String.fromFloat cy
+            ++ ")"
+        ]
         [ Svg.path
-            [ SvgAttrs.d <| "M" ++ (String.fromFloat (cx - r)) ++ " " ++ (String.fromFloat cy)
+            [ SvgAttrs.d <|
+                "M" ++ (String.fromFloat (cx - r)) ++ " " ++ (String.fromFloat cy)
                 ++ " A " ++ (String.fromFloat r) ++ " " ++ (String.fromFloat r) ++ ", 0, 1, 1, " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy + r))
                 ++ " L " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy)) ++ " Z"
             , SvgAttrs.fill (case player.team of
@@ -966,10 +996,16 @@ playerSvg model player =
             ]
             []
         , Svg.path
-            [ SvgAttrs.d <| "M" ++ (String.fromFloat (cx - r)) ++ " " ++ (String.fromFloat cy)
+            [ SvgAttrs.d <|
+                "M" ++ (String.fromFloat (cx - r)) ++ " " ++ (String.fromFloat cy)
                 ++ " A " ++ (String.fromFloat r) ++ " " ++ (String.fromFloat r) ++ ", 0, 0, 0, " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy + r))
                 ++ " L " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy)) ++ " Z"
             , SvgAttrs.fill "aqua"
             ]
             []
+        , Svg.text_
+            [ SvgAttrs.x ( String.fromFloat ( cx + 3 ) )
+            , SvgAttrs.y ( String.fromFloat ( cy + 5 ) )
+            ]
+            [ Html.text player.name ]
         ]
