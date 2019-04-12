@@ -109,7 +109,7 @@ function userCoords(type) {
         const result = {};
         result[type] = {
             clientId,
-            position: { x, y, z },
+            coordinates: { x, y, z },
             orientation: { ang0, ang1, ang2 }
         };
         return result;
@@ -124,7 +124,7 @@ function entity(type) {
             entity: {
                 type,
                 id,
-                position: { x, y, z }
+                coordinates: { x, y, z }
             }
         };
     };
@@ -135,7 +135,7 @@ function coordinates(type) {
         const [x, y, z] = iterator.next().value.split(',');
         const result = {};
         result[type] = {
-            position: { x, y, z }
+            coordinates: { x, y, z }
         };
         return result;
     };

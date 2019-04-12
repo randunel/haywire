@@ -4,6 +4,7 @@
   "description": "CS:GO web tv",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "cd elm-frontend && elm make ./src/Main.elm --output=./public/elm.js"
   },

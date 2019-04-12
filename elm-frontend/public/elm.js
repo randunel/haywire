@@ -7558,9 +7558,9 @@ var NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt = F3(
 			A2(elm$json$Json$Decode$at, path, valDecoder),
 			decoder);
 	});
-var author$project$Main$PlayerCoordinates = F4(
-	function (clientId, position, orientation, team) {
-		return {clientId: clientId, orientation: orientation, position: position, team: team};
+var author$project$Main$DecodedPlayerDetails = F4(
+	function (clientId, coordinates, orientation, team) {
+		return {clientId: clientId, coordinates: coordinates, orientation: orientation, team: team};
 	});
 var author$project$Main$Angles = F3(
 	function (ang0, ang1, ang2) {
@@ -7628,7 +7628,7 @@ var author$project$Main$originatorTeamDecoder = function (nestingKeys) {
 				_Utils_ap(
 					nestingKeys,
 					_List_fromArray(
-						['position'])),
+						['coordinates'])),
 				author$project$Main$coordinatesDecoder(_List_Nil),
 				A3(
 					NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
@@ -7637,7 +7637,7 @@ var author$project$Main$originatorTeamDecoder = function (nestingKeys) {
 						_List_fromArray(
 							['clientId'])),
 					elm$json$Json$Decode$string,
-					elm$json$Json$Decode$succeed(author$project$Main$PlayerCoordinates)))));
+					elm$json$Json$Decode$succeed(author$project$Main$DecodedPlayerDetails)))));
 };
 var elm$json$Json$Decode$decodeString = _Json_runOnString;
 var author$project$Main$decodeOriginator = function (message) {
@@ -7656,14 +7656,14 @@ var author$project$Main$decodeOriginator = function (message) {
 	}
 };
 var author$project$Main$Entity = F4(
-	function (type_, id, clientId, position) {
-		return {clientId: clientId, id: id, position: position, type_: type_};
+	function (type_, id, clientId, coordinates) {
+		return {clientId: clientId, coordinates: coordinates, id: id, type_: type_};
 	});
 var author$project$Main$entityDecoder = function (key) {
 	return A3(
 		NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
 		_List_fromArray(
-			['entity', 'position']),
+			['entity', 'coordinates']),
 		author$project$Main$coordinatesDecoder(_List_Nil),
 		A3(
 			NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
@@ -7688,13 +7688,13 @@ var author$project$Main$decodeOriginatorEntity = function (message) {
 			_List_fromArray(
 				['originator'])))(message);
 	if (_n0.$ === 'Ok') {
-		var playerCoordinates = _n0.a;
+		var playerDetails = _n0.a;
 		var _n1 = elm$json$Json$Decode$decodeString(
 			author$project$Main$entityDecoder('originator'))(message);
 		if (_n1.$ === 'Ok') {
 			var entity = _n1.a;
 			return elm$core$Maybe$Just(
-				_Utils_Tuple2(playerCoordinates, entity));
+				_Utils_Tuple2(playerDetails, entity));
 		} else {
 			var err = _n1.a;
 			return elm$core$Maybe$Nothing;
@@ -7710,15 +7710,15 @@ var author$project$Main$decodeOriginatorImpact = function (message) {
 			_List_fromArray(
 				['originator'])))(message);
 	if (_n0.$ === 'Ok') {
-		var playerCoordinates = _n0.a;
+		var playerDetails = _n0.a;
 		var _n1 = elm$json$Json$Decode$decodeString(
 			author$project$Main$coordinatesDecoder(
 				_List_fromArray(
-					['impact', 'position'])))(message);
+					['impact', 'coordinates'])))(message);
 		if (_n1.$ === 'Ok') {
 			var coordinates = _n1.a;
 			return elm$core$Maybe$Just(
-				_Utils_Tuple2(playerCoordinates, coordinates));
+				_Utils_Tuple2(playerDetails, coordinates));
 		} else {
 			var err = _n1.a;
 			return elm$core$Maybe$Nothing;
@@ -8557,81 +8557,92 @@ var author$project$Main$handleEntity = F2(
 	function (entity, model) {
 		return model;
 	});
-var author$project$Main$determineAliveState = F2(
-	function (aliveState, maybePlayer) {
-		if (aliveState.$ === 'UnknownAliveState') {
-			if (maybePlayer.$ === 'Just') {
-				var player = maybePlayer.a;
-				return player.aliveState;
-			} else {
-				return aliveState;
-			}
+var author$project$Main$Player = F4(
+	function (clientId, position, team, aliveState) {
+		return {aliveState: aliveState, clientId: clientId, position: position, team: team};
+	});
+var author$project$Main$Position = F2(
+	function (coordinates, orientation) {
+		return {coordinates: coordinates, orientation: orientation};
+	});
+var author$project$Main$UnknownTeam = {$: 'UnknownTeam'};
+var author$project$Main$findOrCreatePlayer = F2(
+	function (clientId, players) {
+		var _n0 = A2(elm$core$Dict$get, clientId, players);
+		if (_n0.$ === 'Just') {
+			var player = _n0.a;
+			return player;
 		} else {
-			return aliveState;
+			return A4(
+				author$project$Main$Player,
+				clientId,
+				A2(
+					author$project$Main$Position,
+					A3(author$project$Main$Coordinates, '', '', ''),
+					A3(author$project$Main$Angles, '', '', '')),
+				author$project$Main$UnknownTeam,
+				author$project$Main$UnknownAliveState);
 		}
 	});
-var author$project$Main$CTTeam = {$: 'CTTeam'};
-var author$project$Main$Player = F4(
-	function (clientId, coordinates, team, aliveState) {
-		return {aliveState: aliveState, clientId: clientId, coordinates: coordinates, team: team};
+var author$project$Main$updatePlayerAliveState = F2(
+	function (aliveState, player) {
+		return _Utils_update(
+			player,
+			{
+				aliveState: function () {
+					if (aliveState.$ === 'UnknownAliveState') {
+						return player.aliveState;
+					} else {
+						return aliveState;
+					}
+				}()
+			});
 	});
+var author$project$Main$updatePlayerCoordinates = F2(
+	function (playerDetails, player) {
+		return _Utils_update(
+			player,
+			{
+				position: A2(author$project$Main$Position, playerDetails.coordinates, playerDetails.orientation)
+			});
+	});
+var author$project$Main$CTTeam = {$: 'CTTeam'};
 var author$project$Main$TTeam = {$: 'TTeam'};
-var author$project$Main$UnknownTeam = {$: 'UnknownTeam'};
-var author$project$Main$playerFromPlayerCoordinates = F3(
-	function (playerCoordinates, aliveState, maybePlayer) {
-		var _n0 = function () {
-			if (maybePlayer.$ === 'Just') {
-				var player = maybePlayer.a;
-				return _Utils_Tuple2(player.team, player.aliveState);
-			} else {
-				return _Utils_Tuple2(author$project$Main$UnknownTeam, author$project$Main$UnknownAliveState);
-			}
-		}();
-		var oldTeam = _n0.a;
-		var oldAliveState = _n0.b;
-		return A4(
-			author$project$Main$Player,
-			playerCoordinates.clientId,
-			playerCoordinates,
-			function () {
-				var _n3 = playerCoordinates.team;
-				switch (_n3) {
-					case '3':
-						return author$project$Main$CTTeam;
-					case '2':
-						return author$project$Main$TTeam;
-					case 'undefined-team':
-						return oldTeam;
-					default:
-						return oldTeam;
-				}
-			}(),
-			function () {
-				if (aliveState.$ === 'UnknownAliveState') {
-					return oldAliveState;
-				} else {
-					return aliveState;
-				}
-			}());
+var author$project$Main$updatePlayerTeam = F2(
+	function (team, player) {
+		return _Utils_update(
+			player,
+			{
+				team: function () {
+					switch (team) {
+						case '3':
+							return author$project$Main$CTTeam;
+						case '2':
+							return author$project$Main$TTeam;
+						case 'undefined-team':
+							return player.team;
+						default:
+							return player.team;
+					}
+				}()
+			});
 	});
 var author$project$Main$handlePlayer = F3(
-	function (playerCoordinates, aliveState, model) {
-		var updatedModel = A2(author$project$Main$updateCanvasSize, playerCoordinates.position, model);
+	function (playerDetails, aliveState, model) {
+		var player = A2(
+			author$project$Main$updatePlayerAliveState,
+			aliveState,
+			A2(
+				author$project$Main$updatePlayerTeam,
+				playerDetails.team,
+				A2(
+					author$project$Main$updatePlayerCoordinates,
+					playerDetails,
+					A2(author$project$Main$findOrCreatePlayer, playerDetails.clientId, model.players))));
 		return _Utils_update(
-			updatedModel,
+			model,
 			{
-				players: A3(
-					elm$core$Dict$insert,
-					playerCoordinates.clientId,
-					A2(
-						author$project$Main$playerFromPlayerCoordinates,
-						playerCoordinates,
-						A2(
-							author$project$Main$determineAliveState,
-							aliveState,
-							A2(elm$core$Dict$get, playerCoordinates.clientId, updatedModel.players)))(
-						A2(elm$core$Dict$get, playerCoordinates.clientId, updatedModel.players)),
-					updatedModel.players)
+				players: A3(elm$core$Dict$insert, playerDetails.clientId, player, model.players)
 			});
 	});
 var author$project$Main$handleCommand = F3(
@@ -8642,16 +8653,19 @@ var author$project$Main$handleCommand = F3(
 				var _n1 = author$project$Main$decodeOriginatorImpact(message);
 				if (_n1.$ === 'Just') {
 					var _n2 = _n1.a;
-					var playerCoordinates = _n2.a;
+					var playerDetails = _n2.a;
 					var coordinates = _n2.b;
 					return A3(
 						author$project$Main$handlePlayer,
-						playerCoordinates,
+						playerDetails,
 						author$project$Main$Alive,
 						A2(
 							author$project$Main$handleBulletImpact,
 							author$project$Main$getBullet(coordinates),
-							model));
+							A2(
+								author$project$Main$updateCanvasSize,
+								coordinates,
+								A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model))));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8663,12 +8677,19 @@ var author$project$Main$handleCommand = F3(
 				var _n3 = author$project$Main$decodeOriginatorEntity(message);
 				if (_n3.$ === 'Just') {
 					var _n4 = _n3.a;
-					var playerCoordinates = _n4.a;
+					var playerDetails = _n4.a;
 					var entity = _n4.b;
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(
+							author$project$Main$handlePlayer,
+							playerDetails,
+							author$project$Main$UnknownAliveState,
+							A2(
+								author$project$Main$updateCanvasSize,
+								entity.coordinates,
+								A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model))));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8676,12 +8697,19 @@ var author$project$Main$handleCommand = F3(
 				var _n5 = author$project$Main$decodeOriginatorEntity(message);
 				if (_n5.$ === 'Just') {
 					var _n6 = _n5.a;
-					var playerCoordinates = _n6.a;
+					var playerDetails = _n6.a;
 					var entity = _n6.b;
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(
+							author$project$Main$handlePlayer,
+							playerDetails,
+							author$project$Main$UnknownAliveState,
+							A2(
+								author$project$Main$updateCanvasSize,
+								entity.coordinates,
+								A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model))));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8689,12 +8717,19 @@ var author$project$Main$handleCommand = F3(
 				var _n7 = author$project$Main$decodeOriginatorEntity(message);
 				if (_n7.$ === 'Just') {
 					var _n8 = _n7.a;
-					var playerCoordinates = _n8.a;
+					var playerDetails = _n8.a;
 					var entity = _n8.b;
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(
+							author$project$Main$handlePlayer,
+							playerDetails,
+							author$project$Main$UnknownAliveState,
+							A2(
+								author$project$Main$updateCanvasSize,
+								entity.coordinates,
+								A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model))));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8702,12 +8737,19 @@ var author$project$Main$handleCommand = F3(
 				var _n9 = author$project$Main$decodeOriginatorEntity(message);
 				if (_n9.$ === 'Just') {
 					var _n10 = _n9.a;
-					var playerCoordinates = _n10.a;
+					var playerDetails = _n10.a;
 					var entity = _n10.b;
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(
+							author$project$Main$handlePlayer,
+							playerDetails,
+							author$project$Main$UnknownAliveState,
+							A2(
+								author$project$Main$updateCanvasSize,
+								entity.coordinates,
+								A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model))));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8715,12 +8757,19 @@ var author$project$Main$handleCommand = F3(
 				var _n11 = author$project$Main$decodeOriginatorEntity(message);
 				if (_n11.$ === 'Just') {
 					var _n12 = _n11.a;
-					var playerCoordinates = _n12.a;
+					var playerDetails = _n12.a;
 					var entity = _n12.b;
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(
+							author$project$Main$handlePlayer,
+							playerDetails,
+							author$project$Main$UnknownAliveState,
+							A2(
+								author$project$Main$updateCanvasSize,
+								entity.coordinates,
+								A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model))));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8728,12 +8777,19 @@ var author$project$Main$handleCommand = F3(
 				var _n13 = author$project$Main$decodeOriginatorEntity(message);
 				if (_n13.$ === 'Just') {
 					var _n14 = _n13.a;
-					var playerCoordinates = _n14.a;
+					var playerDetails = _n14.a;
 					var entity = _n14.b;
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(
+							author$project$Main$handlePlayer,
+							playerDetails,
+							author$project$Main$UnknownAliveState,
+							A2(
+								author$project$Main$updateCanvasSize,
+								entity.coordinates,
+								A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model))));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8741,28 +8797,43 @@ var author$project$Main$handleCommand = F3(
 				var _n15 = author$project$Main$decodeOriginatorEntity(message);
 				if (_n15.$ === 'Just') {
 					var _n16 = _n15.a;
-					var playerCoordinates = _n16.a;
+					var playerDetails = _n16.a;
 					var entity = _n16.b;
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(
+							author$project$Main$handlePlayer,
+							playerDetails,
+							author$project$Main$UnknownAliveState,
+							A2(
+								author$project$Main$updateCanvasSize,
+								entity.coordinates,
+								A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model))));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
 			case 'Player_activate':
 				var _n17 = author$project$Main$decodeOriginator(message);
 				if (_n17.$ === 'Just') {
-					var playerCoordinates = _n17.a;
-					return A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model);
+					var playerDetails = _n17.a;
+					return A3(
+						author$project$Main$handlePlayer,
+						playerDetails,
+						author$project$Main$UnknownAliveState,
+						A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
 			case 'Player_blind':
 				var _n18 = author$project$Main$decodeOriginator(message);
 				if (_n18.$ === 'Just') {
-					var playerCoordinates = _n18.a;
-					return A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$Alive, model);
+					var playerDetails = _n18.a;
+					return A3(
+						author$project$Main$handlePlayer,
+						playerDetails,
+						author$project$Main$Alive,
+						A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8772,16 +8843,30 @@ var author$project$Main$handleCommand = F3(
 					var _n20 = _n19.a;
 					var victim = _n20.a;
 					var attacker = _n20.b;
-					var updatedModel = A3(author$project$Main$handlePlayer, victim, author$project$Main$Dead, model);
-					return A3(author$project$Main$handlePlayer, attacker, author$project$Main$UnknownAliveState, updatedModel);
+					return A3(
+						author$project$Main$handlePlayer,
+						attacker,
+						author$project$Main$UnknownAliveState,
+						A3(
+							author$project$Main$handlePlayer,
+							victim,
+							author$project$Main$Dead,
+							A2(
+								author$project$Main$updateCanvasSize,
+								attacker.coordinates,
+								A2(author$project$Main$updateCanvasSize, victim.coordinates, model))));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
 			case 'Player_footstep':
 				var _n21 = author$project$Main$decodeOriginator(message);
 				if (_n21.$ === 'Just') {
-					var playerCoordinates = _n21.a;
-					return A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$Alive, model);
+					var playerDetails = _n21.a;
+					return A3(
+						author$project$Main$handlePlayer,
+						playerDetails,
+						author$project$Main$Alive,
+						A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8791,24 +8876,42 @@ var author$project$Main$handleCommand = F3(
 					var _n23 = _n22.a;
 					var victim = _n23.a;
 					var attacker = _n23.b;
-					var updatedModel = A3(author$project$Main$handlePlayer, victim, author$project$Main$Alive, model);
-					return A3(author$project$Main$handlePlayer, attacker, author$project$Main$UnknownAliveState, updatedModel);
+					return A3(
+						author$project$Main$handlePlayer,
+						attacker,
+						author$project$Main$UnknownAliveState,
+						A3(
+							author$project$Main$handlePlayer,
+							victim,
+							author$project$Main$Alive,
+							A2(
+								author$project$Main$updateCanvasSize,
+								attacker.coordinates,
+								A2(author$project$Main$updateCanvasSize, victim.coordinates, model))));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
 			case 'Player_jump':
 				var _n24 = author$project$Main$decodeOriginator(message);
 				if (_n24.$ === 'Just') {
-					var playerCoordinates = _n24.a;
-					return A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$Alive, model);
+					var playerDetails = _n24.a;
+					return A3(
+						author$project$Main$handlePlayer,
+						playerDetails,
+						author$project$Main$Alive,
+						A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
 			case 'Player_spawn':
 				var _n25 = author$project$Main$decodeOriginator(message);
 				if (_n25.$ === 'Just') {
-					var playerCoordinates = _n25.a;
-					return A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$Alive, model);
+					var playerDetails = _n25.a;
+					return A3(
+						author$project$Main$handlePlayer,
+						playerDetails,
+						author$project$Main$Alive,
+						A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8820,12 +8923,19 @@ var author$project$Main$handleCommand = F3(
 				var _n26 = author$project$Main$decodeOriginatorEntity(message);
 				if (_n26.$ === 'Just') {
 					var _n27 = _n26.a;
-					var playerCoordinates = _n27.a;
+					var playerDetails = _n27.a;
 					var entity = _n27.b;
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(
+							author$project$Main$handlePlayer,
+							playerDetails,
+							author$project$Main$UnknownAliveState,
+							A2(
+								author$project$Main$updateCanvasSize,
+								entity.coordinates,
+								A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model))));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8833,28 +8943,43 @@ var author$project$Main$handleCommand = F3(
 				var _n28 = author$project$Main$decodeOriginatorEntity(message);
 				if (_n28.$ === 'Just') {
 					var _n29 = _n28.a;
-					var playerCoordinates = _n29.a;
+					var playerDetails = _n29.a;
 					var entity = _n29.b;
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(
+							author$project$Main$handlePlayer,
+							playerDetails,
+							author$project$Main$UnknownAliveState,
+							A2(
+								author$project$Main$updateCanvasSize,
+								entity.coordinates,
+								A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model))));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
 			case 'Weapon_reload':
 				var _n30 = author$project$Main$decodeOriginator(message);
 				if (_n30.$ === 'Just') {
-					var playerCoordinates = _n30.a;
-					return A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$Alive, model);
+					var playerDetails = _n30.a;
+					return A3(
+						author$project$Main$handlePlayer,
+						playerDetails,
+						author$project$Main$Alive,
+						A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
 			case 'Weapon_zoom':
 				var _n31 = author$project$Main$decodeOriginator(message);
 				if (_n31.$ === 'Just') {
-					var playerCoordinates = _n31.a;
-					return A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$Alive, model);
+					var playerDetails = _n31.a;
+					return A3(
+						author$project$Main$handlePlayer,
+						playerDetails,
+						author$project$Main$Alive,
+						A2(author$project$Main$updateCanvasSize, playerDetails.coordinates, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -11606,7 +11731,7 @@ var author$project$Main$playerSvg = F2(
 		var yaw = A2(
 			elm$core$Maybe$withDefault,
 			0,
-			elm$core$String$toFloat(player.coordinates.orientation.ang1)) - 135;
+			elm$core$String$toFloat(player.position.orientation.ang1)) - 135;
 		var r = function () {
 			var _n1 = player.aliveState;
 			switch (_n1.$) {
@@ -11621,11 +11746,11 @@ var author$project$Main$playerSvg = F2(
 		var cy = ((A2(
 			elm$core$Maybe$withDefault,
 			0,
-			elm$core$String$toFloat(player.coordinates.position.y)) - model.minY) * 800) / (model.maxY - model.minY);
+			elm$core$String$toFloat(player.position.coordinates.y)) - model.minY) * 800) / (model.maxY - model.minY);
 		var cx = ((A2(
 			elm$core$Maybe$withDefault,
 			0,
-			elm$core$String$toFloat(player.coordinates.position.x)) - model.minX) * 800) / (model.maxX - model.minX);
+			elm$core$String$toFloat(player.position.coordinates.x)) - model.minX) * 800) / (model.maxX - model.minX);
 		return A2(
 			elm$svg$Svg$g,
 			_List_fromArray(
@@ -11900,7 +12025,7 @@ var author$project$Main$view = function (model) {
 								A2(
 									elm$core$List$map,
 									function (p) {
-										return 'clientId:' + (p.clientId + (' x:' + (p.coordinates.position.x + (' y:' + (p.coordinates.position.y + (' z:' + p.coordinates.position.z))))));
+										return 'clientId:' + (p.clientId + (' x:' + (p.position.coordinates.x + (' y:' + (p.position.coordinates.y + (' z:' + p.position.coordinates.z))))));
 									},
 									elm$core$Dict$values(model.players))))
 						]))),
