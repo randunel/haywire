@@ -7458,15 +7458,98 @@ var author$project$Main$appendLog = F2(
 	});
 var author$project$Main$commandDecoder = A2(elm$json$Json$Decode$field, 'command', elm$json$Json$Decode$string);
 var author$project$Main$Alive = {$: 'Alive'};
-var author$project$Main$Bullet = F3(
-	function (coordinates, id, style) {
-		return {coordinates: coordinates, id: id, style: style};
-	});
 var author$project$Main$Dead = {$: 'Dead'};
 var author$project$Main$UnknownAliveState = {$: 'UnknownAliveState'};
+var author$project$Main$Bullet_impact = {$: 'Bullet_impact'};
+var author$project$Main$Buytime_ended = {$: 'Buytime_ended'};
+var author$project$Main$Cs_pre_restart = {$: 'Cs_pre_restart'};
+var author$project$Main$Decoy_detonate = {$: 'Decoy_detonate'};
+var author$project$Main$Decoy_firing = {$: 'Decoy_firing'};
+var author$project$Main$Decoy_started = {$: 'Decoy_started'};
+var author$project$Main$Flashbang_detonate = {$: 'Flashbang_detonate'};
+var author$project$Main$Grenade_bounce = {$: 'Grenade_bounce'};
+var author$project$Main$Hegrenade_bounce = {$: 'Hegrenade_bounce'};
+var author$project$Main$Hegrenade_detonate = {$: 'Hegrenade_detonate'};
+var author$project$Main$Molotov_detonate = {$: 'Molotov_detonate'};
+var author$project$Main$Player_activate = {$: 'Player_activate'};
+var author$project$Main$Player_blind = {$: 'Player_blind'};
+var author$project$Main$Player_death = {$: 'Player_death'};
+var author$project$Main$Player_footstep = {$: 'Player_footstep'};
+var author$project$Main$Player_hurt = {$: 'Player_hurt'};
+var author$project$Main$Player_jump = {$: 'Player_jump'};
+var author$project$Main$Player_spawn = {$: 'Player_spawn'};
+var author$project$Main$Round_freeze_end = {$: 'Round_freeze_end'};
+var author$project$Main$Smokegrenade_detonate = {$: 'Smokegrenade_detonate'};
+var author$project$Main$Smokegrenade_expired = {$: 'Smokegrenade_expired'};
+var author$project$Main$Unknown_command = {$: 'Unknown_command'};
+var author$project$Main$Weapon_reload = {$: 'Weapon_reload'};
+var author$project$Main$Weapon_zoom = {$: 'Weapon_zoom'};
+var author$project$Main$commandFromString = function (str) {
+	switch (str) {
+		case 'bullet_impact':
+			return author$project$Main$Bullet_impact;
+		case 'buytime_ended':
+			return author$project$Main$Buytime_ended;
+		case 'cs_pre_restart':
+			return author$project$Main$Cs_pre_restart;
+		case 'decoy_detonate':
+			return author$project$Main$Decoy_detonate;
+		case 'decoy_firing':
+			return author$project$Main$Decoy_firing;
+		case 'decoy_started':
+			return author$project$Main$Decoy_started;
+		case 'flashbang_detonate':
+			return author$project$Main$Flashbang_detonate;
+		case 'grenade_bounce':
+			return author$project$Main$Grenade_bounce;
+		case 'hegrenade_bounce':
+			return author$project$Main$Hegrenade_bounce;
+		case 'hegrenade_detonate':
+			return author$project$Main$Hegrenade_detonate;
+		case 'molotov_detonate':
+			return author$project$Main$Molotov_detonate;
+		case 'player_activate':
+			return author$project$Main$Player_activate;
+		case 'player_blind':
+			return author$project$Main$Player_blind;
+		case 'player_death':
+			return author$project$Main$Player_death;
+		case 'player_footstep':
+			return author$project$Main$Player_footstep;
+		case 'player_hurt':
+			return author$project$Main$Player_hurt;
+		case 'player_jump':
+			return author$project$Main$Player_jump;
+		case 'player_spawn':
+			return author$project$Main$Player_spawn;
+		case 'round_freeze_end':
+			return author$project$Main$Round_freeze_end;
+		case 'smokegrenade_detonate':
+			return author$project$Main$Smokegrenade_detonate;
+		case 'smokegrenade_expired':
+			return author$project$Main$Smokegrenade_expired;
+		case 'weapon_reload':
+			return author$project$Main$Weapon_reload;
+		case 'weapon_zoom':
+			return author$project$Main$Weapon_zoom;
+		default:
+			return author$project$Main$Unknown_command;
+	}
+};
 var elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
 		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
+	});
+var NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$optionalAt = F4(
+	function (path, valDecoder, fallback, decoder) {
+		return A2(
+			NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
+			A3(
+				NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$optionalDecoder,
+				A2(elm$json$Json$Decode$at, path, elm$json$Json$Decode$value),
+				valDecoder,
+				fallback),
+			decoder);
 	});
 var NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt = F3(
 	function (path, valDecoder, decoder) {
@@ -7475,20 +7558,27 @@ var NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt = F3(
 			A2(elm$json$Json$Decode$at, path, valDecoder),
 			decoder);
 	});
-var author$project$Main$PlayerCoordinates = F3(
-	function (clientId, position, orientation) {
-		return {clientId: clientId, orientation: orientation, position: position};
+var author$project$Main$PlayerCoordinates = F4(
+	function (clientId, position, orientation, team) {
+		return {clientId: clientId, orientation: orientation, position: position, team: team};
 	});
 var author$project$Main$Angles = F3(
 	function (ang0, ang1, ang2) {
 		return {ang0: ang0, ang1: ang1, ang2: ang2};
 	});
-var author$project$Main$anglesDecoder = A4(
-	elm$json$Json$Decode$map3,
-	author$project$Main$Angles,
-	A2(elm$json$Json$Decode$field, 'ang0', elm$json$Json$Decode$string),
-	A2(elm$json$Json$Decode$field, 'ang1', elm$json$Json$Decode$string),
-	A2(elm$json$Json$Decode$field, 'ang2', elm$json$Json$Decode$string));
+var author$project$Main$anglesDecoder = A3(
+	NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+	'ang2',
+	elm$json$Json$Decode$string,
+	A3(
+		NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+		'ang1',
+		elm$json$Json$Decode$string,
+		A3(
+			NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+			'ang0',
+			elm$json$Json$Decode$string,
+			elm$json$Json$Decode$succeed(author$project$Main$Angles))));
 var author$project$Main$Coordinates = F3(
 	function (x, y, z) {
 		return {x: x, y: y, z: z};
@@ -7517,29 +7607,45 @@ var author$project$Main$coordinatesDecoder = function (nestingKeys) {
 				elm$json$Json$Decode$string,
 				elm$json$Json$Decode$succeed(author$project$Main$Coordinates))));
 };
-var author$project$Main$originatorDecoder = function (key) {
-	return A3(
-		NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
-		_List_fromArray(
-			[key, 'orientation']),
-		author$project$Main$anglesDecoder,
+var author$project$Main$originatorTeamDecoder = function (nestingKeys) {
+	return A4(
+		NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$optionalAt,
+		_Utils_ap(
+			nestingKeys,
+			_List_fromArray(
+				['team'])),
+		elm$json$Json$Decode$string,
+		'undefined-team',
 		A3(
 			NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
-			_List_fromArray(
-				[key, 'position']),
-			author$project$Main$coordinatesDecoder(_List_Nil),
+			_Utils_ap(
+				nestingKeys,
+				_List_fromArray(
+					['orientation'])),
+			author$project$Main$anglesDecoder,
 			A3(
 				NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
-				_List_fromArray(
-					[key, 'clientId']),
-				elm$json$Json$Decode$string,
-				elm$json$Json$Decode$succeed(author$project$Main$PlayerCoordinates))));
+				_Utils_ap(
+					nestingKeys,
+					_List_fromArray(
+						['position'])),
+				author$project$Main$coordinatesDecoder(_List_Nil),
+				A3(
+					NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
+					_Utils_ap(
+						nestingKeys,
+						_List_fromArray(
+							['clientId'])),
+					elm$json$Json$Decode$string,
+					elm$json$Json$Decode$succeed(author$project$Main$PlayerCoordinates)))));
 };
 var elm$json$Json$Decode$decodeString = _Json_runOnString;
 var author$project$Main$decodeOriginator = function (message) {
 	var _n0 = A2(
 		elm$json$Json$Decode$decodeString,
-		author$project$Main$originatorDecoder('originator'),
+		author$project$Main$originatorTeamDecoder(
+			_List_fromArray(
+				['originator'])),
 		message);
 	if (_n0.$ === 'Ok') {
 		var res = _n0.a;
@@ -7578,7 +7684,9 @@ var author$project$Main$entityDecoder = function (key) {
 };
 var author$project$Main$decodeOriginatorEntity = function (message) {
 	var _n0 = elm$json$Json$Decode$decodeString(
-		author$project$Main$originatorDecoder('originator'))(message);
+		author$project$Main$originatorTeamDecoder(
+			_List_fromArray(
+				['originator'])))(message);
 	if (_n0.$ === 'Ok') {
 		var playerCoordinates = _n0.a;
 		var _n1 = elm$json$Json$Decode$decodeString(
@@ -7598,7 +7706,9 @@ var author$project$Main$decodeOriginatorEntity = function (message) {
 };
 var author$project$Main$decodeOriginatorImpact = function (message) {
 	var _n0 = elm$json$Json$Decode$decodeString(
-		author$project$Main$originatorDecoder('originator'))(message);
+		author$project$Main$originatorTeamDecoder(
+			_List_fromArray(
+				['originator'])))(message);
 	if (_n0.$ === 'Ok') {
 		var playerCoordinates = _n0.a;
 		var _n1 = elm$json$Json$Decode$decodeString(
@@ -7618,47 +7728,17 @@ var author$project$Main$decodeOriginatorImpact = function (message) {
 		return elm$core$Maybe$Nothing;
 	}
 };
-var author$project$Main$TeamPlayerCoordinates = F4(
-	function (clientId, position, orientation, team) {
-		return {clientId: clientId, orientation: orientation, position: position, team: team};
-	});
-var elm$json$Json$Decode$map4 = _Json_map4;
-var author$project$Main$teamDecoder = function (key) {
-	return A5(
-		elm$json$Json$Decode$map4,
-		author$project$Main$TeamPlayerCoordinates,
-		A2(
-			elm$json$Json$Decode$at,
-			_List_fromArray(
-				[key, 'clientId']),
-			elm$json$Json$Decode$string),
-		A2(
-			elm$json$Json$Decode$at,
-			_List_fromArray(
-				[key, 'position']),
-			author$project$Main$coordinatesDecoder(_List_Nil)),
-		A2(
-			elm$json$Json$Decode$at,
-			_List_fromArray(
-				[key, 'orientation']),
-			author$project$Main$anglesDecoder),
-		A2(
-			elm$json$Json$Decode$at,
-			_List_fromArray(
-				[key, 'team']),
-			elm$json$Json$Decode$string));
-};
 var author$project$Main$decodeVictimAttacker = function (message) {
-	var _n0 = A2(
-		elm$json$Json$Decode$decodeString,
-		author$project$Main$teamDecoder('victim'),
-		message);
+	var _n0 = elm$json$Json$Decode$decodeString(
+		author$project$Main$originatorTeamDecoder(
+			_List_fromArray(
+				['victim'])))(message);
 	if (_n0.$ === 'Ok') {
 		var victim = _n0.a;
-		var _n1 = A2(
-			elm$json$Json$Decode$decodeString,
-			author$project$Main$teamDecoder('attacker'),
-			message);
+		var _n1 = elm$json$Json$Decode$decodeString(
+			author$project$Main$originatorTeamDecoder(
+				_List_fromArray(
+					['attacker'])))(message);
 		if (_n1.$ === 'Ok') {
 			var attacker = _n1.a;
 			return elm$core$Maybe$Just(
@@ -7672,6 +7752,10 @@ var author$project$Main$decodeVictimAttacker = function (message) {
 		return elm$core$Maybe$Nothing;
 	}
 };
+var author$project$Main$Bullet = F3(
+	function (coordinates, id, style) {
+		return {coordinates: coordinates, id: id, style: style};
+	});
 var author$project$Main$AnimationEnded = function (a) {
 	return {$: 'AnimationEnded', a: a};
 };
@@ -8412,6 +8496,14 @@ var author$project$Main$getBulletAnimation = function (bulletId) {
 var author$project$Main$getBulletId = function (coordinates) {
 	return 'bullet-' + (coordinates.x + ('-' + (coordinates.y + ('-' + coordinates.z))));
 };
+var author$project$Main$getBullet = function (coordinates) {
+	var bulletId = author$project$Main$getBulletId(coordinates);
+	return A3(
+		author$project$Main$Bullet,
+		coordinates,
+		bulletId,
+		author$project$Main$getBulletAnimation(bulletId));
+};
 var elm$core$Basics$min = F2(
 	function (x, y) {
 		return (_Utils_cmp(x, y) < 0) ? x : y;
@@ -8465,10 +8557,25 @@ var author$project$Main$handleEntity = F2(
 	function (entity, model) {
 		return model;
 	});
+var author$project$Main$determineAliveState = F2(
+	function (aliveState, maybePlayer) {
+		if (aliveState.$ === 'UnknownAliveState') {
+			if (maybePlayer.$ === 'Just') {
+				var player = maybePlayer.a;
+				return player.aliveState;
+			} else {
+				return aliveState;
+			}
+		} else {
+			return aliveState;
+		}
+	});
+var author$project$Main$CTTeam = {$: 'CTTeam'};
 var author$project$Main$Player = F4(
 	function (clientId, coordinates, team, aliveState) {
 		return {aliveState: aliveState, clientId: clientId, coordinates: coordinates, team: team};
 	});
+var author$project$Main$TTeam = {$: 'TTeam'};
 var author$project$Main$UnknownTeam = {$: 'UnknownTeam'};
 var author$project$Main$playerFromPlayerCoordinates = F3(
 	function (playerCoordinates, aliveState, maybePlayer) {
@@ -8486,7 +8593,19 @@ var author$project$Main$playerFromPlayerCoordinates = F3(
 			author$project$Main$Player,
 			playerCoordinates.clientId,
 			playerCoordinates,
-			oldTeam,
+			function () {
+				var _n3 = playerCoordinates.team;
+				switch (_n3) {
+					case '3':
+						return author$project$Main$CTTeam;
+					case '2':
+						return author$project$Main$TTeam;
+					case 'undefined-team':
+						return oldTeam;
+					default:
+						return oldTeam;
+				}
+			}(),
 			function () {
 				if (aliveState.$ === 'UnknownAliveState') {
 					return oldAliveState;
@@ -8495,7 +8614,7 @@ var author$project$Main$playerFromPlayerCoordinates = F3(
 				}
 			}());
 	});
-var author$project$Main$handlePlayerCoordinates = F3(
+var author$project$Main$handlePlayer = F3(
 	function (playerCoordinates, aliveState, model) {
 		var updatedModel = A2(author$project$Main$updateCanvasSize, playerCoordinates.position, model);
 		return _Utils_update(
@@ -8504,149 +8623,20 @@ var author$project$Main$handlePlayerCoordinates = F3(
 				players: A3(
 					elm$core$Dict$insert,
 					playerCoordinates.clientId,
-					A3(
+					A2(
 						author$project$Main$playerFromPlayerCoordinates,
 						playerCoordinates,
-						aliveState,
+						A2(
+							author$project$Main$determineAliveState,
+							aliveState,
+							A2(elm$core$Dict$get, playerCoordinates.clientId, updatedModel.players)))(
 						A2(elm$core$Dict$get, playerCoordinates.clientId, updatedModel.players)),
 					updatedModel.players)
 			});
 	});
-var author$project$Main$CTTeam = {$: 'CTTeam'};
-var author$project$Main$TTeam = {$: 'TTeam'};
-var author$project$Main$playerFromTeamCoords = F2(
-	function (tpCoords, aliveState) {
-		return A4(
-			author$project$Main$Player,
-			tpCoords.clientId,
-			A3(author$project$Main$PlayerCoordinates, tpCoords.clientId, tpCoords.position, tpCoords.orientation),
-			function () {
-				var _n0 = tpCoords.team;
-				switch (_n0) {
-					case '3':
-						return author$project$Main$CTTeam;
-					case '2':
-						return author$project$Main$TTeam;
-					default:
-						return author$project$Main$UnknownTeam;
-				}
-			}(),
-			aliveState);
-	});
-var author$project$Main$handlePlayerTeam = F3(
-	function (tpCoords, aliveState, model) {
-		return _Utils_update(
-			model,
-			{
-				players: A3(
-					elm$core$Dict$insert,
-					tpCoords.clientId,
-					A2(
-						author$project$Main$playerFromTeamCoords,
-						tpCoords,
-						function () {
-							if (aliveState.$ === 'UnknownAliveState') {
-								var _n1 = A2(elm$core$Dict$get, tpCoords.clientId, model.players);
-								if (_n1.$ === 'Just') {
-									var p = _n1.a;
-									return p.aliveState;
-								} else {
-									return aliveState;
-								}
-							} else {
-								return aliveState;
-							}
-						}()),
-					model.players)
-			});
-	});
-var author$project$Main$handleVictimAttacker = F4(
-	function (victim, attacker, victimAliveState, model) {
-		return A3(
-			author$project$Main$handlePlayerTeam,
-			attacker,
-			author$project$Main$Alive,
-			A3(author$project$Main$handlePlayerTeam, victim, victimAliveState, model));
-	});
-var author$project$Main$Bullet_impact = {$: 'Bullet_impact'};
-var author$project$Main$Buytime_ended = {$: 'Buytime_ended'};
-var author$project$Main$Cs_pre_restart = {$: 'Cs_pre_restart'};
-var author$project$Main$Decoy_detonate = {$: 'Decoy_detonate'};
-var author$project$Main$Decoy_firing = {$: 'Decoy_firing'};
-var author$project$Main$Decoy_started = {$: 'Decoy_started'};
-var author$project$Main$Flashbang_detonate = {$: 'Flashbang_detonate'};
-var author$project$Main$Grenade_bounce = {$: 'Grenade_bounce'};
-var author$project$Main$Hegrenade_bounce = {$: 'Hegrenade_bounce'};
-var author$project$Main$Hegrenade_detonate = {$: 'Hegrenade_detonate'};
-var author$project$Main$Molotov_detonate = {$: 'Molotov_detonate'};
-var author$project$Main$Player_activate = {$: 'Player_activate'};
-var author$project$Main$Player_blind = {$: 'Player_blind'};
-var author$project$Main$Player_death = {$: 'Player_death'};
-var author$project$Main$Player_footstep = {$: 'Player_footstep'};
-var author$project$Main$Player_hurt = {$: 'Player_hurt'};
-var author$project$Main$Player_jump = {$: 'Player_jump'};
-var author$project$Main$Player_spawn = {$: 'Player_spawn'};
-var author$project$Main$Round_freeze_end = {$: 'Round_freeze_end'};
-var author$project$Main$Smokegrenade_detonate = {$: 'Smokegrenade_detonate'};
-var author$project$Main$Smokegrenade_expired = {$: 'Smokegrenade_expired'};
-var author$project$Main$Unknown_command = {$: 'Unknown_command'};
-var author$project$Main$Weapon_reload = {$: 'Weapon_reload'};
-var author$project$Main$Weapon_zoom = {$: 'Weapon_zoom'};
-var author$project$Main$stringToCommand = function (str) {
-	switch (str) {
-		case 'bullet_impact':
-			return author$project$Main$Bullet_impact;
-		case 'buytime_ended':
-			return author$project$Main$Buytime_ended;
-		case 'cs_pre_restart':
-			return author$project$Main$Cs_pre_restart;
-		case 'decoy_detonate':
-			return author$project$Main$Decoy_detonate;
-		case 'decoy_firing':
-			return author$project$Main$Decoy_firing;
-		case 'decoy_started':
-			return author$project$Main$Decoy_started;
-		case 'flashbang_detonate':
-			return author$project$Main$Flashbang_detonate;
-		case 'grenade_bounce':
-			return author$project$Main$Grenade_bounce;
-		case 'hegrenade_bounce':
-			return author$project$Main$Hegrenade_bounce;
-		case 'hegrenade_detonate':
-			return author$project$Main$Hegrenade_detonate;
-		case 'molotov_detonate':
-			return author$project$Main$Molotov_detonate;
-		case 'player_activate':
-			return author$project$Main$Player_activate;
-		case 'player_blind':
-			return author$project$Main$Player_blind;
-		case 'player_death':
-			return author$project$Main$Player_death;
-		case 'player_footstep':
-			return author$project$Main$Player_footstep;
-		case 'player_hurt':
-			return author$project$Main$Player_hurt;
-		case 'player_jump':
-			return author$project$Main$Player_jump;
-		case 'player_spawn':
-			return author$project$Main$Player_spawn;
-		case 'round_freeze_end':
-			return author$project$Main$Round_freeze_end;
-		case 'smokegrenade_detonate':
-			return author$project$Main$Smokegrenade_detonate;
-		case 'smokegrenade_expired':
-			return author$project$Main$Smokegrenade_expired;
-		case 'weapon_reload':
-			return author$project$Main$Weapon_reload;
-		case 'weapon_zoom':
-			return author$project$Main$Weapon_zoom;
-		default:
-			return author$project$Main$Unknown_command;
-	}
-};
 var author$project$Main$handleCommand = F3(
 	function (command, message, model) {
-		var _n0 = author$project$Main$stringToCommand(command);
+		var _n0 = author$project$Main$commandFromString(command);
 		switch (_n0.$) {
 			case 'Bullet_impact':
 				var _n1 = author$project$Main$decodeOriginatorImpact(message);
@@ -8654,17 +8644,14 @@ var author$project$Main$handleCommand = F3(
 					var _n2 = _n1.a;
 					var playerCoordinates = _n2.a;
 					var coordinates = _n2.b;
-					var bulletId = author$project$Main$getBulletId(coordinates);
-					var bullet = A3(
-						author$project$Main$Bullet,
-						coordinates,
-						bulletId,
-						author$project$Main$getBulletAnimation(bulletId));
 					return A3(
-						author$project$Main$handlePlayerCoordinates,
+						author$project$Main$handlePlayer,
 						playerCoordinates,
 						author$project$Main$Alive,
-						A2(author$project$Main$handleBulletImpact, bullet, model));
+						A2(
+							author$project$Main$handleBulletImpact,
+							author$project$Main$getBullet(coordinates),
+							model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8681,7 +8668,7 @@ var author$project$Main$handleCommand = F3(
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8694,7 +8681,7 @@ var author$project$Main$handleCommand = F3(
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8707,7 +8694,7 @@ var author$project$Main$handleCommand = F3(
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8720,7 +8707,7 @@ var author$project$Main$handleCommand = F3(
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8733,7 +8720,7 @@ var author$project$Main$handleCommand = F3(
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8746,7 +8733,7 @@ var author$project$Main$handleCommand = F3(
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8759,7 +8746,7 @@ var author$project$Main$handleCommand = F3(
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8767,7 +8754,7 @@ var author$project$Main$handleCommand = F3(
 				var _n17 = author$project$Main$decodeOriginator(message);
 				if (_n17.$ === 'Just') {
 					var playerCoordinates = _n17.a;
-					return A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$UnknownAliveState, model);
+					return A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8775,7 +8762,7 @@ var author$project$Main$handleCommand = F3(
 				var _n18 = author$project$Main$decodeOriginator(message);
 				if (_n18.$ === 'Just') {
 					var playerCoordinates = _n18.a;
-					return A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$Alive, model);
+					return A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$Alive, model);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8785,7 +8772,8 @@ var author$project$Main$handleCommand = F3(
 					var _n20 = _n19.a;
 					var victim = _n20.a;
 					var attacker = _n20.b;
-					return A4(author$project$Main$handleVictimAttacker, victim, attacker, author$project$Main$Dead, model);
+					var updatedModel = A3(author$project$Main$handlePlayer, victim, author$project$Main$Dead, model);
+					return A3(author$project$Main$handlePlayer, attacker, author$project$Main$UnknownAliveState, updatedModel);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8793,7 +8781,7 @@ var author$project$Main$handleCommand = F3(
 				var _n21 = author$project$Main$decodeOriginator(message);
 				if (_n21.$ === 'Just') {
 					var playerCoordinates = _n21.a;
-					return A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$Alive, model);
+					return A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$Alive, model);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8803,7 +8791,8 @@ var author$project$Main$handleCommand = F3(
 					var _n23 = _n22.a;
 					var victim = _n23.a;
 					var attacker = _n23.b;
-					return A4(author$project$Main$handleVictimAttacker, victim, attacker, author$project$Main$Alive, model);
+					var updatedModel = A3(author$project$Main$handlePlayer, victim, author$project$Main$Alive, model);
+					return A3(author$project$Main$handlePlayer, attacker, author$project$Main$UnknownAliveState, updatedModel);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8811,7 +8800,7 @@ var author$project$Main$handleCommand = F3(
 				var _n24 = author$project$Main$decodeOriginator(message);
 				if (_n24.$ === 'Just') {
 					var playerCoordinates = _n24.a;
-					return A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$Alive, model);
+					return A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$Alive, model);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8819,7 +8808,7 @@ var author$project$Main$handleCommand = F3(
 				var _n25 = author$project$Main$decodeOriginator(message);
 				if (_n25.$ === 'Just') {
 					var playerCoordinates = _n25.a;
-					return A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$Alive, model);
+					return A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$Alive, model);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8836,7 +8825,7 @@ var author$project$Main$handleCommand = F3(
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8849,7 +8838,7 @@ var author$project$Main$handleCommand = F3(
 					return A2(
 						author$project$Main$handleEntity,
 						entity,
-						A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$UnknownAliveState, model));
+						A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$UnknownAliveState, model));
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8857,7 +8846,7 @@ var author$project$Main$handleCommand = F3(
 				var _n30 = author$project$Main$decodeOriginator(message);
 				if (_n30.$ === 'Just') {
 					var playerCoordinates = _n30.a;
-					return A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$Alive, model);
+					return A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$Alive, model);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
@@ -8865,7 +8854,7 @@ var author$project$Main$handleCommand = F3(
 				var _n31 = author$project$Main$decodeOriginator(message);
 				if (_n31.$ === 'Just') {
 					var playerCoordinates = _n31.a;
-					return A3(author$project$Main$handlePlayerCoordinates, playerCoordinates, author$project$Main$Alive, model);
+					return A3(author$project$Main$handlePlayer, playerCoordinates, author$project$Main$Alive, model);
 				} else {
 					return A2(author$project$Main$appendLog, message, model);
 				}
