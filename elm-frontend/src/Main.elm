@@ -1,6 +1,7 @@
 port module Main exposing (main)
 
 import Browser
+import Browser.Events
 import Cmd.Extra
 import Dict exposing (Dict)
 import Html exposing (Html)
@@ -29,6 +30,8 @@ subscriptions model =
     Sub.batch
         [ PortFunnels.subscriptions Process model
         , Animation.subscription Animate (List.map (\bullet -> bullet.style) (Dict.values model.bullets))
+        , Browser.Events.onKeyDown (keyPressDecoder KeyDown model)
+        , Browser.Events.onKeyUp (keyPressDecoder KeyUp model)
         ]
 
 
@@ -73,6 +76,7 @@ type alias Model =
     , maxY : Float
     , bulletsResetCount : Int
     , entitiesResetCount : Int
+    , extendedView : Bool
     }
 
 
@@ -103,6 +107,7 @@ init _ =
     , maxY = 0
     , bulletsResetCount = 200
     , entitiesResetCount = 200
+    , extendedView = False
     }
     |> Cmd.Extra.withNoCmd
 
@@ -176,6 +181,10 @@ type Command =
     | Weapon_zoom
     | Unknown_command
 
+type KeyPressMotion =
+    KeyDown
+    | KeyUp
+
 type alias ClientId =
     String
 
@@ -208,6 +217,7 @@ type Msg =
     | Process Json.Encode.Value
     | Animate Animation.Msg
     | AnimationEnded BulletId
+    | OnKeyPress KeyPressMotion String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -295,6 +305,20 @@ update msg model =
                 | bullets = Dict.remove bulletId model.bullets
             }
                 |> Cmd.Extra.withNoCmd
+
+        OnKeyPress keyPressMotion str ->
+            handleKeyPress str keyPressMotion model
+                |> Cmd.Extra.withNoCmd
+
+
+handleKeyPress : String -> KeyPressMotion -> Model -> Model
+handleKeyPress keyName keyPressMotion model =
+    case keyName of
+        "Control" ->
+            case keyPressMotion of
+                KeyDown -> { model | extendedView = True }
+                KeyUp -> { model | extendedView = False }
+        _ -> model
 
 
 send : Model -> WebSocket.Message -> Cmd Msg
@@ -732,6 +756,13 @@ anglesDecoder =
     |> JDPipeline.required "ang2" Json.Decode.string
 
 
+keyPressDecoder : KeyPressMotion -> Model -> Json.Decode.Decoder Msg
+keyPressDecoder keyPressMotion model =
+    OnKeyPress keyPressMotion
+    |> Json.Decode.succeed
+    |> JDPipeline.requiredAt [ "key" ] Json.Decode.string
+
+
 commandFromString : String -> Command
 commandFromString str =
     case str of
@@ -983,7 +1014,16 @@ playerSvg model player =
             ++ String.fromFloat cy
             ++ ")"
         ]
-        [ Svg.path
+        ( ( if model.extendedView == True then
+            [ Svg.text_
+            [ SvgAttrs.x ( String.fromFloat ( cx + 3 ) )
+            , SvgAttrs.y ( String.fromFloat ( cy + 5 ) )
+            ]
+            [ Html.text player.name ]
+            ]
+        else []
+        )
+        |> List.append [ Svg.path
             [ SvgAttrs.d <|
                 "M" ++ (String.fromFloat (cx - r)) ++ " " ++ (String.fromFloat cy)
                 ++ " A " ++ (String.fromFloat r) ++ " " ++ (String.fromFloat r) ++ ", 0, 1, 1, " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy + r))
@@ -1003,9 +1043,5 @@ playerSvg model player =
             , SvgAttrs.fill "aqua"
             ]
             []
-        , Svg.text_
-            [ SvgAttrs.x ( String.fromFloat ( cx + 3 ) )
-            , SvgAttrs.y ( String.fromFloat ( cy + 5 ) )
-            ]
-            [ Html.text player.name ]
         ]
+        )
