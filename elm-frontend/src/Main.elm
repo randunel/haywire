@@ -77,7 +77,8 @@ type alias Model =
     , maxY : Float
     , bulletsResetCount : Int
     , entitiesResetCount : Int
-    , extendedView : Bool
+    , enablePlayerNames : Bool
+    , enablePlayerAnimations : Bool
     }
 
 
@@ -108,7 +109,8 @@ init _ =
     , maxY = 0
     , bulletsResetCount = 200
     , entitiesResetCount = 200
-    , extendedView = False
+    , enablePlayerNames = False
+    , enablePlayerAnimations = True
     }
     |> Cmd.Extra.withNoCmd
 
@@ -322,8 +324,8 @@ handleKeyPress keyName keyPressMotion model =
     case keyName of
         "Control" ->
             case keyPressMotion of
-                KeyDown -> { model | extendedView = True }
-                KeyUp -> { model | extendedView = False }
+                KeyDown -> { model | enablePlayerNames = True }
+                KeyUp -> { model | enablePlayerNames = False }
         _ -> model
 
 
@@ -331,9 +333,14 @@ handleVisibilityChanged : Browser.Events.Visibility -> Model -> Model
 handleVisibilityChanged visibility model =
     case visibility of
         Browser.Events.Visible ->
-            model
+            { model
+                | enablePlayerAnimations = True
+            }
         Browser.Events.Hidden ->
-            { model | extendedView = False }
+            { model
+                | enablePlayerNames = False
+            , enablePlayerAnimations = False
+            }
 
 
 send : Model -> WebSocket.Message -> Cmd Msg
@@ -961,7 +968,7 @@ view model =
                 [ [ b "Players:"
                   , br
                   ]
-                , List.intersperse br (List.map Html.text (List.map (\p -> "name: " ++ p.name ++ " x:" ++ p.position.coordinates.x ++ " y:" ++ p.position.coordinates.y ++ " z:" ++ p.position.coordinates.z) (Dict.values model.players)))
+                , List.intersperse br (List.map Html.text (List.map (\p -> "name: " ++ p.name ++ " x:" ++ p.position.coordinates.x ++ " y:" ++ p.position.coordinates.y ++ " z:" ++ p.position.coordinates.z ++ " ang1:" ++ p.position.orientation.ang1) (Dict.values model.players)))
                 ]
         , Html.p [] <|
             List.concat
@@ -1020,43 +1027,47 @@ playerSvg model player =
             ) - 135
     in
         Svg.g
-        [ SvgAttrs.transform <|
-            "rotate("
-            ++ String.fromFloat yaw
-            ++ ", "
-            ++ String.fromFloat cx
-            ++ ", "
-            ++ String.fromFloat cy
-            ++ ")"
-        ]
-        ( ( if model.extendedView == True then
+        []
+        ( ( if model.enablePlayerNames == True then
             [ Svg.text_
             [ SvgAttrs.x ( String.fromFloat ( cx + 3 ) )
             , SvgAttrs.y ( String.fromFloat ( cy + 5 ) )
             ]
             [ Html.text player.name ]
             ]
-        else []
-        )
-        |> List.append [ Svg.path
-            [ SvgAttrs.d <|
-                "M" ++ (String.fromFloat (cx - r)) ++ " " ++ (String.fromFloat cy)
-                ++ " A " ++ (String.fromFloat r) ++ " " ++ (String.fromFloat r) ++ ", 0, 1, 1, " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy + r))
-                ++ " L " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy)) ++ " Z"
-            , SvgAttrs.fill (case player.team of
-                UnknownTeam -> "orange"
-                CTTeam -> "blue"
-                TTeam -> "red"
-                )
-            ]
-            []
-        , Svg.path
-            [ SvgAttrs.d <|
-                "M" ++ (String.fromFloat (cx - r)) ++ " " ++ (String.fromFloat cy)
-                ++ " A " ++ (String.fromFloat r) ++ " " ++ (String.fromFloat r) ++ ", 0, 0, 0, " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy + r))
-                ++ " L " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy)) ++ " Z"
-            , SvgAttrs.fill "aqua"
-            ]
-            []
-        ]
+            else []
+            )
+            |> List.append
+                [ Svg.g
+                    [ SvgAttrs.transform <|
+                        "rotate("
+                        ++ String.fromFloat yaw
+                        ++ ", "
+                        ++ String.fromFloat cx
+                        ++ ", "
+                        ++ String.fromFloat cy
+                        ++ ")"
+                    ]
+                    [ Svg.path
+                        [ SvgAttrs.d <|
+                            "M" ++ (String.fromFloat (cx - r)) ++ " " ++ (String.fromFloat cy)
+                            ++ " A " ++ (String.fromFloat r) ++ " " ++ (String.fromFloat r) ++ ", 0, 1, 1, " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy + r))
+                            ++ " L " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy)) ++ " Z"
+                        , SvgAttrs.fill (case player.team of
+                            UnknownTeam -> "orange"
+                            CTTeam -> "blue"
+                            TTeam -> "red"
+                            )
+                        ]
+                        []
+                    , Svg.path
+                        [ SvgAttrs.d <|
+                            "M" ++ (String.fromFloat (cx - r)) ++ " " ++ (String.fromFloat cy)
+                            ++ " A " ++ (String.fromFloat r) ++ " " ++ (String.fromFloat r) ++ ", 0, 0, 0, " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy + r))
+                            ++ " L " ++ (String.fromFloat cx) ++ " " ++ (String.fromFloat (cy)) ++ " Z"
+                        , SvgAttrs.fill "aqua"
+                        ]
+                        []
+                    ]
+                ]
         )

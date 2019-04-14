@@ -4808,7 +4808,7 @@ var billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState = billstc
 var author$project$PortFunnels$initialState = {websocket: billstclair$elm_websocket_client$PortFunnel$WebSocket$initialState};
 var author$project$Main$init = function (_n0) {
 	return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
-		{bullets: elm$core$Dict$empty, bulletsResetCount: 200, entities: elm$core$Dict$empty, entitiesResetCount: 200, error: elm$core$Maybe$Nothing, extendedView: false, key: 'socket', log: _List_Nil, maxX: 0, maxY: 0, minX: 0, minY: 0, players: elm$core$Dict$empty, send: 'sent from frontend (elm)', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, wasLoaded: false});
+		{animations: true, bullets: elm$core$Dict$empty, bulletsResetCount: 200, entities: elm$core$Dict$empty, entitiesResetCount: 200, error: elm$core$Maybe$Nothing, extendedView: false, key: 'socket', log: _List_Nil, maxX: 0, maxY: 0, minX: 0, minY: 0, players: elm$core$Dict$empty, send: 'sent from frontend (elm)', state: author$project$PortFunnels$initialState, url: author$project$Main$defaultUrl, wasLoaded: false});
 };
 var author$project$Main$Animate = function (a) {
 	return {$: 'Animate', a: a};
@@ -9669,11 +9669,13 @@ var author$project$Main$handleKeyPress = F3(
 var author$project$Main$handleVisibilityChanged = F2(
 	function (visibility, model) {
 		if (visibility.$ === 'Visible') {
-			return model;
+			return _Utils_update(
+				model,
+				{animations: true});
 		} else {
 			return _Utils_update(
 				model,
-				{extendedView: false});
+				{animations: false, extendedView: false});
 		}
 	});
 var billstclair$elm_port_funnel$PortFunnel$messageToValue = F2(
@@ -12144,44 +12146,50 @@ var author$project$Main$playerSvg = F2(
 			elm$core$String$toFloat(player.position.coordinates.x)) - model.minX) * 800) / (model.maxX - model.minX);
 		return A2(
 			elm$svg$Svg$g,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$transform(
-					'rotate(' + (elm$core$String$fromFloat(yaw) + (', ' + (elm$core$String$fromFloat(cx) + (', ' + (elm$core$String$fromFloat(cy) + ')'))))))
-				]),
+			_List_Nil,
 			A2(
 				elm$core$List$append,
 				_List_fromArray(
 					[
 						A2(
-						elm$svg$Svg$path,
+						elm$svg$Svg$g,
 						_List_fromArray(
 							[
-								elm$svg$Svg$Attributes$d(
-								'M' + (elm$core$String$fromFloat(cx - r) + (' ' + (elm$core$String$fromFloat(cy) + (' A ' + (elm$core$String$fromFloat(r) + (' ' + (elm$core$String$fromFloat(r) + (', 0, 1, 1, ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy + r) + (' L ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy) + ' Z')))))))))))))))),
-								elm$svg$Svg$Attributes$fill(
-								function () {
-									var _n0 = player.team;
-									switch (_n0.$) {
-										case 'UnknownTeam':
-											return 'orange';
-										case 'CTTeam':
-											return 'blue';
-										default:
-											return 'red';
-									}
-								}())
+								elm$svg$Svg$Attributes$transform(
+								'rotate(' + (elm$core$String$fromFloat(yaw) + (', ' + (elm$core$String$fromFloat(cx) + (', ' + (elm$core$String$fromFloat(cy) + ')'))))))
 							]),
-						_List_Nil),
-						A2(
-						elm$svg$Svg$path,
 						_List_fromArray(
 							[
-								elm$svg$Svg$Attributes$d(
-								'M' + (elm$core$String$fromFloat(cx - r) + (' ' + (elm$core$String$fromFloat(cy) + (' A ' + (elm$core$String$fromFloat(r) + (' ' + (elm$core$String$fromFloat(r) + (', 0, 0, 0, ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy + r) + (' L ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy) + ' Z')))))))))))))))),
-								elm$svg$Svg$Attributes$fill('aqua')
-							]),
-						_List_Nil)
+								A2(
+								elm$svg$Svg$path,
+								_List_fromArray(
+									[
+										elm$svg$Svg$Attributes$d(
+										'M' + (elm$core$String$fromFloat(cx - r) + (' ' + (elm$core$String$fromFloat(cy) + (' A ' + (elm$core$String$fromFloat(r) + (' ' + (elm$core$String$fromFloat(r) + (', 0, 1, 1, ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy + r) + (' L ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy) + ' Z')))))))))))))))),
+										elm$svg$Svg$Attributes$fill(
+										function () {
+											var _n0 = player.team;
+											switch (_n0.$) {
+												case 'UnknownTeam':
+													return 'orange';
+												case 'CTTeam':
+													return 'blue';
+												default:
+													return 'red';
+											}
+										}())
+									]),
+								_List_Nil),
+								A2(
+								elm$svg$Svg$path,
+								_List_fromArray(
+									[
+										elm$svg$Svg$Attributes$d(
+										'M' + (elm$core$String$fromFloat(cx - r) + (' ' + (elm$core$String$fromFloat(cy) + (' A ' + (elm$core$String$fromFloat(r) + (' ' + (elm$core$String$fromFloat(r) + (', 0, 0, 0, ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy + r) + (' L ' + (elm$core$String$fromFloat(cx) + (' ' + (elm$core$String$fromFloat(cy) + ' Z')))))))))))))))),
+										elm$svg$Svg$Attributes$fill('aqua')
+									]),
+								_List_Nil)
+							]))
 					]),
 				model.extendedView ? _List_fromArray(
 					[
@@ -12434,7 +12442,7 @@ var author$project$Main$view = function (model) {
 								A2(
 									elm$core$List$map,
 									function (p) {
-										return 'name: ' + (p.name + (' x:' + (p.position.coordinates.x + (' y:' + (p.position.coordinates.y + (' z:' + p.position.coordinates.z))))));
+										return 'name: ' + (p.name + (' x:' + (p.position.coordinates.x + (' y:' + (p.position.coordinates.y + (' z:' + (p.position.coordinates.z + (' ang1:' + p.position.orientation.ang1))))))));
 									},
 									elm$core$Dict$values(model.players))))
 						]))),
