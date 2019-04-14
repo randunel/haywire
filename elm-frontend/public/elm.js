@@ -4818,6 +4818,9 @@ var author$project$Main$KeyUp = {$: 'KeyUp'};
 var author$project$Main$Process = function (a) {
 	return {$: 'Process', a: a};
 };
+var author$project$Main$VisibilityChanged = function (a) {
+	return {$: 'VisibilityChanged', a: a};
+};
 var elm$json$Json$Decode$map2 = _Json_map2;
 var NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom = elm$json$Json$Decode$map2(elm$core$Basics$apR);
 var elm$core$List$foldrHelper = F4(
@@ -5562,6 +5565,28 @@ var elm$browser$Browser$Events$on = F3(
 	});
 var elm$browser$Browser$Events$onKeyDown = A2(elm$browser$Browser$Events$on, elm$browser$Browser$Events$Document, 'keydown');
 var elm$browser$Browser$Events$onKeyUp = A2(elm$browser$Browser$Events$on, elm$browser$Browser$Events$Document, 'keyup');
+var elm$browser$Browser$Events$Hidden = {$: 'Hidden'};
+var elm$browser$Browser$Events$Visible = {$: 'Visible'};
+var elm$browser$Browser$Events$withHidden = F2(
+	function (func, isHidden) {
+		return func(
+			isHidden ? elm$browser$Browser$Events$Hidden : elm$browser$Browser$Events$Visible);
+	});
+var elm$json$Json$Decode$bool = _Json_decodeBool;
+var elm$browser$Browser$Events$onVisibilityChange = function (func) {
+	var info = _Browser_visibilityInfo(_Utils_Tuple0);
+	return A3(
+		elm$browser$Browser$Events$on,
+		elm$browser$Browser$Events$Document,
+		info.change,
+		A2(
+			elm$json$Json$Decode$map,
+			elm$browser$Browser$Events$withHidden(func),
+			A2(
+				elm$json$Json$Decode$field,
+				'target',
+				A2(elm$json$Json$Decode$field, info.hidden, elm$json$Json$Decode$bool))));
+};
 var elm$core$Dict$values = function (dict) {
 	return A3(
 		elm$core$Dict$foldr,
@@ -5759,7 +5784,8 @@ var author$project$Main$subscriptions = function (model) {
 				elm$browser$Browser$Events$onKeyDown(
 				A2(author$project$Main$keyPressDecoder, author$project$Main$KeyDown, model)),
 				elm$browser$Browser$Events$onKeyUp(
-				A2(author$project$Main$keyPressDecoder, author$project$Main$KeyUp, model))
+				A2(author$project$Main$keyPressDecoder, author$project$Main$KeyUp, model)),
+				elm$browser$Browser$Events$onVisibilityChange(author$project$Main$VisibilityChanged)
 			]));
 };
 var Janiczek$cmd_extra$Cmd$Extra$withCmd = F2(
@@ -6006,7 +6032,6 @@ var billstclair$elm_websocket_client$PortFunnel$WebSocket$InternalMessage$PWillS
 	return {$: 'PWillSend', a: a};
 };
 var billstclair$elm_websocket_client$PortFunnel$WebSocket$InternalMessage$Startup = {$: 'Startup'};
-var elm$json$Json$Decode$bool = _Json_decodeBool;
 var elm$json$Json$Decode$int = _Json_decodeInt;
 var elm$json$Json$Decode$nullable = function (decoder) {
 	return elm$json$Json$Decode$oneOf(
@@ -9641,6 +9666,16 @@ var author$project$Main$handleKeyPress = F3(
 			return model;
 		}
 	});
+var author$project$Main$handleVisibilityChanged = F2(
+	function (visibility, model) {
+		if (visibility.$ === 'Visible') {
+			return model;
+		} else {
+			return _Utils_update(
+				model,
+				{extendedView: false});
+		}
+	});
 var billstclair$elm_port_funnel$PortFunnel$messageToValue = F2(
 	function (_n0, message) {
 		var moduleDesc = _n0.a;
@@ -11468,11 +11503,15 @@ var author$project$Main$update = F2(
 						{
 							bullets: A2(elm$core$Dict$remove, bulletId, model.bullets)
 						}));
-			default:
+			case 'OnKeyPress':
 				var keyPressMotion = msg.a;
 				var str = msg.b;
 				return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
 					A3(author$project$Main$handleKeyPress, str, keyPressMotion, model));
+			default:
+				var visibility = msg.a;
+				return Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
+					A2(author$project$Main$handleVisibilityChanged, visibility, model));
 		}
 	});
 var author$project$Main$Close = {$: 'Close'};

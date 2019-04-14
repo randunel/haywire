@@ -32,6 +32,7 @@ subscriptions model =
         , Animation.subscription Animate (List.map (\bullet -> bullet.style) (Dict.values model.bullets))
         , Browser.Events.onKeyDown (keyPressDecoder KeyDown model)
         , Browser.Events.onKeyUp (keyPressDecoder KeyUp model)
+        , Browser.Events.onVisibilityChange VisibilityChanged
         ]
 
 
@@ -218,6 +219,7 @@ type Msg =
     | Animate Animation.Msg
     | AnimationEnded BulletId
     | OnKeyPress KeyPressMotion String
+    | VisibilityChanged Browser.Events.Visibility
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -308,7 +310,11 @@ update msg model =
 
         OnKeyPress keyPressMotion str ->
             handleKeyPress str keyPressMotion model
-                |> Cmd.Extra.withNoCmd
+            |> Cmd.Extra.withNoCmd
+
+        VisibilityChanged visibility ->
+            handleVisibilityChanged visibility model
+            |> Cmd.Extra.withNoCmd
 
 
 handleKeyPress : String -> KeyPressMotion -> Model -> Model
@@ -319,6 +325,15 @@ handleKeyPress keyName keyPressMotion model =
                 KeyDown -> { model | extendedView = True }
                 KeyUp -> { model | extendedView = False }
         _ -> model
+
+
+handleVisibilityChanged : Browser.Events.Visibility -> Model -> Model
+handleVisibilityChanged visibility model =
+    case visibility of
+        Browser.Events.Visible ->
+            model
+        Browser.Events.Hidden ->
+            { model | extendedView = False }
 
 
 send : Model -> WebSocket.Message -> Cmd Msg
