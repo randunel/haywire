@@ -59,7 +59,7 @@ HookEvents() {
     HookEvent("inferno_startburn", HandleSimpleEntity);
     HookEvent("inferno_expire", HandleSimpleEntity);
     HookEvent("inferno_extinguish", HandleSimpleEntity);
-    HookEvent("bomb_beep", HandleSimpleEntity);
+    // HookEvent("bomb_beep", HandleSimpleEntity); // broken, returns zeros 0 -> 0.0,0.0,0.0
 
     HookEvent("bomb_dropped", HandleUserEntity);
     HookEvent("hegrenade_detonate", HandleUserEntity);
@@ -138,11 +138,21 @@ public Action:HandleUserAttackerHealth(Handle:event, const String:eventName[], b
     // decl String:attackerName[32];
     // GetClientName(attacker, attackerName, sizeof(attackerName));
     new attackerTeam;
+    new Float:attackerCoords[3];
+    new Float:attackerAngles[3];
     if (attacker > 0 && IsClientInGame(attacker)) {
         attackerTeam = GetClientTeam(attacker);
+        GetClientAbsOrigin(attacker, Float:attackerCoords);
+        GetClientEyeAngles(attacker, Float:attackerAngles);
     }
     else {
         attackerTeam = 0;
+        attackerCoords[0] = 0.0;
+        attackerCoords[1] = 0.0;
+        attackerCoords[2] = 0.0;
+        attackerAngles[0] = 0.0;
+        attackerAngles[1] = 0.0;
+        attackerAngles[2] = 0.0;
     }
 
     new health = GetEventInt(event, "health");
@@ -155,10 +165,6 @@ public Action:HandleUserAttackerHealth(Handle:event, const String:eventName[], b
     GetClientAbsOrigin(player, Float:playerCoords);
     new Float:playerAngles[3];
     GetClientEyeAngles(player, Float:playerAngles);
-    new Float:attackerCoords[3];
-    GetClientAbsOrigin(attacker, Float:attackerCoords);
-    new Float:attackerAngles[3];
-    GetClientEyeAngles(attacker, Float:attackerAngles);
 
     LogToGame("HW->%s->1->%d->%f,%f,%f->%f,%f,%f->%d->%d->%f,%f,%f->%f,%f,%f->%d->%d,%d->%d,%d->%d->%s",
         eventName,
@@ -217,6 +223,7 @@ public Action:HandleSimpleEvent(Handle:event, const String:eventName[], bool:don
 
 public Action:HandleSimpleEntity(Handle:event, const String:eventName[], bool:dontBroadcast) {
     LogToGame("HW->%s->1->%d->%f,%f,%f",
+        eventName,
         GetEventInt(event, "entityid"),
         GetEventFloat(event, "x"),
         GetEventFloat(event, "y"),

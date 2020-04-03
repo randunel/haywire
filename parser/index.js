@@ -9,6 +9,12 @@ const PARSERS = {
     'buytime_ended': {
         '1': []
     },
+    'bomb_pickup': {
+        '1': [userCoords('originator')]
+    },
+    'bomb_dropped': {
+        '1': [userCoords('originator')]
+    },
     'cs_pre_restart': {
         '1': []
     },
@@ -20,6 +26,12 @@ const PARSERS = {
     },
     'decoy_started': {
         '1': [userCoords('originator'), entity('decoy')]
+    },
+    'inferno_startburn': {
+        '1': [entity('inferno')]
+    },
+    'inferno_expire': {
+        '1': [entity('inferno')]
     },
     'flashbang_detonate': {
         '1': [userCoords('originator'), entity('flashbang_detonate')]
@@ -43,6 +55,9 @@ const PARSERS = {
         '1': [userCoords('victim'), team('victim'), userCoords('attacker'), team('attacker'), name('victim')]
     },
     'player_footstep': {
+        '1': [userCoords('originator')]
+    },
+    'player_given_c4': {
         '1': [userCoords('originator')]
     },
     'player_hurt': {

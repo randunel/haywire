@@ -15,7 +15,7 @@
   "license": "NPOSL 3.0",
   "dependencies": {
     "express": "^4.17.1",
-    "srcds-log": "1.0.0-rc2",
+    "srcds-log": "file:../node-srcds-log",
     "ws": "^6.1.4"
   },
   "devDependencies": {
