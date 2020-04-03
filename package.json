@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "cd elm-frontend && elm make ./src/Main.elm --output=./public/elm.js"
+    "compile": "cd elm-frontend && elm make ./src/Main.elm --output=./public/elm.js",
+    "csgo:download": "csgo/download.sh",
+    "csgo": "csgo/run.sh"
   },
   "author": "Mihai Ene <dkrandu@yahoo.com>",
   "license": "NPOSL 3.0",
