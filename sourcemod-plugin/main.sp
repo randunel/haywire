@@ -137,7 +137,13 @@ public Action:HandleUserAttackerHealth(Handle:event, const String:eventName[], b
     new playerTeam = GetClientTeam(player);
     // decl String:attackerName[32];
     // GetClientName(attacker, attackerName, sizeof(attackerName));
-    new attackerTeam = GetClientTeam(attacker);
+    new attackerTeam;
+    if (attacker > 0 && IsClientInGame(attacker)) {
+        attackerTeam = GetClientTeam(attacker);
+    }
+    else {
+        attackerTeam = 0;
+    }
 
     new health = GetEventInt(event, "health");
     new armor = GetEventInt(event, "armor");
