@@ -9,7 +9,8 @@
     "compile": "cd elm-frontend && elm make ./src/Main.elm --output=./public/elm.js",
     "plugin:compile": "sourcemod-plugin/compile.sh",
     "csgo:download": "csgo/download.sh",
-    "csgo": "csgo/run.sh"
+    "csgo": "csgo/run.sh",
+    "maps:update": "./maps-update.sh"
   },
   "author": "Mihai Ene <dkrandu@yahoo.com>",
   "license": "NPOSL 3.0",
