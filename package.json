@@ -10,7 +10,8 @@
     "plugin:compile": "sourcemod-plugin/compile.sh",
     "csgo:download": "csgo/download.sh",
     "csgo": "csgo/run.sh",
-    "maps:update": "./maps-update.sh"
+    "maps:update": "./maps-update.sh",
+    "elm:make": "elm-frontend/make.sh"
   },
   "author": "Mihai Ene <dkrandu@yahoo.com>",
   "license": "NPOSL 3.0",
