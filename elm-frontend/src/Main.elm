@@ -910,7 +910,7 @@ view model =
         , Html.Attributes.style "padding" "1em"
         , Html.Attributes.style "border" "solid"
         ]
-        [ Html.h1 [] [ Html.text "Haywire sample" ]
+        [ Html.h1 [] [ Html.text "Haywire frontend" ]
         , Html.p []
             [ Html.input
                 [ Html.Attributes.value model.send
@@ -957,8 +957,35 @@ view model =
         , Svg.svg
             [ SvgAttrs.width "800"
             , SvgAttrs.height "800"
+            -- , SvgAttrs.transform "scale(1, -1)"
             ]
             (
+                [ Svg.defs []
+                    [ Svg.pattern
+                        [ SvgAttrs.id "background"
+                        , SvgAttrs.width "100%"
+                        , SvgAttrs.height "100%"
+                        , SvgAttrs.patternUnits "userSpaceOnUse"
+                        ]
+                        [ Svg.image
+                            [ SvgAttrs.x "0"
+                            , SvgAttrs.y "0"
+                            , SvgAttrs.width "100%"
+                            , SvgAttrs.height "100%"
+                            , SvgAttrs.opacity "0.33"
+                            , SvgAttrs.xlinkHref "maps/de_dust2.png"
+                            ] []
+                        ]
+                    ]
+                    , Svg.rect
+                        [ SvgAttrs.width "100%"
+                        , SvgAttrs.height "100%"
+                        , SvgAttrs.transform "translate(0, 800) scale(1, -1)"
+                        , SvgAttrs.fill "url(#background)"
+                        ]
+                        [ ]
+                ]
+                ++
                 (List.map (playerSvg model) (Dict.values model.players))
                 ++
                 (List.map (bulletsSvg model) (Dict.values model.bullets))

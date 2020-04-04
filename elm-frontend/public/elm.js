@@ -12125,10 +12125,13 @@ var $elm$html$Html$Attributes$boolProperty = F2(
 			$elm$json$Json$Encode$bool(bool));
 	});
 var $elm$html$Html$Attributes$checked = $elm$html$Html$Attributes$boolProperty('checked');
+var $elm$svg$Svg$defs = $elm$svg$Svg$trustedNode('defs');
 var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
+var $elm$svg$Svg$Attributes$id = _VirtualDom_attribute('id');
+var $elm$svg$Svg$image = $elm$svg$Svg$trustedNode('image');
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$core$List$intersperse = F2(
 	function (sep, xs) {
@@ -12199,7 +12202,10 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			$elm$html$Html$Events$alwaysStop,
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
+var $elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
 var $elm$html$Html$p = _VirtualDom_node('p');
+var $elm$svg$Svg$pattern = $elm$svg$Svg$trustedNode('pattern');
+var $elm$svg$Svg$Attributes$patternUnits = _VirtualDom_attribute('patternUnits');
 var $elm$svg$Svg$g = $elm$svg$Svg$trustedNode('g');
 var $elm$svg$Svg$path = $elm$svg$Svg$trustedNode('path');
 var $elm$svg$Svg$text_ = $elm$svg$Svg$trustedNode('text');
@@ -12293,6 +12299,7 @@ var $author$project$Main$playerSvg = F2(
 							]))
 					]) : _List_Nil));
 	});
+var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
 var $elm$html$Html$Attributes$size = function (n) {
 	return A2(
 		_VirtualDom_attribute,
@@ -12310,6 +12317,13 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
 var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
+var $elm$svg$Svg$Attributes$xlinkHref = function (value) {
+	return A3(
+		_VirtualDom_attributeNS,
+		'http://www.w3.org/1999/xlink',
+		'xlink:href',
+		_VirtualDom_noJavaScriptUri(value));
+};
 var $author$project$Main$view = function (model) {
 	var isConnected = A2($billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected, model.key, model.state.websocket);
 	return A2(
@@ -12329,7 +12343,7 @@ var $author$project$Main$view = function (model) {
 				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Haywire sample')
+						$elm$html$Html$text('Haywire frontend')
 					])),
 				A2(
 				$elm$html$Html$p,
@@ -12412,17 +12426,62 @@ var $author$project$Main$view = function (model) {
 				_List_fromArray(
 					[
 						$elm$svg$Svg$Attributes$width('800'),
-						$elm$svg$Svg$Attributes$height('800')
+						$elm$svg$Svg$Attributes$height('800'),
+						$elm$svg$Svg$Attributes$transform('translate(0, 800) scale(1, -1)')
 					]),
 				_Utils_ap(
-					A2(
-						$elm$core$List$map,
-						$author$project$Main$playerSvg(model),
-						$elm$core$Dict$values(model.players)),
-					A2(
-						$elm$core$List$map,
-						$author$project$Main$bulletsSvg(model),
-						$elm$core$Dict$values(model.bullets)))),
+					_List_fromArray(
+						[
+							A2(
+							$elm$svg$Svg$defs,
+							_List_Nil,
+							_List_fromArray(
+								[
+									A2(
+									$elm$svg$Svg$pattern,
+									_List_fromArray(
+										[
+											$elm$svg$Svg$Attributes$id('background'),
+											$elm$svg$Svg$Attributes$width('100%'),
+											$elm$svg$Svg$Attributes$height('100%'),
+											$elm$svg$Svg$Attributes$patternUnits('userSpaceOnUse')
+										]),
+									_List_fromArray(
+										[
+											A2(
+											$elm$svg$Svg$image,
+											_List_fromArray(
+												[
+													$elm$svg$Svg$Attributes$x('0'),
+													$elm$svg$Svg$Attributes$y('0'),
+													$elm$svg$Svg$Attributes$width('100%'),
+													$elm$svg$Svg$Attributes$height('100%'),
+													$elm$svg$Svg$Attributes$opacity('0.33'),
+													$elm$svg$Svg$Attributes$xlinkHref('maps/de_dust2.png')
+												]),
+											_List_Nil)
+										]))
+								])),
+							A2(
+							$elm$svg$Svg$rect,
+							_List_fromArray(
+								[
+									$elm$svg$Svg$Attributes$width('100%'),
+									$elm$svg$Svg$Attributes$height('100%'),
+									$elm$svg$Svg$Attributes$transform('translate(0, 800) scale(1, -1)'),
+									$elm$svg$Svg$Attributes$fill('url(#background)')
+								]),
+							_List_Nil)
+						]),
+					_Utils_ap(
+						A2(
+							$elm$core$List$map,
+							$author$project$Main$playerSvg(model),
+							$elm$core$Dict$values(model.players)),
+						A2(
+							$elm$core$List$map,
+							$author$project$Main$bulletsSvg(model),
+							$elm$core$Dict$values(model.bullets))))),
 				A2(
 				$elm$html$Html$p,
 				_List_Nil,
