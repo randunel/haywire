@@ -1,0 +1,15 @@
+{
+    "extends": "ub",
+    "env": {
+        "node": true
+    },
+    "parserOptions": {
+        "ecmaVersion": 2019
+    },
+    "rules": {
+        "strict": "error",
+        "no-warning-comments": "warn",
+        "no-console": "error",
+        "require-await": "error"
+    }
+}

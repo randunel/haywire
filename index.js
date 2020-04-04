@@ -7,6 +7,9 @@ const express = require('express');
 const SrcdsLogger = require('srcds-log');
 const parseLogLine = require('./parser');
 
+const fs = require('fs');
+const d2Entities = JSON.parse(fs.readFileSync('./maps/de_dust2.entities.json'));
+
 const app = express();
 const PORT = 3000;
 
@@ -18,6 +21,19 @@ const wss = new ws.Server({ server });
 wss.on('connection', (socket, req) => {
     console.log('websocket connected from', req.connection.remoteAddress);
     socket.send('hello from node', { asd: 'qq' });
+    d2Entities.filter(entity => entity.origin)
+        .map(entity => {
+            const [x, y, z] = entity.origin.split(' ');
+            return {
+                command: 'initialEntitySetup',
+                entity: {
+                    type: entity.targetname || 'me-unknown',
+                    id: entity.hammerid,
+                    coordinates: { x, y, z }
+                }
+            }
+        })
+        .forEach(cmd => socket.send(JSON.stringify(cmd)));
 });
 
 server.listen(PORT, '0.0.0.0', () => console.log(`listening on ${PORT}`));

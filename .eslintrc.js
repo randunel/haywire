@@ -1,1 +1,0 @@
-./node_modules/eslint-config-ub/index.js

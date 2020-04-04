@@ -118,8 +118,8 @@ init _ =
 type alias Entity =
     { type_ : String
     , id : String
-    , clientId : ClientId
     , coordinates : Coordinates
+    , clientId : ClientId
     }
 
 
@@ -182,6 +182,7 @@ type Command =
     | Smokegrenade_expired
     | Weapon_reload
     | Weapon_zoom
+    | InitialEntitySetup
     | Unknown_command
 
 type KeyPressMotion =
@@ -379,6 +380,13 @@ commandDecoder =
 handleCommand : String -> String -> Model -> Model
 handleCommand command message model =
     case commandFromString command of
+
+        InitialEntitySetup -> case (decodeEntity message) of
+            Just ( entity ) ->
+                model
+                -- |> updateCanvasSize entity.coordinates
+                |> handleEntity entity
+            Nothing -> appendLog message model
 
         Bullet_impact -> case decodeOriginatorImpact message of
             Just ( playerDetails, coordinates ) ->
@@ -612,7 +620,9 @@ findOrCreatePlayer clientId players =
 
 handleEntity : Entity -> Model -> Model
 handleEntity entity model =
-    model
+    { model | entities =
+        Dict.insert entity.id entity model.entities
+    }
 
 
 handleBulletImpact : Bullet -> Model -> Model
@@ -679,6 +689,18 @@ updateCanvasSize coordinates model =
         |> Maybe.withDefault model.maxY
         |> max model.maxY
     }
+
+
+decodeEntity : String -> Maybe ( Entity )
+decodeEntity message =
+    case
+        ( "originator"
+        |> entityDecoder
+        |> Json.Decode.decodeString
+        ) message
+    of
+        Ok entity -> Just ( entity )
+        Err err -> Nothing
 
 
 decodeOriginatorEntity : String -> Maybe ( DecodedPlayerDetails, Entity )
@@ -758,8 +780,8 @@ entityDecoder key =
     Json.Decode.succeed Entity
     |> JDPipeline.requiredAt [ "entity", "type" ] Json.Decode.string
     |> JDPipeline.requiredAt [ "entity", "id" ] Json.Decode.string
-    |> JDPipeline.requiredAt [ key, "clientId" ] Json.Decode.string
     |> JDPipeline.requiredAt [ "entity", "coordinates" ] ( coordinatesDecoder [])
+    |> JDPipeline.optionalAt [ key, "clientId" ] Json.Decode.string ""
 
 
 coordinatesDecoder : List String -> Json.Decode.Decoder Coordinates
@@ -788,6 +810,8 @@ keyPressDecoder keyPressMotion model =
 commandFromString : String -> Command
 commandFromString str =
     case str of
+        "initialEntitySetup" -> InitialEntitySetup
+
         "bullet_impact" -> Bullet_impact
         "buytime_ended" -> Buytime_ended
         "cs_pre_restart" -> Cs_pre_restart
@@ -989,6 +1013,8 @@ view model =
                 (List.map (playerSvg model) (Dict.values model.players))
                 ++
                 (List.map (bulletsSvg model) (Dict.values model.bullets))
+                ++
+                (List.map (entitiesSvg model) (Dict.values model.entities))
             )
         , Html.p [] <|
             List.concat
@@ -1005,6 +1031,31 @@ view model =
                 , List.intersperse br (List.map Html.text model.log)
                 ]
         ]
+
+entitiesSvg model entity = Svg.circle
+    [ SvgAttrs.cx <|
+        let x =
+                entity.coordinates.x
+                |> String.toFloat
+                |> Maybe.withDefault 0
+        in
+            ( x - model.minX ) * 800 / ( model.maxX - model.minX )
+            |> String.fromFloat
+    , SvgAttrs.cy <|
+        let y =
+                entity.coordinates.y
+                |> String.toFloat
+                |> Maybe.withDefault 0
+        in
+            ( y - model.minY ) * 800 / ( model.maxY - model.minY )
+            |> String.fromFloat
+    , SvgAttrs.r <| "1"
+    , SvgAttrs.fill "yellow"
+    ]
+    [ Svg.title [ ]
+        [ b entity.type_
+        ]
+    ]
 
 bulletsSvg model bullet = Svg.circle
     ( Animation.render bullet.style

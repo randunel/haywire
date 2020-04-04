@@ -10,7 +10,8 @@
     "plugin:compile": "sourcemod-plugin/compile.sh",
     "csgo:download": "csgo/download.sh",
     "csgo": "csgo/run.sh",
-    "maps:update": "./maps-update.sh",
+    "maps:images": "maps/images.sh",
+    "maps:entities": "node maps/entities.js",
     "elm:make": "elm-frontend/make.sh"
   },
   "author": "Mihai Ene <dkrandu@yahoo.com>",
@@ -21,6 +22,7 @@
     "ws": "^6.1.4"
   },
   "devDependencies": {
+    "async": "^3.2.0",
     "eslint-config-ub": "^3.0.0"
   }
 }
