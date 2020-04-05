@@ -202,6 +202,8 @@ type Command =
     | Grenade_thrown
     | Hegrenade_bounce
     | Hegrenade_detonate
+    | Inferno_expire
+    | Inferno_startburn
     | Item_equip
     | Item_pickup
     | Item_purchase
@@ -594,6 +596,20 @@ handleCommand command message model =
                 |> updateCanvasSize playerDetails.coordinates
                 |> updateCanvasSize entity.coordinates
                 |> handlePlayer playerDetails UnknownAliveState
+                |> handleEntity entity
+            Nothing -> appendLog message model
+
+        Inferno_expire -> case (decodeEntity message) of
+            Just ( entity ) ->
+                model
+                |> updateCanvasSize entity.coordinates
+                |> handleEntity entity
+            Nothing -> appendLog message model
+
+        Inferno_startburn -> case (decodeEntity message) of
+            Just ( entity ) ->
+                model
+                |> updateCanvasSize entity.coordinates
                 |> handleEntity entity
             Nothing -> appendLog message model
 
@@ -1086,6 +1102,8 @@ commandFromString str =
         "grenade_thrown" -> Grenade_thrown
         "hegrenade_bounce" -> Hegrenade_bounce
         "hegrenade_detonate" -> Hegrenade_detonate
+        "inferno_expire" -> Inferno_expire
+        "inferno_startburn" -> Inferno_startburn
         "item_equip" -> Item_equip
         "item_pickup" -> Item_pickup
         "item_purchase" -> Item_purchase
