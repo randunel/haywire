@@ -204,17 +204,22 @@ type Command =
     | Hegrenade_detonate
     | Item_equip
     | Item_pickup
+    | Item_purchase
     | Item_remove
     | Molotov_detonate
     | Player_activate
     | Player_blind
     | Player_death
+    | Player_falldamage
     | Player_footstep
     | Player_hurt
     | Player_jump
     | Player_radio
     | Player_spawn
+    | Round_announce_warmup
+    | Round_end
     | Round_freeze_end
+    | Round_poststart
     | Smokegrenade_detonate
     | Smokegrenade_expired
     | Weapon_fire
@@ -606,6 +611,13 @@ handleCommand command message model =
                 |> handlePlayer playerDetails Alive
             Nothing -> appendLog message model
 
+        Item_purchase -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
         Item_remove -> case (decodeOriginator message) of
             Just playerDetails ->
                 model
@@ -645,6 +657,13 @@ handleCommand command message model =
                 |> handlePlayer attacker UnknownAliveState
             Nothing -> appendLog message model
 
+        Player_falldamage -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
         Player_footstep -> case (decodeOriginator message) of
             Just playerDetails ->
                 model
@@ -682,7 +701,13 @@ handleCommand command message model =
                 |> handlePlayer playerDetails Alive
             Nothing -> appendLog message model
 
+        Round_announce_warmup -> { model | bullets = Dict.empty }
+
+        Round_end -> { model | bullets = Dict.empty }
+
         Round_freeze_end -> { model | bullets = Dict.empty }
+
+        Round_poststart -> { model | bullets = Dict.empty }
 
         Smokegrenade_detonate -> case (decodeOriginatorEntity message) of
             Just ( playerDetails, entity ) ->
@@ -1059,17 +1084,22 @@ commandFromString str =
         "hegrenade_detonate" -> Hegrenade_detonate
         "item_equip" -> Item_equip
         "item_pickup" -> Item_pickup
+        "item_purchase" -> Item_purchase
         "item_remove" -> Item_remove
         "molotov_detonate" -> Molotov_detonate
         "player_activate" -> Player_activate
         "player_blind" -> Player_blind
         "player_death" -> Player_death
+        "player_falldamage" -> Player_falldamage
         "player_footstep" -> Player_footstep
         "player_hurt" -> Player_hurt
         "player_jump" -> Player_jump
         "player_radio" -> Player_radio
         "player_spawn" -> Player_spawn
+        "round_announce_warmup" -> Round_announce_warmup
+        "round_end" -> Round_end
         "round_freeze_end" -> Round_freeze_end
+        "round_poststart" -> Round_poststart
         "smokegrenade_detonate" -> Smokegrenade_detonate
         "smokegrenade_expired" -> Smokegrenade_expired
         "weapon_fire" -> Weapon_fire
