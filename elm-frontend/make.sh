@@ -16,5 +16,5 @@ fi
 
 (
     cd elm-frontend;
-    elm-app make src/Main.elm --output=public/elm.js;
+    elm-app make src/Main.elm --output=public/haywire.js;
 )

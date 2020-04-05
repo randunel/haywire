@@ -217,7 +217,7 @@ type Command =
     | Player_hurt
     | Player_jump
     | Player_radio
-    | Player_spawn
+    | Player_spawned
     | Round_announce_warmup
     | Round_end
     | Round_freeze_end
@@ -710,7 +710,7 @@ handleCommand command message model =
                 |> handlePlayer playerDetails Alive
             Nothing -> appendLog message model
 
-        Player_spawn -> case (decodeOriginator message) of
+        Player_spawned -> case (decodeOriginator message) of
             Just playerDetails ->
                 model
                 |> updateCanvasSize playerDetails.coordinates
@@ -1117,7 +1117,7 @@ commandFromString str =
         "player_hurt" -> Player_hurt
         "player_jump" -> Player_jump
         "player_radio" -> Player_radio
-        "player_spawn" -> Player_spawn
+        "player_spawned" -> Player_spawned
         "round_announce_warmup" -> Round_announce_warmup
         "round_end" -> Round_end
         "round_freeze_end" -> Round_freeze_end

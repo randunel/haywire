@@ -7,43 +7,11 @@
             border: 2px solid #000;
         }
     </style>
-    <script type='text/javascript' src='elm.js'></script>
+    <script type='text/javascript' src='haywire.js'></script>
     <script type='text/javascript' src='js/PortFunnel.js'></script>
+    <script type='text/javascript' src='js/init.js'></script>
   </head>
   <body>
-    <div id='elm'></div>
-    <script type='text/javascript'>
-
-var flags = undefined;
-var mainModule = 'Main';
-
-var app = Elm[mainModule].init({
-  node: document.getElementById('elm'),
-  flags: flags
-});
-
-var modules = ['WebSocket'];
-
-PortFunnel.subscribe(app, {modules: modules});
-
-(function() {
-  var ports = app.ports;
-  var parse = ports.parse;
-  var parseReturn = ports.parseReturn;
-  if (parse && parseReturn) {
-    parse.subscribe(function(string) {
-      var result;
-      try {
-        var val = JSON.parse(string);
-        result = val
-      } catch(err) {
-        result = "" + err;
-      }
-      parseReturn.send(result);
-    });
-  }
-})();
-
-    </script>
+    <div id='haywire'></div>
   </body>
 </html>

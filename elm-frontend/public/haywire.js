@@ -7941,7 +7941,7 @@ var $author$project$Main$Player_footstep = {$: 'Player_footstep'};
 var $author$project$Main$Player_hurt = {$: 'Player_hurt'};
 var $author$project$Main$Player_jump = {$: 'Player_jump'};
 var $author$project$Main$Player_radio = {$: 'Player_radio'};
-var $author$project$Main$Player_spawn = {$: 'Player_spawn'};
+var $author$project$Main$Player_spawned = {$: 'Player_spawned'};
 var $author$project$Main$Round_announce_warmup = {$: 'Round_announce_warmup'};
 var $author$project$Main$Round_end = {$: 'Round_end'};
 var $author$project$Main$Round_freeze_end = {$: 'Round_freeze_end'};
@@ -8021,8 +8021,8 @@ var $author$project$Main$commandFromString = function (str) {
 			return $author$project$Main$Player_jump;
 		case 'player_radio':
 			return $author$project$Main$Player_radio;
-		case 'player_spawn':
-			return $author$project$Main$Player_spawn;
+		case 'player_spawned':
+			return $author$project$Main$Player_spawned;
 		case 'round_announce_warmup':
 			return $author$project$Main$Round_announce_warmup;
 		case 'round_end':
@@ -9810,7 +9810,7 @@ var $author$project$Main$handleCommand = F3(
 				} else {
 					return A2($author$project$Main$appendLog, message, model);
 				}
-			case 'Player_spawn':
+			case 'Player_spawned':
 				var _v48 = $author$project$Main$decodeOriginator(message);
 				if (_v48.$ === 'Just') {
 					var playerDetails = _v48.a;
