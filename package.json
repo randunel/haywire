@@ -10,7 +10,6 @@
     "plugin:compile": "sourcemod-plugin/compile.sh",
     "csgo:download": "csgo/download.sh",
     "csgo": "csgo/run.sh",
-    "maps:images": "maps/images.sh",
     "maps:entities": "node maps/entities.js",
     "elm:make": "elm-frontend/make.sh"
   },
