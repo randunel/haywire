@@ -9,13 +9,34 @@ const PARSERS = {
     'buytime_ended': {
         '1': []
     },
+    'bomb_abortplant': {
+        '1': [userCoords('originator')]
+    },
+    'bomb_begindefuse': {
+        '1': [userCoords('originator')]
+    },
+    'bomb_beginplant': {
+        '1': [userCoords('originator')]
+    },
+    'bomb_exploded': {
+        '1': [userCoords('originator')]
+    },
     'bomb_pickup': {
+        '1': [userCoords('originator')]
+    },
+    'bomb_planted': {
+        '1': [userCoords('originator')]
+    },
+    'bomb_defused': {
         '1': [userCoords('originator')]
     },
     'bomb_dropped': {
         '1': [userCoords('originator')]
     },
     'cs_pre_restart': {
+        '1': []
+    },
+    'cs_win_panel_round': {
         '1': []
     },
     'decoy_detonate': {
@@ -26,6 +47,18 @@ const PARSERS = {
     },
     'decoy_started': {
         '1': [userCoords('originator'), entity('decoy')]
+    },
+    'enter_bombzone': {
+        '1': [userCoords('originator')]
+    },
+    'enter_buyzone': {
+        '1': [userCoords('originator')]
+    },
+    'exit_bombzone': {
+        '1': [userCoords('originator')]
+    },
+    'exit_buyzone': {
+        '1': [userCoords('originator')]
     },
     'inferno_startburn': {
         '1': [entity('inferno')]
@@ -39,8 +72,23 @@ const PARSERS = {
     'grenade_bounce': {
         '1': [userCoords('originator'), entity('grenade_bounce')]
     },
+    'grenade_thrown': {
+        '1': [userCoords('originator')]
+    },
     'hegrenade_detonate': {
         '1': [userCoords('originator'), entity('hegrenade_detonate')]
+    },
+    'item_equip': {
+        '1': [userCoords('originator')]
+    },
+    'item_pickup': {
+        '1': [userCoords('originator')]
+    },
+    'item_purchase': {
+        '1': [userCoords('originator')]
+    },
+    'item_remove': {
+        '1': [userCoords('originator')]
     },
     'molotov_detonate': {
         '1': [userCoords('originator'), entity('molotov_detonate')]
@@ -54,6 +102,9 @@ const PARSERS = {
     'player_death': {
         '1': [userCoords('victim'), team('victim'), userCoords('attacker'), team('attacker'), name('victim')]
     },
+    'player_falldamage': {
+        '1': [userCoords('originator')]
+    },
     'player_footstep': {
         '1': [userCoords('originator')]
     },
@@ -66,10 +117,25 @@ const PARSERS = {
     'player_jump': {
         '1': [userCoords('originator')]
     },
-    'player_spawn': {
+    'player_radio': {
         '1': [userCoords('originator')]
     },
+    'player_spawned': {
+        '1': [userCoords('originator')]
+    },
+    'round_announce_match_start': {
+        '1': []
+    },
+    'round_announce_warmup': {
+        '1': []
+    },
+    'round_end': {
+        '1': []
+    },
     'round_freeze_end': {
+        '1': []
+    },
+    'round_poststart': {
         '1': []
     },
     'smokegrenade_detonate': {
@@ -77,6 +143,9 @@ const PARSERS = {
     },
     'smokegrenade_expired': {
         '1': [userCoords('originator'), entity('smokegrenade_expired')]
+    },
+    'weapon_fire': {
+        '1': [userCoords('originator')]
     },
     'weapon_reload': {
         '1': [userCoords('originator')]

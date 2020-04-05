@@ -24,29 +24,56 @@ public OnPluginStart() {
 }
 
 HookEvents() {
+    HookEvent("item_purchase", HandleSimpleUserid);
+    HookEvent("defuser_pickup", HandleSimpleUserid);
     HookEvent("player_activate", HandleSimpleUserid);
     HookEvent("bomb_pickup", HandleSimpleUserid);
     HookEvent("bomb_abortdefuse", HandleSimpleUserid);
+    HookEvent("weapon_fire", HandleSimpleUserid);
+    HookEvent("weapon_fire_on_empty", HandleSimpleUserid);
     HookEvent("weapon_outofammo", HandleSimpleUserid);
     HookEvent("weapon_reload", HandleSimpleUserid);
     HookEvent("weapon_zoom", HandleSimpleUserid);
+    HookEvent("grenade_thrown", HandleSimpleUserid);
     HookEvent("silencer_detach", HandleSimpleUserid);
-    HookEvent("player_spawn", HandleSimpleUserid);
+    HookEvent("player_spawned", HandleSimpleUserid);
     HookEvent("silencer_off", HandleSimpleUserid);
     HookEvent("silencer_on", HandleSimpleUserid);
     HookEvent("player_footstep", HandleSimpleUserid);
     HookEvent("player_jump", HandleSimpleUserid);
     HookEvent("player_blind", HandleSimpleUserid);
     HookEvent("player_given_c4", HandleSimpleUserid);
+    HookEvent("hostage_follows", HandleSimpleUserid);
+    HookEvent("hostage_hurt", HandleSimpleUserid);
+    HookEvent("hostage_killed", HandleSimpleUserid);
+    HookEvent("hostage_rescued", HandleSimpleUserid);
+    HookEvent("hostage_stops_following", HandleSimpleUserid);
+    HookEvent("vip_escaped", HandleSimpleUserid);
+    HookEvent("player_radio", HandleSimpleUserid);
+    HookEvent("inspect_weapon", HandleSimpleUserid);
+    HookEvent("item_pickup", HandleSimpleUserid);
+    HookEvent("item_pickup_failed", HandleSimpleUserid);
+    HookEvent("item_remove", HandleSimpleUserid);
+    HookEvent("ammo_pickup", HandleSimpleUserid);
+    HookEvent("item_equip", HandleSimpleUserid);
+    HookEvent("enter_buyzone", HandleSimpleUserid);
+    HookEvent("exit_buyzone", HandleSimpleUserid);
+    HookEvent("enter_bombzone", HandleSimpleUserid);
+    HookEvent("exit_bombzone", HandleSimpleUserid);
+    HookEvent("enter_rescue_zone", HandleSimpleUserid);
+    HookEvent("exit_rescue_zone", HandleSimpleUserid);
+    HookEvent("player_falldamage", HandleSimpleUserid);
+    HookEvent("door_moving", HandleSimpleUserid);
+    HookEvent("player_decal", HandleSimpleUserid);
 
     HookEvent("bomb_beginplant", HandleUserBombsite);
     HookEvent("bomb_abortplant", HandleUserBombsite);
     HookEvent("bomb_planted", HandleUserBombsite);
     HookEvent("bomb_defused", HandleUserBombsite);
-    HookEvent("bomb_exploded", HandleUserBombsite);
 
     HookEvent("bomb_begindefuse", HandleUserHaskit);
 
+    HookEvent("bomb_exploded", HandleSimpleEvent);
     HookEvent("announce_phase_end", HandleSimpleEvent);
     HookEvent("cs_intermission", HandleSimpleEvent);
     HookEvent("buytime_ended", HandleSimpleEvent);
@@ -55,6 +82,12 @@ HookEvents() {
     HookEvent("mb_input_lock_cancel", HandleSimpleEvent);
     HookEvent("cs_match_end_restart", HandleSimpleEvent);
     HookEvent("cs_pre_restart", HandleSimpleEvent);
+    HookEvent("round_announce_warmup", HandleSimpleEvent);
+    HookEvent("round_announce_match_start", HandleSimpleEvent);
+    HookEvent("round_poststart", HandleSimpleEvent);
+    HookEvent("round_end", HandleSimpleEvent);
+    HookEvent("cs_win_panel_round", HandleSimpleEvent);
+    HookEvent("cs_win_panel_match", HandleSimpleEvent);
 
     HookEvent("inferno_startburn", HandleSimpleEntity);
     HookEvent("inferno_expire", HandleSimpleEntity);
@@ -71,10 +104,12 @@ HookEvents() {
     HookEvent("decoy_detonate", HandleUserEntity);
     HookEvent("decoy_started", HandleUserEntity);
     HookEvent("decoy_firing", HandleUserEntity);
+    HookEvent("tagrenade_detonate", HandleUserEntity);
 
     HookEvent("player_hurt", HandleUserAttackerHealth);
 
     HookEvent("player_death", HandleUserAttacker);
+    HookEvent("vip_killed", HandleUserAttacker);
 
     HookEvent("player_shoot", HandleUserWeaponMode); // does not work
 
