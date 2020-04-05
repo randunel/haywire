@@ -54,10 +54,16 @@ const PARSERS = {
     'enter_buyzone': {
         '1': [userCoords('originator')]
     },
+    'enter_rescue_zone': {
+        '1': [userCoords('originator')]
+    },
     'exit_bombzone': {
         '1': [userCoords('originator')]
     },
     'exit_buyzone': {
+        '1': [userCoords('originator')]
+    },
+    'exit_rescue_zone': {
         '1': [userCoords('originator')]
     },
     'inferno_startburn': {

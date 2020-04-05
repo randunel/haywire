@@ -193,8 +193,10 @@ type Command =
     | Decoy_started
     | Enter_bombzone
     | Enter_buyzone
+    | Enter_rescuezone
     | Exit_bombzone
     | Exit_buyzone
+    | Exit_rescuezone
     | Flashbang_detonate
     | Grenade_bounce
     | Grenade_thrown
@@ -538,6 +540,13 @@ handleCommand command message model =
                 |> handlePlayer playerDetails Alive
             Nothing -> appendLog message model
 
+        Enter_rescuezone -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
         Exit_bombzone -> case (decodeOriginator message) of
             Just playerDetails ->
                 model
@@ -546,6 +555,13 @@ handleCommand command message model =
             Nothing -> appendLog message model
 
         Exit_buyzone -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
+        Exit_rescuezone -> case (decodeOriginator message) of
             Just playerDetails ->
                 model
                 |> updateCanvasSize playerDetails.coordinates
@@ -1041,8 +1057,10 @@ commandFromString str =
         "decoy_started" -> Decoy_started
         "enter_bombzone" -> Enter_bombzone
         "enter_buyzone" -> Enter_buyzone
+        "enter_rescue_zone" -> Enter_rescuezone
         "exit_bombzone" -> Exit_bombzone
         "exit_buyzone" -> Exit_buyzone
+        "exit_rescue_zone" -> Exit_rescuezone
         "flashbang_detonate" -> Flashbang_detonate
         "grenade_bounce" -> Grenade_bounce
         "grenade_thrown" -> Grenade_thrown

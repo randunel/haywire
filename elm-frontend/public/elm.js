@@ -7917,8 +7917,10 @@ var $author$project$Main$Decoy_firing = {$: 'Decoy_firing'};
 var $author$project$Main$Decoy_started = {$: 'Decoy_started'};
 var $author$project$Main$Enter_bombzone = {$: 'Enter_bombzone'};
 var $author$project$Main$Enter_buyzone = {$: 'Enter_buyzone'};
+var $author$project$Main$Enter_rescuezone = {$: 'Enter_rescuezone'};
 var $author$project$Main$Exit_bombzone = {$: 'Exit_bombzone'};
 var $author$project$Main$Exit_buyzone = {$: 'Exit_buyzone'};
+var $author$project$Main$Exit_rescuezone = {$: 'Exit_rescuezone'};
 var $author$project$Main$Flashbang_detonate = {$: 'Flashbang_detonate'};
 var $author$project$Main$Grenade_bounce = {$: 'Grenade_bounce'};
 var $author$project$Main$Grenade_thrown = {$: 'Grenade_thrown'};
@@ -7967,10 +7969,14 @@ var $author$project$Main$commandFromString = function (str) {
 			return $author$project$Main$Enter_bombzone;
 		case 'enter_buyzone':
 			return $author$project$Main$Enter_buyzone;
+		case 'enter_rescue_zone':
+			return $author$project$Main$Enter_rescuezone;
 		case 'exit_bombzone':
 			return $author$project$Main$Exit_bombzone;
 		case 'exit_buyzone':
 			return $author$project$Main$Exit_buyzone;
+		case 'exit_rescue_zone':
+			return $author$project$Main$Exit_rescuezone;
 		case 'flashbang_detonate':
 			return $author$project$Main$Flashbang_detonate;
 		case 'grenade_bounce':
@@ -9471,7 +9477,7 @@ var $author$project$Main$handleCommand = F3(
 				} else {
 					return A2($author$project$Main$appendLog, message, model);
 				}
-			case 'Exit_bombzone':
+			case 'Enter_rescuezone':
 				var _v20 = $author$project$Main$decodeOriginator(message);
 				if (_v20.$ === 'Just') {
 					var playerDetails = _v20.a;
@@ -9483,7 +9489,7 @@ var $author$project$Main$handleCommand = F3(
 				} else {
 					return A2($author$project$Main$appendLog, message, model);
 				}
-			case 'Exit_buyzone':
+			case 'Exit_bombzone':
 				var _v21 = $author$project$Main$decodeOriginator(message);
 				if (_v21.$ === 'Just') {
 					var playerDetails = _v21.a;
@@ -9495,24 +9501,31 @@ var $author$project$Main$handleCommand = F3(
 				} else {
 					return A2($author$project$Main$appendLog, message, model);
 				}
-			case 'Flashbang_detonate':
-				var _v22 = $author$project$Main$decodeOriginatorEntity(message);
+			case 'Exit_buyzone':
+				var _v22 = $author$project$Main$decodeOriginator(message);
 				if (_v22.$ === 'Just') {
-					var _v23 = _v22.a;
-					var playerDetails = _v23.a;
-					var entity = _v23.b;
-					return A2(
-						$author$project$Main$handleEntity,
-						entity,
-						A3(
-							$author$project$Main$handlePlayer,
-							playerDetails,
-							$author$project$Main$UnknownAliveState,
-							A2($author$project$Main$updateCanvasSize, entity.coordinates, model)));
+					var playerDetails = _v22.a;
+					return A3(
+						$author$project$Main$handlePlayer,
+						playerDetails,
+						$author$project$Main$Alive,
+						A2($author$project$Main$updateCanvasSize, playerDetails.coordinates, model));
 				} else {
 					return A2($author$project$Main$appendLog, message, model);
 				}
-			case 'Grenade_bounce':
+			case 'Exit_rescuezone':
+				var _v23 = $author$project$Main$decodeOriginator(message);
+				if (_v23.$ === 'Just') {
+					var playerDetails = _v23.a;
+					return A3(
+						$author$project$Main$handlePlayer,
+						playerDetails,
+						$author$project$Main$Alive,
+						A2($author$project$Main$updateCanvasSize, playerDetails.coordinates, model));
+				} else {
+					return A2($author$project$Main$appendLog, message, model);
+				}
+			case 'Flashbang_detonate':
 				var _v24 = $author$project$Main$decodeOriginatorEntity(message);
 				if (_v24.$ === 'Just') {
 					var _v25 = _v24.a;
@@ -9529,10 +9542,27 @@ var $author$project$Main$handleCommand = F3(
 				} else {
 					return A2($author$project$Main$appendLog, message, model);
 				}
-			case 'Grenade_thrown':
-				var _v26 = $author$project$Main$decodeOriginator(message);
+			case 'Grenade_bounce':
+				var _v26 = $author$project$Main$decodeOriginatorEntity(message);
 				if (_v26.$ === 'Just') {
-					var playerDetails = _v26.a;
+					var _v27 = _v26.a;
+					var playerDetails = _v27.a;
+					var entity = _v27.b;
+					return A2(
+						$author$project$Main$handleEntity,
+						entity,
+						A3(
+							$author$project$Main$handlePlayer,
+							playerDetails,
+							$author$project$Main$UnknownAliveState,
+							A2($author$project$Main$updateCanvasSize, entity.coordinates, model)));
+				} else {
+					return A2($author$project$Main$appendLog, message, model);
+				}
+			case 'Grenade_thrown':
+				var _v28 = $author$project$Main$decodeOriginator(message);
+				if (_v28.$ === 'Just') {
+					var playerDetails = _v28.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9542,11 +9572,11 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Hegrenade_detonate':
-				var _v27 = $author$project$Main$decodeOriginatorEntity(message);
-				if (_v27.$ === 'Just') {
-					var _v28 = _v27.a;
-					var playerDetails = _v28.a;
-					var entity = _v28.b;
+				var _v29 = $author$project$Main$decodeOriginatorEntity(message);
+				if (_v29.$ === 'Just') {
+					var _v30 = _v29.a;
+					var playerDetails = _v30.a;
+					var entity = _v30.b;
 					return A2(
 						$author$project$Main$handleEntity,
 						entity,
@@ -9562,9 +9592,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Item_equip':
-				var _v29 = $author$project$Main$decodeOriginator(message);
-				if (_v29.$ === 'Just') {
-					var playerDetails = _v29.a;
+				var _v31 = $author$project$Main$decodeOriginator(message);
+				if (_v31.$ === 'Just') {
+					var playerDetails = _v31.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9574,9 +9604,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Item_pickup':
-				var _v30 = $author$project$Main$decodeOriginator(message);
-				if (_v30.$ === 'Just') {
-					var playerDetails = _v30.a;
+				var _v32 = $author$project$Main$decodeOriginator(message);
+				if (_v32.$ === 'Just') {
+					var playerDetails = _v32.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9586,9 +9616,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Item_remove':
-				var _v31 = $author$project$Main$decodeOriginator(message);
-				if (_v31.$ === 'Just') {
-					var playerDetails = _v31.a;
+				var _v33 = $author$project$Main$decodeOriginator(message);
+				if (_v33.$ === 'Just') {
+					var playerDetails = _v33.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9598,11 +9628,11 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Molotov_detonate':
-				var _v32 = $author$project$Main$decodeOriginatorEntity(message);
-				if (_v32.$ === 'Just') {
-					var _v33 = _v32.a;
-					var playerDetails = _v33.a;
-					var entity = _v33.b;
+				var _v34 = $author$project$Main$decodeOriginatorEntity(message);
+				if (_v34.$ === 'Just') {
+					var _v35 = _v34.a;
+					var playerDetails = _v35.a;
+					var entity = _v35.b;
 					return A2(
 						$author$project$Main$handleEntity,
 						entity,
@@ -9618,9 +9648,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_activate':
-				var _v34 = $author$project$Main$decodeOriginator(message);
-				if (_v34.$ === 'Just') {
-					var playerDetails = _v34.a;
+				var _v36 = $author$project$Main$decodeOriginator(message);
+				if (_v36.$ === 'Just') {
+					var playerDetails = _v36.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9630,9 +9660,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_blind':
-				var _v35 = $author$project$Main$decodeOriginator(message);
-				if (_v35.$ === 'Just') {
-					var playerDetails = _v35.a;
+				var _v37 = $author$project$Main$decodeOriginator(message);
+				if (_v37.$ === 'Just') {
+					var playerDetails = _v37.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9642,11 +9672,11 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_death':
-				var _v36 = $author$project$Main$decodeVictimAttacker(message);
-				if (_v36.$ === 'Just') {
-					var _v37 = _v36.a;
-					var victim = _v37.a;
-					var attacker = _v37.b;
+				var _v38 = $author$project$Main$decodeVictimAttacker(message);
+				if (_v38.$ === 'Just') {
+					var _v39 = _v38.a;
+					var victim = _v39.a;
+					var attacker = _v39.b;
 					return A3(
 						$author$project$Main$handlePlayer,
 						attacker,
@@ -9663,9 +9693,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_footstep':
-				var _v38 = $author$project$Main$decodeOriginator(message);
-				if (_v38.$ === 'Just') {
-					var playerDetails = _v38.a;
+				var _v40 = $author$project$Main$decodeOriginator(message);
+				if (_v40.$ === 'Just') {
+					var playerDetails = _v40.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9675,11 +9705,11 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_hurt':
-				var _v39 = $author$project$Main$decodeVictimAttacker(message);
-				if (_v39.$ === 'Just') {
-					var _v40 = _v39.a;
-					var victim = _v40.a;
-					var attacker = _v40.b;
+				var _v41 = $author$project$Main$decodeVictimAttacker(message);
+				if (_v41.$ === 'Just') {
+					var _v42 = _v41.a;
+					var victim = _v42.a;
+					var attacker = _v42.b;
 					return A3(
 						$author$project$Main$handlePlayer,
 						attacker,
@@ -9696,9 +9726,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_jump':
-				var _v41 = $author$project$Main$decodeOriginator(message);
-				if (_v41.$ === 'Just') {
-					var playerDetails = _v41.a;
+				var _v43 = $author$project$Main$decodeOriginator(message);
+				if (_v43.$ === 'Just') {
+					var playerDetails = _v43.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9708,9 +9738,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_radio':
-				var _v42 = $author$project$Main$decodeOriginator(message);
-				if (_v42.$ === 'Just') {
-					var playerDetails = _v42.a;
+				var _v44 = $author$project$Main$decodeOriginator(message);
+				if (_v44.$ === 'Just') {
+					var playerDetails = _v44.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9720,9 +9750,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_spawn':
-				var _v43 = $author$project$Main$decodeOriginator(message);
-				if (_v43.$ === 'Just') {
-					var playerDetails = _v43.a;
+				var _v45 = $author$project$Main$decodeOriginator(message);
+				if (_v45.$ === 'Just') {
+					var playerDetails = _v45.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9736,26 +9766,6 @@ var $author$project$Main$handleCommand = F3(
 					model,
 					{bullets: $elm$core$Dict$empty});
 			case 'Smokegrenade_detonate':
-				var _v44 = $author$project$Main$decodeOriginatorEntity(message);
-				if (_v44.$ === 'Just') {
-					var _v45 = _v44.a;
-					var playerDetails = _v45.a;
-					var entity = _v45.b;
-					return A2(
-						$author$project$Main$handleEntity,
-						entity,
-						A3(
-							$author$project$Main$handlePlayer,
-							playerDetails,
-							$author$project$Main$UnknownAliveState,
-							A2(
-								$author$project$Main$updateCanvasSize,
-								entity.coordinates,
-								A2($author$project$Main$updateCanvasSize, playerDetails.coordinates, model))));
-				} else {
-					return A2($author$project$Main$appendLog, message, model);
-				}
-			case 'Smokegrenade_expired':
 				var _v46 = $author$project$Main$decodeOriginatorEntity(message);
 				if (_v46.$ === 'Just') {
 					var _v47 = _v46.a;
@@ -9775,10 +9785,30 @@ var $author$project$Main$handleCommand = F3(
 				} else {
 					return A2($author$project$Main$appendLog, message, model);
 				}
-			case 'Weapon_fire':
-				var _v48 = $author$project$Main$decodeOriginator(message);
+			case 'Smokegrenade_expired':
+				var _v48 = $author$project$Main$decodeOriginatorEntity(message);
 				if (_v48.$ === 'Just') {
-					var playerDetails = _v48.a;
+					var _v49 = _v48.a;
+					var playerDetails = _v49.a;
+					var entity = _v49.b;
+					return A2(
+						$author$project$Main$handleEntity,
+						entity,
+						A3(
+							$author$project$Main$handlePlayer,
+							playerDetails,
+							$author$project$Main$UnknownAliveState,
+							A2(
+								$author$project$Main$updateCanvasSize,
+								entity.coordinates,
+								A2($author$project$Main$updateCanvasSize, playerDetails.coordinates, model))));
+				} else {
+					return A2($author$project$Main$appendLog, message, model);
+				}
+			case 'Weapon_fire':
+				var _v50 = $author$project$Main$decodeOriginator(message);
+				if (_v50.$ === 'Just') {
+					var playerDetails = _v50.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9788,9 +9818,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Weapon_reload':
-				var _v49 = $author$project$Main$decodeOriginator(message);
-				if (_v49.$ === 'Just') {
-					var playerDetails = _v49.a;
+				var _v51 = $author$project$Main$decodeOriginator(message);
+				if (_v51.$ === 'Just') {
+					var playerDetails = _v51.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9800,9 +9830,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Weapon_zoom':
-				var _v50 = $author$project$Main$decodeOriginator(message);
-				if (_v50.$ === 'Just') {
-					var playerDetails = _v50.a;
+				var _v52 = $author$project$Main$decodeOriginator(message);
+				if (_v52.$ === 'Just') {
+					var playerDetails = _v52.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
