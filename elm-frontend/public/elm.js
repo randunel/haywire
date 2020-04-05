@@ -8069,7 +8069,7 @@ var $author$project$Main$decodeEntity = function (message) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
-var $author$project$Main$Map = F4(
+var $author$project$Main$DecodedMap = F4(
 	function (pos_x, pos_y, scale, name) {
 		return {name: name, pos_x: pos_x, pos_y: pos_y, scale: scale};
 	});
@@ -8093,12 +8093,22 @@ var $author$project$Main$mapDecoder = A3(
 				_List_fromArray(
 					['map', 'pos_x']),
 				$elm$json$Json$Decode$string,
-				$elm$json$Json$Decode$succeed($author$project$Main$Map)))));
+				$elm$json$Json$Decode$succeed($author$project$Main$DecodedMap)))));
+var $elm$core$String$toFloat = _String_toFloat;
 var $author$project$Main$decodeMap = function (message) {
 	var _v0 = $elm$json$Json$Decode$decodeString($author$project$Main$mapDecoder)(message);
 	if (_v0.$ === 'Ok') {
-		var map = _v0.a;
-		return $elm$core$Maybe$Just(map);
+		var decodedMap = _v0.a;
+		return $elm$core$Maybe$Just(
+			{
+				name: decodedMap.name,
+				pos_x: decodedMap.pos_x,
+				pos_y: decodedMap.pos_y,
+				scale: A2(
+					$elm$core$Maybe$withDefault,
+					1.0,
+					$elm$core$String$toFloat(decodedMap.scale))
+			});
 	} else {
 		var err = _v0.a;
 		return $elm$core$Maybe$Nothing;
@@ -9152,7 +9162,6 @@ var $elm$core$Basics$min = F2(
 	function (x, y) {
 		return (_Utils_cmp(x, y) < 0) ? x : y;
 	});
-var $elm$core$String$toFloat = _String_toFloat;
 var $author$project$Main$updateCanvasSize = F2(
 	function (coordinates, model) {
 		var _v0 = model.map;
@@ -9203,25 +9212,19 @@ var $author$project$Main$updateMap = F2(
 				maxX: A2(
 					$elm$core$Maybe$withDefault,
 					0.0,
-					$elm$core$String$toFloat(map.pos_x)) + (1024 * A2(
-					$elm$core$Maybe$withDefault,
-					0.0,
-					$elm$core$String$toFloat(map.scale))),
+					$elm$core$String$toFloat(map.pos_x)) + (1024 * map.scale),
 				maxY: A2(
 					$elm$core$Maybe$withDefault,
 					0,
 					$elm$core$String$toFloat(map.pos_y)),
 				minX: A2(
 					$elm$core$Maybe$withDefault,
-					model.minX,
+					0.0,
 					$elm$core$String$toFloat(map.pos_x)),
 				minY: A2(
 					$elm$core$Maybe$withDefault,
 					0.0,
-					$elm$core$String$toFloat(map.pos_y)) + (1024 * A2(
-					$elm$core$Maybe$withDefault,
-					0.0,
-					$elm$core$String$toFloat(map.scale)))
+					$elm$core$String$toFloat(map.pos_y)) - (1024 * map.scale)
 			});
 	});
 var $author$project$Main$handleCommand = F3(
@@ -11656,6 +11659,14 @@ var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
 var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var $elm$core$String$fromFloat = _String_fromNumber;
+var $author$project$Main$getXOnCanvas = F2(
+	function (x, model) {
+		return ((x - model.minX) * 1024) / (model.maxX - model.minX);
+	});
+var $author$project$Main$getYOnCanvas = F2(
+	function (y, model) {
+		return (((-y) + model.maxY) * 1024) / ((-model.minY) + model.maxY);
+	});
 var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
 var $elm$core$List$concatMap = F2(
 	function (f, list) {
@@ -12210,7 +12221,8 @@ var $author$project$Main$bulletsSvg = F2(
 								$elm$core$Maybe$withDefault,
 								0,
 								$elm$core$String$toFloat(bullet.coordinates.x));
-							return $elm$core$String$fromFloat(((x - model.minX) * 1024) / (model.maxX - model.minX));
+							return $elm$core$String$fromFloat(
+								A2($author$project$Main$getXOnCanvas, x, model));
 						}()),
 						$elm$svg$Svg$Attributes$cy(
 						function () {
@@ -12218,7 +12230,8 @@ var $author$project$Main$bulletsSvg = F2(
 								$elm$core$Maybe$withDefault,
 								0,
 								$elm$core$String$toFloat(bullet.coordinates.y));
-							return $elm$core$String$fromFloat(((y - model.minY) * 1024) / (model.maxY - model.minY));
+							return $elm$core$String$fromFloat(
+								A2($author$project$Main$getYOnCanvas, y, model));
 						}()),
 						$elm$svg$Svg$Attributes$r('1'),
 						$elm$svg$Svg$Attributes$fill('black')
@@ -12250,7 +12263,8 @@ var $author$project$Main$entitiesSvg = F2(
 							$elm$core$Maybe$withDefault,
 							0,
 							$elm$core$String$toFloat(entity.coordinates.x));
-						return $elm$core$String$fromFloat(((x - model.minX) * 1024) / (model.maxX - model.minX));
+						return $elm$core$String$fromFloat(
+							A2($author$project$Main$getXOnCanvas, x, model));
 					}()),
 					$elm$svg$Svg$Attributes$cy(
 					function () {
@@ -12258,7 +12272,8 @@ var $author$project$Main$entitiesSvg = F2(
 							$elm$core$Maybe$withDefault,
 							0,
 							$elm$core$String$toFloat(entity.coordinates.y));
-						return $elm$core$String$fromFloat(((y - model.minY) * 1024) / (model.maxY - model.minY));
+						return $elm$core$String$fromFloat(
+							A2($author$project$Main$getYOnCanvas, y, model));
 					}()),
 					$elm$svg$Svg$Attributes$r('1'),
 					$elm$svg$Svg$Attributes$fill('yellow')
@@ -12314,35 +12329,27 @@ var $elm$svg$Svg$Attributes$xlinkHref = function (value) {
 		_VirtualDom_noJavaScriptUri(value));
 };
 var $author$project$Main$mapSvg = function (model) {
-	var _v0 = model.map;
-	if (_v0.$ === 'Just') {
-		var map = _v0.a;
-		return A2(
-			$elm$svg$Svg$image,
-			_List_fromArray(
-				[
-					$elm$svg$Svg$Attributes$x('0'),
-					$elm$svg$Svg$Attributes$y('0'),
-					$elm$svg$Svg$Attributes$width('100%'),
-					$elm$svg$Svg$Attributes$height('100%'),
-					$elm$svg$Svg$Attributes$opacity('0.33'),
-					$elm$svg$Svg$Attributes$xlinkHref('maps/' + (map.name + '.png'))
-				]),
-			_List_Nil);
-	} else {
-		return A2(
-			$elm$svg$Svg$image,
-			_List_fromArray(
-				[
-					$elm$svg$Svg$Attributes$x('0'),
-					$elm$svg$Svg$Attributes$y('0'),
-					$elm$svg$Svg$Attributes$width('100%'),
-					$elm$svg$Svg$Attributes$height('100%'),
-					$elm$svg$Svg$Attributes$opacity('0.33'),
-					$elm$svg$Svg$Attributes$xlinkHref('')
-				]),
-			_List_Nil);
-	}
+	return A2(
+		$elm$svg$Svg$image,
+		_List_fromArray(
+			[
+				$elm$svg$Svg$Attributes$x('0'),
+				$elm$svg$Svg$Attributes$y('0'),
+				$elm$svg$Svg$Attributes$width('100%'),
+				$elm$svg$Svg$Attributes$height('100%'),
+				$elm$svg$Svg$Attributes$opacity('0.33'),
+				$elm$svg$Svg$Attributes$xlinkHref(
+				function () {
+					var _v0 = model.map;
+					if (_v0.$ === 'Just') {
+						var map = _v0.a;
+						return 'maps/' + (map.name + '.png');
+					} else {
+						return '';
+					}
+				}())
+			]),
+		_List_Nil);
 };
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
@@ -12400,7 +12407,7 @@ var $author$project$Main$playerSvg = F2(
 		var yaw = A2(
 			$elm$core$Maybe$withDefault,
 			0,
-			$elm$core$String$toFloat(player.position.orientation.ang1)) - 135;
+			$elm$core$String$toFloat(player.position.orientation.ang1));
 		var r = function () {
 			var _v1 = player.aliveState;
 			switch (_v1.$) {
@@ -12412,14 +12419,20 @@ var $author$project$Main$playerSvg = F2(
 					return 5.0;
 			}
 		}();
-		var cy = ((A2(
-			$elm$core$Maybe$withDefault,
-			0,
-			$elm$core$String$toFloat(player.position.coordinates.y)) - model.minY) * 1024) / (model.maxY - model.minY);
-		var cx = ((A2(
-			$elm$core$Maybe$withDefault,
-			0,
-			$elm$core$String$toFloat(player.position.coordinates.x)) - model.minX) * 1024) / (model.maxX - model.minX);
+		var cy = A2(
+			$author$project$Main$getYOnCanvas,
+			A2(
+				$elm$core$Maybe$withDefault,
+				0,
+				$elm$core$String$toFloat(player.position.coordinates.y)),
+			model);
+		var cx = A2(
+			$author$project$Main$getXOnCanvas,
+			A2(
+				$elm$core$Maybe$withDefault,
+				0,
+				$elm$core$String$toFloat(player.position.coordinates.x)),
+			model);
 		return A2(
 			$elm$svg$Svg$g,
 			_List_Nil,
@@ -12651,6 +12664,34 @@ var $author$project$Main$view = function (model) {
 								$elm$core$List$map,
 								$author$project$Main$entitiesSvg(model),
 								$elm$core$Dict$values(model.entities)))))),
+				A2(
+				$elm$html$Html$p,
+				_List_Nil,
+				$elm$core$List$concat(
+					_List_fromArray(
+						[
+							_List_fromArray(
+							[
+								$author$project$Main$b('Map:'),
+								$author$project$Main$br
+							]),
+							function () {
+							var _v0 = model.map;
+							if (_v0.$ === 'Just') {
+								var map = _v0.a;
+								return _List_fromArray(
+									[
+										$elm$html$Html$text(
+										map.name + (' pos_x: ' + (map.pos_x + (' pos_y: ' + (map.pos_y + (' scale: ' + ($elm$core$String$fromFloat(map.scale) + (' minX: ' + ($elm$core$String$fromFloat(model.minX) + (' minY: ' + ($elm$core$String$fromFloat(model.minY) + (' maxX: ' + ($elm$core$String$fromFloat(model.maxX) + (' maxY: ' + $elm$core$String$fromFloat(model.maxY)))))))))))))))
+									]);
+							} else {
+								return _List_fromArray(
+									[
+										$elm$html$Html$text('')
+									]);
+							}
+						}()
+						]))),
 				A2(
 				$elm$html$Html$p,
 				_List_Nil,

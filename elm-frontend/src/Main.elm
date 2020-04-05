@@ -117,10 +117,18 @@ init _ =
     |> Cmd.Extra.withNoCmd
 
 
-type alias Map =
+type alias DecodedMap =
     { pos_x : String
     , pos_y : String
     , scale : String
+    , name : String
+    }
+
+
+type alias Map =
+    { pos_x : String
+    , pos_y : String
+    , scale : Float
     , name : String
     }
 
@@ -637,51 +645,22 @@ findOrCreatePlayer clientId players =
             ""
 
 
--- updateCanvasSize : Coordinates -> Model -> Model
--- updateCanvasSize coordinates model =
---     { model | minX =
---         String.toFloat coordinates.x
---         |> Maybe.withDefault model.minX
---         |> min model.minX
---     , minY =
---         String.toFloat coordinates.y
---         |> Maybe.withDefault model.minY
---         |> min model.minY
---     , maxX =
---         String.toFloat coordinates.x
---         |> Maybe.withDefault model.maxX
---         |> max model.maxX
---     , maxY =
---         String.toFloat coordinates.y
---         |> Maybe.withDefault model.maxY
---         |> max model.maxY
---     }
-
-
 updateMap : Map -> Model -> Model
 updateMap map model =
     { model | map = Just map
     , minX =
         String.toFloat map.pos_x
-        |> Maybe.withDefault model.minX
+        |> Maybe.withDefault 0.0
     , minY =
         ( String.toFloat map.pos_y
         |> Maybe.withDefault 0.0
-        ) +
-        ( 1024 *
-            ( String.toFloat map.scale
-            |> Maybe.withDefault 0.0
-            )
-        )
+        ) -
+        ( 1024 * map.scale )
     , maxX =
         ( String.toFloat map.pos_x
         |> Maybe.withDefault 0.0
         ) +
-        ( 1024 *
-            ( String.toFloat map.scale
-            |> Maybe.withDefault 0.0
-            )
-        )
+        ( 1024 * map.scale )
     , maxY =
         ( String.toFloat map.pos_y
         |> Maybe.withDefault 0
@@ -774,7 +753,15 @@ decodeMap message =
         |> Json.Decode.decodeString
         ) message
     of
-        Ok map -> Just ( map )
+        Ok decodedMap -> Just
+            { name = decodedMap.name
+            , pos_x = decodedMap.pos_x
+            , pos_y = decodedMap.pos_y
+            , scale =
+                ( String.toFloat decodedMap.scale
+                |> Maybe.withDefault 1.0
+                )
+            }
         Err err -> Nothing
 
 
@@ -862,9 +849,9 @@ originatorTeamDecoder nestingKeys =
     |> JDPipeline.optionalAt (nestingKeys ++ [ "name" ]) Json.Decode.string ""
 
 
-mapDecoder : Json.Decode.Decoder Map
+mapDecoder : Json.Decode.Decoder DecodedMap
 mapDecoder =
-    Json.Decode.succeed Map
+    Json.Decode.succeed DecodedMap
     |> JDPipeline.requiredAt [ "map", "pos_x" ] Json.Decode.string
     |> JDPipeline.requiredAt [ "map", "pos_y" ] Json.Decode.string
     |> JDPipeline.requiredAt [ "map", "scale" ] Json.Decode.string
@@ -1107,6 +1094,28 @@ view model =
             )
         , Html.p [] <|
             List.concat
+                [ [ b "Map:"
+                  , br
+                  ]
+                , case model.map of
+                    Just map ->
+                        [ Html.text
+                            ( map.name
+                            ++ " pos_x: " ++ map.pos_x
+                            ++ " pos_y: " ++ map.pos_y
+                            ++ " scale: " ++ String.fromFloat(map.scale)
+                            ++ " minX: " ++ String.fromFloat(model.minX)
+                            ++ " minY: " ++ String.fromFloat(model.minY)
+                            ++ " maxX: " ++ String.fromFloat(model.maxX)
+                            ++ " maxY: " ++ String.fromFloat(model.maxY)
+                            )
+                        ]
+
+                    Nothing ->
+                        [ Html.text "" ]
+                ]
+        , Html.p [] <|
+            List.concat
                 [ [ b "Players:"
                   , br
                   ]
@@ -1121,6 +1130,21 @@ view model =
                 ]
         ]
 
+
+getXOnCanvas x model =
+    ( x - model.minX ) * 1024 / ( model.maxX - model.minX )
+
+
+getYOnCanvas y model =
+    --case model.map of
+    --    Just map ->
+    --        (-(y - model.minY)) / map.scale
+
+    --    Nothing ->
+    --        (-(y - model.minY )) * 1024 / ( model.maxY - model.minY )
+    ( -y +model.maxY ) * 1024 / ( -model.minY + model.maxY )
+
+
 entitiesSvg model entity = Svg.circle
     [ SvgAttrs.cx <|
         let x =
@@ -1128,7 +1152,8 @@ entitiesSvg model entity = Svg.circle
                 |> String.toFloat
                 |> Maybe.withDefault 0
         in
-            ( x - model.minX ) * 1024 / ( model.maxX - model.minX )
+            getXOnCanvas x model
+            -- ( x - model.minX ) * 1024 / ( model.maxX - model.minX )
             |> String.fromFloat
     , SvgAttrs.cy <|
         let y =
@@ -1136,7 +1161,8 @@ entitiesSvg model entity = Svg.circle
                 |> String.toFloat
                 |> Maybe.withDefault 0
         in
-            ( y - model.minY ) * 1024 / ( model.maxY - model.minY )
+            getYOnCanvas y model
+             -- ( y - model.minY ) * 1024 / ( model.maxY - model.minY )
             |> String.fromFloat
     , SvgAttrs.r <| "1"
     , SvgAttrs.fill "yellow"
@@ -1155,7 +1181,8 @@ bulletsSvg model bullet = Svg.circle
                 |> String.toFloat
                 |> Maybe.withDefault 0
         in
-            ( x - model.minX ) * 1024 / ( model.maxX - model.minX )
+            getXOnCanvas x model
+            -- ( x - model.minX ) * 1024 / ( model.maxX - model.minX )
             |> String.fromFloat
     , SvgAttrs.cy <|
         let y =
@@ -1163,7 +1190,8 @@ bulletsSvg model bullet = Svg.circle
                 |> String.toFloat
                 |> Maybe.withDefault 0
         in
-            ( y - model.minY ) * 1024 / ( model.maxY - model.minY )
+            getYOnCanvas y model
+            -- ( y - model.minY ) * 1024 / ( model.maxY - model.minY )
             |> String.fromFloat
     , SvgAttrs.r <| "1"
     , SvgAttrs.fill "black"
@@ -1173,15 +1201,17 @@ bulletsSvg model bullet = Svg.circle
 playerSvg model player =
     let
         cx =
-            ( ( player.position.coordinates.x
+            getXOnCanvas
+            ( player.position.coordinates.x
             |> String.toFloat
             |> Maybe.withDefault 0
-            ) - model.minX ) * 1024 / ( model.maxX - model.minX )
+            ) model
         cy =
-            ( ( player.position.coordinates.y
+            getYOnCanvas
+            ( player.position.coordinates.y
             |> String.toFloat
             |> Maybe.withDefault 0
-            ) - model.minY ) * 1024 / ( model.maxY - model.minY )
+            ) model
         r =
             case player.aliveState of
                 Alive -> 5.0
@@ -1191,7 +1221,7 @@ playerSvg model player =
             ( player.position.orientation.ang1
             |> String.toFloat
             |> Maybe.withDefault 0
-            ) - 135
+            )-- - 135
     in
         Svg.g
         []
@@ -1241,23 +1271,18 @@ playerSvg model player =
 
 
 mapSvg model =
-    case model.map of
+    Svg.image
+    [ SvgAttrs.x "0"
+    , SvgAttrs.y "0"
+    , SvgAttrs.width "100%"
+    , SvgAttrs.height "100%"
+    , SvgAttrs.opacity "0.33"
+    , SvgAttrs.xlinkHref
+    ( case model.map of
         Just map ->
-            Svg.image
-            [ SvgAttrs.x "0"
-            , SvgAttrs.y "0"
-            , SvgAttrs.width "100%"
-            , SvgAttrs.height "100%"
-            , SvgAttrs.opacity "0.33"
-            , SvgAttrs.xlinkHref ("maps/" ++ map.name ++ ".png")
-            ] []
+            "maps/" ++ map.name ++ ".png"
 
         Nothing ->
-            Svg.image
-            [ SvgAttrs.x "0"
-            , SvgAttrs.y "0"
-            , SvgAttrs.width "100%"
-            , SvgAttrs.height "100%"
-            , SvgAttrs.opacity "0.33"
-            , SvgAttrs.xlinkHref ""
-            ] []
+            ""
+    )
+    ] []
