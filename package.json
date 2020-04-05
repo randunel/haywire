@@ -1,6 +1,6 @@
 {
   "name": "haywire",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "CS:GO web tv",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,7 @@
   "license": "NPOSL 3.0",
   "dependencies": {
     "express": "^4.17.1",
-    "srcds-log": "file:../node-srcds-log",
+    "srcds-log": "1.0.0-rc2",
     "ws": "^6.1.4"
   },
   "devDependencies": {
