@@ -220,7 +220,6 @@ type Command =
     | Weapon_fire
     | Weapon_reload
     | Weapon_zoom
-    | InitialEntitySetup
     | UpdateMap
     | Unknown_command
 
@@ -426,13 +425,6 @@ handleCommand command message model =
                 |> updateMap map
                 -- |> updateCanvasSize entity.coordinates
                 -- |> handleEntity entity
-            Nothing -> appendLog message model
-
-        InitialEntitySetup -> case (decodeEntity message) of
-            Just ( entity ) ->
-                model
-                -- |> updateCanvasSize entity.coordinates -- many entities are off map
-                |> handleEntity entity
             Nothing -> appendLog message model
 
         Bomb_abortdefuse -> case (decodeOriginator message) of
@@ -1046,7 +1038,6 @@ keyPressDecoder keyPressMotion model =
 commandFromString : String -> Command
 commandFromString str =
     case str of
-        "initialEntitySetup" -> InitialEntitySetup
         "map" -> UpdateMap
 
         "bullet_impact" -> Bullet_impact
