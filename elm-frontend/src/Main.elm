@@ -637,9 +637,56 @@ findOrCreatePlayer clientId players =
             ""
 
 
+-- updateCanvasSize : Coordinates -> Model -> Model
+-- updateCanvasSize coordinates model =
+--     { model | minX =
+--         String.toFloat coordinates.x
+--         |> Maybe.withDefault model.minX
+--         |> min model.minX
+--     , minY =
+--         String.toFloat coordinates.y
+--         |> Maybe.withDefault model.minY
+--         |> min model.minY
+--     , maxX =
+--         String.toFloat coordinates.x
+--         |> Maybe.withDefault model.maxX
+--         |> max model.maxX
+--     , maxY =
+--         String.toFloat coordinates.y
+--         |> Maybe.withDefault model.maxY
+--         |> max model.maxY
+--     }
+
+
 updateMap : Map -> Model -> Model
 updateMap map model =
-    { model | map = Just map }
+    { model | map = Just map
+    , minX =
+        String.toFloat map.pos_x
+        |> Maybe.withDefault model.minX
+    , minY =
+        ( String.toFloat map.pos_y
+        |> Maybe.withDefault 0.0
+        ) +
+        ( 1024 *
+            ( String.toFloat map.scale
+            |> Maybe.withDefault 0.0
+            )
+        )
+    , maxX =
+        ( String.toFloat map.pos_x
+        |> Maybe.withDefault 0.0
+        ) +
+        ( 1024 *
+            ( String.toFloat map.scale
+            |> Maybe.withDefault 0.0
+            )
+        )
+    , maxY =
+        ( String.toFloat map.pos_y
+        |> Maybe.withDefault 0
+        )
+    }
 
 
 handleEntity : Entity -> Model -> Model
@@ -696,23 +743,28 @@ updateBulletAnimation animationMsg bullet =
 
 updateCanvasSize : Coordinates -> Model -> Model
 updateCanvasSize coordinates model =
-    { model | minX =
-        String.toFloat coordinates.x
-        |> Maybe.withDefault model.minX
-        |> min model.minX
-    , minY =
-        String.toFloat coordinates.y
-        |> Maybe.withDefault model.minY
-        |> min model.minY
-    , maxX =
-        String.toFloat coordinates.x
-        |> Maybe.withDefault model.maxX
-        |> max model.maxX
-    , maxY =
-        String.toFloat coordinates.y
-        |> Maybe.withDefault model.maxY
-        |> max model.maxY
-    }
+    case model.map of
+        Just map ->
+            model
+
+        Nothing ->
+            { model | minX =
+                String.toFloat coordinates.x
+                |> Maybe.withDefault model.minX
+                |> min model.minX
+            , minY =
+                String.toFloat coordinates.y
+                |> Maybe.withDefault model.minY
+                |> min model.minY
+            , maxX =
+                String.toFloat coordinates.x
+                |> Maybe.withDefault model.maxX
+                |> max model.maxX
+            , maxY =
+                String.toFloat coordinates.y
+                |> Maybe.withDefault model.maxY
+                |> max model.maxY
+            }
 
 
 decodeMap : String -> Maybe ( Map )
@@ -1041,7 +1093,7 @@ view model =
                     , Svg.rect
                         [ SvgAttrs.width "100%"
                         , SvgAttrs.height "100%"
-                        , SvgAttrs.transform "translate(0, 1024) scale(1, -1)"
+                        -- , SvgAttrs.transform "translate(0, 1024) scale(1, -1)"
                         , SvgAttrs.fill "url(#background)"
                         ]
                         [ ]

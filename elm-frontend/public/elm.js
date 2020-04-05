@@ -9155,45 +9155,73 @@ var $elm$core$Basics$min = F2(
 var $elm$core$String$toFloat = _String_toFloat;
 var $author$project$Main$updateCanvasSize = F2(
 	function (coordinates, model) {
-		return _Utils_update(
-			model,
-			{
-				maxX: A2(
-					$elm$core$Basics$max,
-					model.maxX,
-					A2(
-						$elm$core$Maybe$withDefault,
+		var _v0 = model.map;
+		if (_v0.$ === 'Just') {
+			var map = _v0.a;
+			return model;
+		} else {
+			return _Utils_update(
+				model,
+				{
+					maxX: A2(
+						$elm$core$Basics$max,
 						model.maxX,
-						$elm$core$String$toFloat(coordinates.x))),
-				maxY: A2(
-					$elm$core$Basics$max,
-					model.maxY,
-					A2(
-						$elm$core$Maybe$withDefault,
+						A2(
+							$elm$core$Maybe$withDefault,
+							model.maxX,
+							$elm$core$String$toFloat(coordinates.x))),
+					maxY: A2(
+						$elm$core$Basics$max,
 						model.maxY,
-						$elm$core$String$toFloat(coordinates.y))),
-				minX: A2(
-					$elm$core$Basics$min,
-					model.minX,
-					A2(
-						$elm$core$Maybe$withDefault,
+						A2(
+							$elm$core$Maybe$withDefault,
+							model.maxY,
+							$elm$core$String$toFloat(coordinates.y))),
+					minX: A2(
+						$elm$core$Basics$min,
 						model.minX,
-						$elm$core$String$toFloat(coordinates.x))),
-				minY: A2(
-					$elm$core$Basics$min,
-					model.minY,
-					A2(
-						$elm$core$Maybe$withDefault,
+						A2(
+							$elm$core$Maybe$withDefault,
+							model.minX,
+							$elm$core$String$toFloat(coordinates.x))),
+					minY: A2(
+						$elm$core$Basics$min,
 						model.minY,
-						$elm$core$String$toFloat(coordinates.y)))
-			});
+						A2(
+							$elm$core$Maybe$withDefault,
+							model.minY,
+							$elm$core$String$toFloat(coordinates.y)))
+				});
+		}
 	});
 var $author$project$Main$updateMap = F2(
 	function (map, model) {
 		return _Utils_update(
 			model,
 			{
-				map: $elm$core$Maybe$Just(map)
+				map: $elm$core$Maybe$Just(map),
+				maxX: A2(
+					$elm$core$Maybe$withDefault,
+					0.0,
+					$elm$core$String$toFloat(map.pos_x)) + (1024 * A2(
+					$elm$core$Maybe$withDefault,
+					0.0,
+					$elm$core$String$toFloat(map.scale))),
+				maxY: A2(
+					$elm$core$Maybe$withDefault,
+					0,
+					$elm$core$String$toFloat(map.pos_y)),
+				minX: A2(
+					$elm$core$Maybe$withDefault,
+					model.minX,
+					$elm$core$String$toFloat(map.pos_x)),
+				minY: A2(
+					$elm$core$Maybe$withDefault,
+					0.0,
+					$elm$core$String$toFloat(map.pos_y)) + (1024 * A2(
+					$elm$core$Maybe$withDefault,
+					0.0,
+					$elm$core$String$toFloat(map.scale)))
 			});
 	});
 var $author$project$Main$handleCommand = F3(
@@ -12605,7 +12633,6 @@ var $author$project$Main$view = function (model) {
 								[
 									$elm$svg$Svg$Attributes$width('100%'),
 									$elm$svg$Svg$Attributes$height('100%'),
-									$elm$svg$Svg$Attributes$transform('translate(0, 1024) scale(1, -1)'),
 									$elm$svg$Svg$Attributes$fill('url(#background)')
 								]),
 							_List_Nil)
