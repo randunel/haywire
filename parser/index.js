@@ -19,7 +19,7 @@ const PARSERS = {
         '1': [userCoords('originator')]
     },
     'bomb_exploded': {
-        '1': [userCoords('originator')]
+        '1': []
     },
     'bomb_pickup': {
         '1': [userCoords('originator')]

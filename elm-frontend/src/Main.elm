@@ -178,15 +178,31 @@ type Team = UnknownTeam
 
 type Command =
     Bullet_impact
+    | Bomb_abortdefuse
+    | Bomb_abortplant
+    | Bomb_begindefuse
+    | Bomb_beginplant
+    | Bomb_dropped
+    | Bomb_exploded
+    | Bomb_pickup
+    | Bomb_planted
     | Buytime_ended
     | Cs_pre_restart
     | Decoy_detonate
     | Decoy_firing
     | Decoy_started
+    | Enter_bombzone
+    | Enter_buyzone
+    | Exit_bombzone
+    | Exit_buyzone
     | Flashbang_detonate
     | Grenade_bounce
+    | Grenade_thrown
     | Hegrenade_bounce
     | Hegrenade_detonate
+    | Item_equip
+    | Item_pickup
+    | Item_remove
     | Molotov_detonate
     | Player_activate
     | Player_blind
@@ -194,10 +210,12 @@ type Command =
     | Player_footstep
     | Player_hurt
     | Player_jump
+    | Player_radio
     | Player_spawn
     | Round_freeze_end
     | Smokegrenade_detonate
     | Smokegrenade_expired
+    | Weapon_fire
     | Weapon_reload
     | Weapon_zoom
     | InitialEntitySetup
@@ -415,6 +433,57 @@ handleCommand command message model =
                 |> handleEntity entity
             Nothing -> appendLog message model
 
+        Bomb_abortdefuse -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails UnknownAliveState
+            Nothing -> appendLog message model
+
+        Bomb_abortplant -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails UnknownAliveState
+            Nothing -> appendLog message model
+
+        Bomb_begindefuse -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
+        Bomb_beginplant -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
+        Bomb_dropped -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails UnknownAliveState
+            Nothing -> appendLog message model
+
+        Bomb_exploded -> model
+
+        Bomb_pickup -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
+        Bomb_planted -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
         Bullet_impact -> case decodeOriginatorImpact message of
             Just ( playerDetails, coordinates ) ->
                 model
@@ -455,10 +524,37 @@ handleCommand command message model =
                 |> handleEntity entity
             Nothing -> appendLog message model
 
+        Enter_bombzone -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
+        Enter_buyzone -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
+        Exit_bombzone -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
+        Exit_buyzone -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
         Flashbang_detonate -> case (decodeOriginatorEntity message) of
             Just ( playerDetails, entity ) ->
                 model
-                |> updateCanvasSize playerDetails.coordinates
                 |> updateCanvasSize entity.coordinates
                 |> handlePlayer playerDetails UnknownAliveState
                 |> handleEntity entity
@@ -467,10 +563,16 @@ handleCommand command message model =
         Grenade_bounce -> case (decodeOriginatorEntity message) of
             Just ( playerDetails, entity ) ->
                 model
-                |> updateCanvasSize playerDetails.coordinates
                 |> updateCanvasSize entity.coordinates
                 |> handlePlayer playerDetails UnknownAliveState
                 |> handleEntity entity
+            Nothing -> appendLog message model
+
+        Grenade_thrown -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
             Nothing -> appendLog message model
 
         Hegrenade_detonate -> case (decodeOriginatorEntity message) of
@@ -480,6 +582,27 @@ handleCommand command message model =
                 |> updateCanvasSize entity.coordinates
                 |> handlePlayer playerDetails UnknownAliveState
                 |> handleEntity entity
+            Nothing -> appendLog message model
+
+        Item_equip -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
+        Item_pickup -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
+        Item_remove -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails UnknownAliveState
             Nothing -> appendLog message model
 
         Molotov_detonate -> case (decodeOriginatorEntity message) of
@@ -537,6 +660,13 @@ handleCommand command message model =
                 |> handlePlayer playerDetails Alive
             Nothing -> appendLog message model
 
+        Player_radio -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
+            Nothing -> appendLog message model
+
         Player_spawn -> case (decodeOriginator message) of
             Just playerDetails ->
                 model
@@ -562,6 +692,13 @@ handleCommand command message model =
                 |> updateCanvasSize entity.coordinates
                 |> handlePlayer playerDetails UnknownAliveState
                 |> handleEntity entity
+            Nothing -> appendLog message model
+
+        Weapon_fire -> case (decodeOriginator message) of
+            Just playerDetails ->
+                model
+                |> updateCanvasSize playerDetails.coordinates
+                |> handlePlayer playerDetails Alive
             Nothing -> appendLog message model
 
         Weapon_reload -> case (decodeOriginator message) of
@@ -902,10 +1039,18 @@ commandFromString str =
         "decoy_detonate" -> Decoy_detonate
         "decoy_firing" -> Decoy_firing
         "decoy_started" -> Decoy_started
+        "enter_bombzone" -> Enter_bombzone
+        "enter_buyzone" -> Enter_buyzone
+        "exit_bombzone" -> Exit_bombzone
+        "exit_buyzone" -> Exit_buyzone
         "flashbang_detonate" -> Flashbang_detonate
         "grenade_bounce" -> Grenade_bounce
+        "grenade_thrown" -> Grenade_thrown
         "hegrenade_bounce" -> Hegrenade_bounce
         "hegrenade_detonate" -> Hegrenade_detonate
+        "item_equip" -> Item_equip
+        "item_pickup" -> Item_pickup
+        "item_remove" -> Item_remove
         "molotov_detonate" -> Molotov_detonate
         "player_activate" -> Player_activate
         "player_blind" -> Player_blind
@@ -913,10 +1058,12 @@ commandFromString str =
         "player_footstep" -> Player_footstep
         "player_hurt" -> Player_hurt
         "player_jump" -> Player_jump
+        "player_radio" -> Player_radio
         "player_spawn" -> Player_spawn
         "round_freeze_end" -> Round_freeze_end
         "smokegrenade_detonate" -> Smokegrenade_detonate
         "smokegrenade_expired" -> Smokegrenade_expired
+        "weapon_fire" -> Weapon_fire
         "weapon_reload" -> Weapon_reload
         "weapon_zoom" -> Weapon_zoom
         _ -> Unknown_command
