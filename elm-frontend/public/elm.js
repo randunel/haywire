@@ -12404,10 +12404,10 @@ var $elm$svg$Svg$text_ = $elm$svg$Svg$trustedNode('text');
 var $elm$svg$Svg$Attributes$transform = _VirtualDom_attribute('transform');
 var $author$project$Main$playerSvg = F2(
 	function (model, player) {
-		var yaw = A2(
+		var yaw = (-A2(
 			$elm$core$Maybe$withDefault,
 			0,
-			$elm$core$String$toFloat(player.position.orientation.ang1));
+			$elm$core$String$toFloat(player.position.orientation.ang1))) - 135;
 		var r = function () {
 			var _v1 = player.aliveState;
 			switch (_v1.$) {

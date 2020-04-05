@@ -1218,10 +1218,10 @@ playerSvg model player =
                 Dead -> 2.0
                 UnknownAliveState -> 5.0
         yaw =
-            ( player.position.orientation.ang1
+            -( player.position.orientation.ang1
             |> String.toFloat
             |> Maybe.withDefault 0
-            )-- - 135
+            )
     in
         Svg.g
         []
