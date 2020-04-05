@@ -12672,34 +12672,6 @@ var $author$project$Main$view = function (model) {
 						[
 							_List_fromArray(
 							[
-								$author$project$Main$b('Map:'),
-								$author$project$Main$br
-							]),
-							function () {
-							var _v0 = model.map;
-							if (_v0.$ === 'Just') {
-								var map = _v0.a;
-								return _List_fromArray(
-									[
-										$elm$html$Html$text(
-										map.name + (' pos_x: ' + (map.pos_x + (' pos_y: ' + (map.pos_y + (' scale: ' + ($elm$core$String$fromFloat(map.scale) + (' minX: ' + ($elm$core$String$fromFloat(model.minX) + (' minY: ' + ($elm$core$String$fromFloat(model.minY) + (' maxX: ' + ($elm$core$String$fromFloat(model.maxX) + (' maxY: ' + $elm$core$String$fromFloat(model.maxY)))))))))))))))
-									]);
-							} else {
-								return _List_fromArray(
-									[
-										$elm$html$Html$text('')
-									]);
-							}
-						}()
-						]))),
-				A2(
-				$elm$html$Html$p,
-				_List_Nil,
-				$elm$core$List$concat(
-					_List_fromArray(
-						[
-							_List_fromArray(
-							[
 								$author$project$Main$b('Players:'),
 								$author$project$Main$br
 							]),
