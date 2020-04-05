@@ -9176,24 +9176,29 @@ var $author$project$Main$updatePlayerTeam = F2(
 	});
 var $author$project$Main$handlePlayer = F3(
 	function (playerDetails, aliveState, model) {
-		var player = A2(
-			$author$project$Main$updatePlayerName,
-			playerDetails.name,
-			A2(
-				$author$project$Main$updatePlayerAliveState,
-				aliveState,
+		var _v0 = playerDetails.clientId;
+		if (_v0 === '0') {
+			return model;
+		} else {
+			var player = A2(
+				$author$project$Main$updatePlayerName,
+				playerDetails.name,
 				A2(
-					$author$project$Main$updatePlayerTeam,
-					playerDetails.team,
+					$author$project$Main$updatePlayerAliveState,
+					aliveState,
 					A2(
-						$author$project$Main$updatePlayerCoordinates,
-						playerDetails,
-						A2($author$project$Main$findOrCreatePlayer, playerDetails.clientId, model.players)))));
-		return _Utils_update(
-			model,
-			{
-				players: A3($elm$core$Dict$insert, playerDetails.clientId, player, model.players)
-			});
+						$author$project$Main$updatePlayerTeam,
+						playerDetails.team,
+						A2(
+							$author$project$Main$updatePlayerCoordinates,
+							playerDetails,
+							A2($author$project$Main$findOrCreatePlayer, playerDetails.clientId, model.players)))));
+			return _Utils_update(
+				model,
+				{
+					players: A3($elm$core$Dict$insert, playerDetails.clientId, player, model.players)
+				});
+		}
 	});
 var $elm$core$Basics$min = F2(
 	function (x, y) {

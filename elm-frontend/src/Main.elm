@@ -753,18 +753,22 @@ handleCommand command message model =
 
 handlePlayer : DecodedPlayerDetails -> AliveState -> Model -> Model
 handlePlayer playerDetails aliveState model =
-    let
-        player =
-            findOrCreatePlayer playerDetails.clientId model.players
-            |> updatePlayerCoordinates playerDetails
-            |> updatePlayerTeam playerDetails.team
-            |> updatePlayerAliveState aliveState
-            |> updatePlayerName playerDetails.name
-    in
-    { model | players =
-        model.players
-        |> Dict.insert playerDetails.clientId player
-    }
+    case playerDetails.clientId of
+        "0" -> -- player is "world", e.g. attacker when player receives falling damage
+            model
+        _ ->
+            let
+                player =
+                    findOrCreatePlayer playerDetails.clientId model.players
+                    |> updatePlayerCoordinates playerDetails
+                    |> updatePlayerTeam playerDetails.team
+                    |> updatePlayerAliveState aliveState
+                    |> updatePlayerName playerDetails.name
+            in
+            { model | players =
+                model.players
+                |> Dict.insert playerDetails.clientId player
+            }
 
 
 updatePlayerCoordinates : DecodedPlayerDetails -> Player -> Player
