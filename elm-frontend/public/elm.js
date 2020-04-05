@@ -5119,7 +5119,7 @@ var $Janiczek$cmd_extra$Cmd$Extra$withNoCmd = function (model) {
 };
 var $author$project$Main$init = function (_v0) {
 	return $Janiczek$cmd_extra$Cmd$Extra$withNoCmd(
-		{bullets: $elm$core$Dict$empty, bulletsResetCount: 200, enablePlayerAnimations: true, enablePlayerNames: false, entities: $elm$core$Dict$empty, entitiesResetCount: 200, error: $elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, maxX: 0, maxY: 0, minX: 0, minY: 0, players: $elm$core$Dict$empty, send: 'sent from frontend (elm)', state: $author$project$PortFunnels$initialState, url: $author$project$Main$defaultUrl, wasLoaded: false});
+		{bullets: $elm$core$Dict$empty, bulletsResetCount: 200, enablePlayerAnimations: true, enablePlayerNames: false, entities: $elm$core$Dict$empty, entitiesResetCount: 200, error: $elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, map: $elm$core$Maybe$Nothing, maxX: 0, maxY: 0, minX: 0, minY: 0, players: $elm$core$Dict$empty, send: 'sent from frontend (elm)', state: $author$project$PortFunnels$initialState, url: $author$project$Main$defaultUrl, wasLoaded: false});
 };
 var $author$project$Main$Animate = function (a) {
 	return {$: 'Animate', a: a};
@@ -7932,12 +7932,15 @@ var $author$project$Main$Round_freeze_end = {$: 'Round_freeze_end'};
 var $author$project$Main$Smokegrenade_detonate = {$: 'Smokegrenade_detonate'};
 var $author$project$Main$Smokegrenade_expired = {$: 'Smokegrenade_expired'};
 var $author$project$Main$Unknown_command = {$: 'Unknown_command'};
+var $author$project$Main$UpdateMap = {$: 'UpdateMap'};
 var $author$project$Main$Weapon_reload = {$: 'Weapon_reload'};
 var $author$project$Main$Weapon_zoom = {$: 'Weapon_zoom'};
 var $author$project$Main$commandFromString = function (str) {
 	switch (str) {
 		case 'initialEntitySetup':
 			return $author$project$Main$InitialEntitySetup;
+		case 'map':
+			return $author$project$Main$UpdateMap;
 		case 'bullet_impact':
 			return $author$project$Main$Bullet_impact;
 		case 'buytime_ended':
@@ -8061,6 +8064,41 @@ var $author$project$Main$decodeEntity = function (message) {
 	if (_v0.$ === 'Ok') {
 		var entity = _v0.a;
 		return $elm$core$Maybe$Just(entity);
+	} else {
+		var err = _v0.a;
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $author$project$Main$Map = F4(
+	function (pos_x, pos_y, scale, name) {
+		return {name: name, pos_x: pos_x, pos_y: pos_y, scale: scale};
+	});
+var $author$project$Main$mapDecoder = A3(
+	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
+	_List_fromArray(
+		['map', 'name']),
+	$elm$json$Json$Decode$string,
+	A3(
+		$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
+		_List_fromArray(
+			['map', 'scale']),
+		$elm$json$Json$Decode$string,
+		A3(
+			$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
+			_List_fromArray(
+				['map', 'pos_y']),
+			$elm$json$Json$Decode$string,
+			A3(
+				$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
+				_List_fromArray(
+					['map', 'pos_x']),
+				$elm$json$Json$Decode$string,
+				$elm$json$Json$Decode$succeed($author$project$Main$Map)))));
+var $author$project$Main$decodeMap = function (message) {
+	var _v0 = $elm$json$Json$Decode$decodeString($author$project$Main$mapDecoder)(message);
+	if (_v0.$ === 'Ok') {
+		var map = _v0.a;
+		return $elm$core$Maybe$Just(map);
 	} else {
 		var err = _v0.a;
 		return $elm$core$Maybe$Nothing;
@@ -9150,24 +9188,40 @@ var $author$project$Main$updateCanvasSize = F2(
 						$elm$core$String$toFloat(coordinates.y)))
 			});
 	});
+var $author$project$Main$updateMap = F2(
+	function (map, model) {
+		return _Utils_update(
+			model,
+			{
+				map: $elm$core$Maybe$Just(map)
+			});
+	});
 var $author$project$Main$handleCommand = F3(
 	function (command, message, model) {
 		var _v0 = $author$project$Main$commandFromString(command);
 		switch (_v0.$) {
-			case 'InitialEntitySetup':
-				var _v1 = $author$project$Main$decodeEntity(message);
+			case 'UpdateMap':
+				var _v1 = $author$project$Main$decodeMap(message);
 				if (_v1.$ === 'Just') {
-					var entity = _v1.a;
+					var map = _v1.a;
+					return A2($author$project$Main$updateMap, map, model);
+				} else {
+					return A2($author$project$Main$appendLog, message, model);
+				}
+			case 'InitialEntitySetup':
+				var _v2 = $author$project$Main$decodeEntity(message);
+				if (_v2.$ === 'Just') {
+					var entity = _v2.a;
 					return A2($author$project$Main$handleEntity, entity, model);
 				} else {
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Bullet_impact':
-				var _v2 = $author$project$Main$decodeOriginatorImpact(message);
-				if (_v2.$ === 'Just') {
-					var _v3 = _v2.a;
-					var playerDetails = _v3.a;
-					var coordinates = _v3.b;
+				var _v3 = $author$project$Main$decodeOriginatorImpact(message);
+				if (_v3.$ === 'Just') {
+					var _v4 = _v3.a;
+					var playerDetails = _v4.a;
+					var coordinates = _v4.b;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9187,11 +9241,11 @@ var $author$project$Main$handleCommand = F3(
 			case 'Cs_pre_restart':
 				return model;
 			case 'Decoy_detonate':
-				var _v4 = $author$project$Main$decodeOriginatorEntity(message);
-				if (_v4.$ === 'Just') {
-					var _v5 = _v4.a;
-					var playerDetails = _v5.a;
-					var entity = _v5.b;
+				var _v5 = $author$project$Main$decodeOriginatorEntity(message);
+				if (_v5.$ === 'Just') {
+					var _v6 = _v5.a;
+					var playerDetails = _v6.a;
+					var entity = _v6.b;
 					return A2(
 						$author$project$Main$handleEntity,
 						entity,
@@ -9207,11 +9261,11 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Decoy_firing':
-				var _v6 = $author$project$Main$decodeOriginatorEntity(message);
-				if (_v6.$ === 'Just') {
-					var _v7 = _v6.a;
-					var playerDetails = _v7.a;
-					var entity = _v7.b;
+				var _v7 = $author$project$Main$decodeOriginatorEntity(message);
+				if (_v7.$ === 'Just') {
+					var _v8 = _v7.a;
+					var playerDetails = _v8.a;
+					var entity = _v8.b;
 					return A2(
 						$author$project$Main$handleEntity,
 						entity,
@@ -9227,11 +9281,11 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Decoy_started':
-				var _v8 = $author$project$Main$decodeOriginatorEntity(message);
-				if (_v8.$ === 'Just') {
-					var _v9 = _v8.a;
-					var playerDetails = _v9.a;
-					var entity = _v9.b;
+				var _v9 = $author$project$Main$decodeOriginatorEntity(message);
+				if (_v9.$ === 'Just') {
+					var _v10 = _v9.a;
+					var playerDetails = _v10.a;
+					var entity = _v10.b;
 					return A2(
 						$author$project$Main$handleEntity,
 						entity,
@@ -9247,11 +9301,11 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Flashbang_detonate':
-				var _v10 = $author$project$Main$decodeOriginatorEntity(message);
-				if (_v10.$ === 'Just') {
-					var _v11 = _v10.a;
-					var playerDetails = _v11.a;
-					var entity = _v11.b;
+				var _v11 = $author$project$Main$decodeOriginatorEntity(message);
+				if (_v11.$ === 'Just') {
+					var _v12 = _v11.a;
+					var playerDetails = _v12.a;
+					var entity = _v12.b;
 					return A2(
 						$author$project$Main$handleEntity,
 						entity,
@@ -9267,11 +9321,11 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Grenade_bounce':
-				var _v12 = $author$project$Main$decodeOriginatorEntity(message);
-				if (_v12.$ === 'Just') {
-					var _v13 = _v12.a;
-					var playerDetails = _v13.a;
-					var entity = _v13.b;
+				var _v13 = $author$project$Main$decodeOriginatorEntity(message);
+				if (_v13.$ === 'Just') {
+					var _v14 = _v13.a;
+					var playerDetails = _v14.a;
+					var entity = _v14.b;
 					return A2(
 						$author$project$Main$handleEntity,
 						entity,
@@ -9287,11 +9341,11 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Hegrenade_detonate':
-				var _v14 = $author$project$Main$decodeOriginatorEntity(message);
-				if (_v14.$ === 'Just') {
-					var _v15 = _v14.a;
-					var playerDetails = _v15.a;
-					var entity = _v15.b;
+				var _v15 = $author$project$Main$decodeOriginatorEntity(message);
+				if (_v15.$ === 'Just') {
+					var _v16 = _v15.a;
+					var playerDetails = _v16.a;
+					var entity = _v16.b;
 					return A2(
 						$author$project$Main$handleEntity,
 						entity,
@@ -9307,11 +9361,11 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Molotov_detonate':
-				var _v16 = $author$project$Main$decodeOriginatorEntity(message);
-				if (_v16.$ === 'Just') {
-					var _v17 = _v16.a;
-					var playerDetails = _v17.a;
-					var entity = _v17.b;
+				var _v17 = $author$project$Main$decodeOriginatorEntity(message);
+				if (_v17.$ === 'Just') {
+					var _v18 = _v17.a;
+					var playerDetails = _v18.a;
+					var entity = _v18.b;
 					return A2(
 						$author$project$Main$handleEntity,
 						entity,
@@ -9327,9 +9381,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_activate':
-				var _v18 = $author$project$Main$decodeOriginator(message);
-				if (_v18.$ === 'Just') {
-					var playerDetails = _v18.a;
+				var _v19 = $author$project$Main$decodeOriginator(message);
+				if (_v19.$ === 'Just') {
+					var playerDetails = _v19.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9339,9 +9393,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_blind':
-				var _v19 = $author$project$Main$decodeOriginator(message);
-				if (_v19.$ === 'Just') {
-					var playerDetails = _v19.a;
+				var _v20 = $author$project$Main$decodeOriginator(message);
+				if (_v20.$ === 'Just') {
+					var playerDetails = _v20.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9351,11 +9405,11 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_death':
-				var _v20 = $author$project$Main$decodeVictimAttacker(message);
-				if (_v20.$ === 'Just') {
-					var _v21 = _v20.a;
-					var victim = _v21.a;
-					var attacker = _v21.b;
+				var _v21 = $author$project$Main$decodeVictimAttacker(message);
+				if (_v21.$ === 'Just') {
+					var _v22 = _v21.a;
+					var victim = _v22.a;
+					var attacker = _v22.b;
 					return A3(
 						$author$project$Main$handlePlayer,
 						attacker,
@@ -9372,9 +9426,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_footstep':
-				var _v22 = $author$project$Main$decodeOriginator(message);
-				if (_v22.$ === 'Just') {
-					var playerDetails = _v22.a;
+				var _v23 = $author$project$Main$decodeOriginator(message);
+				if (_v23.$ === 'Just') {
+					var playerDetails = _v23.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9384,11 +9438,11 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_hurt':
-				var _v23 = $author$project$Main$decodeVictimAttacker(message);
-				if (_v23.$ === 'Just') {
-					var _v24 = _v23.a;
-					var victim = _v24.a;
-					var attacker = _v24.b;
+				var _v24 = $author$project$Main$decodeVictimAttacker(message);
+				if (_v24.$ === 'Just') {
+					var _v25 = _v24.a;
+					var victim = _v25.a;
+					var attacker = _v25.b;
 					return A3(
 						$author$project$Main$handlePlayer,
 						attacker,
@@ -9405,9 +9459,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_jump':
-				var _v25 = $author$project$Main$decodeOriginator(message);
-				if (_v25.$ === 'Just') {
-					var playerDetails = _v25.a;
+				var _v26 = $author$project$Main$decodeOriginator(message);
+				if (_v26.$ === 'Just') {
+					var playerDetails = _v26.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9417,9 +9471,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Player_spawn':
-				var _v26 = $author$project$Main$decodeOriginator(message);
-				if (_v26.$ === 'Just') {
-					var playerDetails = _v26.a;
+				var _v27 = $author$project$Main$decodeOriginator(message);
+				if (_v27.$ === 'Just') {
+					var playerDetails = _v27.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9433,11 +9487,11 @@ var $author$project$Main$handleCommand = F3(
 					model,
 					{bullets: $elm$core$Dict$empty});
 			case 'Smokegrenade_detonate':
-				var _v27 = $author$project$Main$decodeOriginatorEntity(message);
-				if (_v27.$ === 'Just') {
-					var _v28 = _v27.a;
-					var playerDetails = _v28.a;
-					var entity = _v28.b;
+				var _v28 = $author$project$Main$decodeOriginatorEntity(message);
+				if (_v28.$ === 'Just') {
+					var _v29 = _v28.a;
+					var playerDetails = _v29.a;
+					var entity = _v29.b;
 					return A2(
 						$author$project$Main$handleEntity,
 						entity,
@@ -9453,11 +9507,11 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Smokegrenade_expired':
-				var _v29 = $author$project$Main$decodeOriginatorEntity(message);
-				if (_v29.$ === 'Just') {
-					var _v30 = _v29.a;
-					var playerDetails = _v30.a;
-					var entity = _v30.b;
+				var _v30 = $author$project$Main$decodeOriginatorEntity(message);
+				if (_v30.$ === 'Just') {
+					var _v31 = _v30.a;
+					var playerDetails = _v31.a;
+					var entity = _v31.b;
 					return A2(
 						$author$project$Main$handleEntity,
 						entity,
@@ -9473,9 +9527,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Weapon_reload':
-				var _v31 = $author$project$Main$decodeOriginator(message);
-				if (_v31.$ === 'Just') {
-					var playerDetails = _v31.a;
+				var _v32 = $author$project$Main$decodeOriginator(message);
+				if (_v32.$ === 'Just') {
+					var playerDetails = _v32.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -9485,9 +9539,9 @@ var $author$project$Main$handleCommand = F3(
 					return A2($author$project$Main$appendLog, message, model);
 				}
 			case 'Weapon_zoom':
-				var _v32 = $author$project$Main$decodeOriginator(message);
-				if (_v32.$ === 'Just') {
-					var playerDetails = _v32.a;
+				var _v33 = $author$project$Main$decodeOriginator(message);
+				if (_v33.$ === 'Just') {
+					var playerDetails = _v33.a;
 					return A3(
 						$author$project$Main$handlePlayer,
 						playerDetails,
@@ -12128,7 +12182,7 @@ var $author$project$Main$bulletsSvg = F2(
 								$elm$core$Maybe$withDefault,
 								0,
 								$elm$core$String$toFloat(bullet.coordinates.x));
-							return $elm$core$String$fromFloat(((x - model.minX) * 800) / (model.maxX - model.minX));
+							return $elm$core$String$fromFloat(((x - model.minX) * 1024) / (model.maxX - model.minX));
 						}()),
 						$elm$svg$Svg$Attributes$cy(
 						function () {
@@ -12136,7 +12190,7 @@ var $author$project$Main$bulletsSvg = F2(
 								$elm$core$Maybe$withDefault,
 								0,
 								$elm$core$String$toFloat(bullet.coordinates.y));
-							return $elm$core$String$fromFloat(((y - model.minY) * 800) / (model.maxY - model.minY));
+							return $elm$core$String$fromFloat(((y - model.minY) * 1024) / (model.maxY - model.minY));
 						}()),
 						$elm$svg$Svg$Attributes$r('1'),
 						$elm$svg$Svg$Attributes$fill('black')
@@ -12168,7 +12222,7 @@ var $author$project$Main$entitiesSvg = F2(
 							$elm$core$Maybe$withDefault,
 							0,
 							$elm$core$String$toFloat(entity.coordinates.x));
-						return $elm$core$String$fromFloat(((x - model.minX) * 800) / (model.maxX - model.minX));
+						return $elm$core$String$fromFloat(((x - model.minX) * 1024) / (model.maxX - model.minX));
 					}()),
 					$elm$svg$Svg$Attributes$cy(
 					function () {
@@ -12176,7 +12230,7 @@ var $author$project$Main$entitiesSvg = F2(
 							$elm$core$Maybe$withDefault,
 							0,
 							$elm$core$String$toFloat(entity.coordinates.y));
-						return $elm$core$String$fromFloat(((y - model.minY) * 800) / (model.maxY - model.minY));
+						return $elm$core$String$fromFloat(((y - model.minY) * 1024) / (model.maxY - model.minY));
 					}()),
 					$elm$svg$Svg$Attributes$r('1'),
 					$elm$svg$Svg$Attributes$fill('yellow')
@@ -12195,7 +12249,6 @@ var $author$project$Main$entitiesSvg = F2(
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$Attributes$id = _VirtualDom_attribute('id');
-var $elm$svg$Svg$image = $elm$svg$Svg$trustedNode('image');
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$core$List$intersperse = F2(
 	function (sep, xs) {
@@ -12222,6 +12275,47 @@ var $billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected = F2(
 			A2($elm$core$Dict$get, key, state.socketStates),
 			$elm$core$Maybe$Nothing);
 	});
+var $elm$svg$Svg$image = $elm$svg$Svg$trustedNode('image');
+var $elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
+var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
+var $elm$svg$Svg$Attributes$xlinkHref = function (value) {
+	return A3(
+		_VirtualDom_attributeNS,
+		'http://www.w3.org/1999/xlink',
+		'xlink:href',
+		_VirtualDom_noJavaScriptUri(value));
+};
+var $author$project$Main$mapSvg = function (model) {
+	var _v0 = model.map;
+	if (_v0.$ === 'Just') {
+		var map = _v0.a;
+		return A2(
+			$elm$svg$Svg$image,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$x('0'),
+					$elm$svg$Svg$Attributes$y('0'),
+					$elm$svg$Svg$Attributes$width('100%'),
+					$elm$svg$Svg$Attributes$height('100%'),
+					$elm$svg$Svg$Attributes$opacity('0.33'),
+					$elm$svg$Svg$Attributes$xlinkHref('maps/' + (map.name + '.png'))
+				]),
+			_List_Nil);
+	} else {
+		return A2(
+			$elm$svg$Svg$image,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$x('0'),
+					$elm$svg$Svg$Attributes$y('0'),
+					$elm$svg$Svg$Attributes$width('100%'),
+					$elm$svg$Svg$Attributes$height('100%'),
+					$elm$svg$Svg$Attributes$opacity('0.33'),
+					$elm$svg$Svg$Attributes$xlinkHref('')
+				]),
+			_List_Nil);
+	}
+};
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -12266,7 +12360,6 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			$elm$html$Html$Events$alwaysStop,
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
-var $elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$svg$Svg$pattern = $elm$svg$Svg$trustedNode('pattern');
 var $elm$svg$Svg$Attributes$patternUnits = _VirtualDom_attribute('patternUnits');
@@ -12294,11 +12387,11 @@ var $author$project$Main$playerSvg = F2(
 		var cy = ((A2(
 			$elm$core$Maybe$withDefault,
 			0,
-			$elm$core$String$toFloat(player.position.coordinates.y)) - model.minY) * 800) / (model.maxY - model.minY);
+			$elm$core$String$toFloat(player.position.coordinates.y)) - model.minY) * 1024) / (model.maxY - model.minY);
 		var cx = ((A2(
 			$elm$core$Maybe$withDefault,
 			0,
-			$elm$core$String$toFloat(player.position.coordinates.x)) - model.minX) * 800) / (model.maxX - model.minX);
+			$elm$core$String$toFloat(player.position.coordinates.x)) - model.minX) * 1024) / (model.maxX - model.minX);
 		return A2(
 			$elm$svg$Svg$g,
 			_List_Nil,
@@ -12380,14 +12473,6 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 	});
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
-var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
-var $elm$svg$Svg$Attributes$xlinkHref = function (value) {
-	return A3(
-		_VirtualDom_attributeNS,
-		'http://www.w3.org/1999/xlink',
-		'xlink:href',
-		_VirtualDom_noJavaScriptUri(value));
-};
 var $author$project$Main$view = function (model) {
 	var isConnected = A2($billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected, model.key, model.state.websocket);
 	return A2(
@@ -12489,8 +12574,8 @@ var $author$project$Main$view = function (model) {
 				$elm$svg$Svg$svg,
 				_List_fromArray(
 					[
-						$elm$svg$Svg$Attributes$width('800'),
-						$elm$svg$Svg$Attributes$height('800')
+						$elm$svg$Svg$Attributes$width('1024'),
+						$elm$svg$Svg$Attributes$height('1024')
 					]),
 				_Utils_ap(
 					_List_fromArray(
@@ -12511,18 +12596,7 @@ var $author$project$Main$view = function (model) {
 										]),
 									_List_fromArray(
 										[
-											A2(
-											$elm$svg$Svg$image,
-											_List_fromArray(
-												[
-													$elm$svg$Svg$Attributes$x('0'),
-													$elm$svg$Svg$Attributes$y('0'),
-													$elm$svg$Svg$Attributes$width('100%'),
-													$elm$svg$Svg$Attributes$height('100%'),
-													$elm$svg$Svg$Attributes$opacity('0.33'),
-													$elm$svg$Svg$Attributes$xlinkHref('maps/de_dust2.png')
-												]),
-											_List_Nil)
+											$author$project$Main$mapSvg(model)
 										]))
 								])),
 							A2(
@@ -12531,7 +12605,7 @@ var $author$project$Main$view = function (model) {
 								[
 									$elm$svg$Svg$Attributes$width('100%'),
 									$elm$svg$Svg$Attributes$height('100%'),
-									$elm$svg$Svg$Attributes$transform('translate(0, 800) scale(1, -1)'),
+									$elm$svg$Svg$Attributes$transform('translate(0, 1024) scale(1, -1)'),
 									$elm$svg$Svg$Attributes$fill('url(#background)')
 								]),
 							_List_Nil)

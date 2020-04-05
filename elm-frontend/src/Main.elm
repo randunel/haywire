@@ -79,6 +79,7 @@ type alias Model =
     , entitiesResetCount : Int
     , enablePlayerNames : Bool
     , enablePlayerAnimations : Bool
+    , map : Maybe ( Map )
     }
 
 
@@ -111,8 +112,17 @@ init _ =
     , entitiesResetCount = 200
     , enablePlayerNames = False
     , enablePlayerAnimations = True
+    , map = Nothing
     }
     |> Cmd.Extra.withNoCmd
+
+
+type alias Map =
+    { pos_x : String
+    , pos_y : String
+    , scale : String
+    , name : String
+    }
 
 
 type alias Entity =
@@ -183,6 +193,7 @@ type Command =
     | Weapon_reload
     | Weapon_zoom
     | InitialEntitySetup
+    | UpdateMap
     | Unknown_command
 
 type KeyPressMotion =
@@ -381,10 +392,18 @@ handleCommand : String -> String -> Model -> Model
 handleCommand command message model =
     case commandFromString command of
 
+        UpdateMap -> case (decodeMap message) of
+            Just ( map ) ->
+                model
+                |> updateMap map
+                -- |> updateCanvasSize entity.coordinates
+                -- |> handleEntity entity
+            Nothing -> appendLog message model
+
         InitialEntitySetup -> case (decodeEntity message) of
             Just ( entity ) ->
                 model
-                -- |> updateCanvasSize entity.coordinates
+                -- |> updateCanvasSize entity.coordinates -- many entities are off map
                 |> handleEntity entity
             Nothing -> appendLog message model
 
@@ -618,6 +637,11 @@ findOrCreatePlayer clientId players =
             ""
 
 
+updateMap : Map -> Model -> Model
+updateMap map model =
+    { model | map = Just map }
+
+
 handleEntity : Entity -> Model -> Model
 handleEntity entity model =
     { model | entities =
@@ -689,6 +713,17 @@ updateCanvasSize coordinates model =
         |> Maybe.withDefault model.maxY
         |> max model.maxY
     }
+
+
+decodeMap : String -> Maybe ( Map )
+decodeMap message =
+    case
+        ( mapDecoder
+        |> Json.Decode.decodeString
+        ) message
+    of
+        Ok map -> Just ( map )
+        Err err -> Nothing
 
 
 decodeEntity : String -> Maybe ( Entity )
@@ -775,6 +810,15 @@ originatorTeamDecoder nestingKeys =
     |> JDPipeline.optionalAt (nestingKeys ++ [ "name" ]) Json.Decode.string ""
 
 
+mapDecoder : Json.Decode.Decoder Map
+mapDecoder =
+    Json.Decode.succeed Map
+    |> JDPipeline.requiredAt [ "map", "pos_x" ] Json.Decode.string
+    |> JDPipeline.requiredAt [ "map", "pos_y" ] Json.Decode.string
+    |> JDPipeline.requiredAt [ "map", "scale" ] Json.Decode.string
+    |> JDPipeline.requiredAt [ "map", "name" ] Json.Decode.string
+
+
 entityDecoder : String -> Json.Decode.Decoder Entity
 entityDecoder key =
     Json.Decode.succeed Entity
@@ -811,6 +855,7 @@ commandFromString : String -> Command
 commandFromString str =
     case str of
         "initialEntitySetup" -> InitialEntitySetup
+        "map" -> UpdateMap
 
         "bullet_impact" -> Bullet_impact
         "buytime_ended" -> Buytime_ended
@@ -979,8 +1024,8 @@ view model =
                 []
             ]
         , Svg.svg
-            [ SvgAttrs.width "800"
-            , SvgAttrs.height "800"
+            [ SvgAttrs.width "1024"
+            , SvgAttrs.height "1024"
             -- , SvgAttrs.transform "scale(1, -1)"
             ]
             (
@@ -991,20 +1036,12 @@ view model =
                         , SvgAttrs.height "100%"
                         , SvgAttrs.patternUnits "userSpaceOnUse"
                         ]
-                        [ Svg.image
-                            [ SvgAttrs.x "0"
-                            , SvgAttrs.y "0"
-                            , SvgAttrs.width "100%"
-                            , SvgAttrs.height "100%"
-                            , SvgAttrs.opacity "0.33"
-                            , SvgAttrs.xlinkHref "maps/de_dust2.png"
-                            ] []
-                        ]
+                        [ mapSvg model ]
                     ]
                     , Svg.rect
                         [ SvgAttrs.width "100%"
                         , SvgAttrs.height "100%"
-                        , SvgAttrs.transform "translate(0, 800) scale(1, -1)"
+                        , SvgAttrs.transform "translate(0, 1024) scale(1, -1)"
                         , SvgAttrs.fill "url(#background)"
                         ]
                         [ ]
@@ -1039,7 +1076,7 @@ entitiesSvg model entity = Svg.circle
                 |> String.toFloat
                 |> Maybe.withDefault 0
         in
-            ( x - model.minX ) * 800 / ( model.maxX - model.minX )
+            ( x - model.minX ) * 1024 / ( model.maxX - model.minX )
             |> String.fromFloat
     , SvgAttrs.cy <|
         let y =
@@ -1047,7 +1084,7 @@ entitiesSvg model entity = Svg.circle
                 |> String.toFloat
                 |> Maybe.withDefault 0
         in
-            ( y - model.minY ) * 800 / ( model.maxY - model.minY )
+            ( y - model.minY ) * 1024 / ( model.maxY - model.minY )
             |> String.fromFloat
     , SvgAttrs.r <| "1"
     , SvgAttrs.fill "yellow"
@@ -1066,7 +1103,7 @@ bulletsSvg model bullet = Svg.circle
                 |> String.toFloat
                 |> Maybe.withDefault 0
         in
-            ( x - model.minX ) * 800 / ( model.maxX - model.minX )
+            ( x - model.minX ) * 1024 / ( model.maxX - model.minX )
             |> String.fromFloat
     , SvgAttrs.cy <|
         let y =
@@ -1074,7 +1111,7 @@ bulletsSvg model bullet = Svg.circle
                 |> String.toFloat
                 |> Maybe.withDefault 0
         in
-            ( y - model.minY ) * 800 / ( model.maxY - model.minY )
+            ( y - model.minY ) * 1024 / ( model.maxY - model.minY )
             |> String.fromFloat
     , SvgAttrs.r <| "1"
     , SvgAttrs.fill "black"
@@ -1087,12 +1124,12 @@ playerSvg model player =
             ( ( player.position.coordinates.x
             |> String.toFloat
             |> Maybe.withDefault 0
-            ) - model.minX ) * 800 / ( model.maxX - model.minX )
+            ) - model.minX ) * 1024 / ( model.maxX - model.minX )
         cy =
             ( ( player.position.coordinates.y
             |> String.toFloat
             |> Maybe.withDefault 0
-            ) - model.minY ) * 800 / ( model.maxY - model.minY )
+            ) - model.minY ) * 1024 / ( model.maxY - model.minY )
         r =
             case player.aliveState of
                 Alive -> 5.0
@@ -1149,3 +1186,26 @@ playerSvg model player =
                     ]
                 ]
         )
+
+
+mapSvg model =
+    case model.map of
+        Just map ->
+            Svg.image
+            [ SvgAttrs.x "0"
+            , SvgAttrs.y "0"
+            , SvgAttrs.width "100%"
+            , SvgAttrs.height "100%"
+            , SvgAttrs.opacity "0.33"
+            , SvgAttrs.xlinkHref ("maps/" ++ map.name ++ ".png")
+            ] []
+
+        Nothing ->
+            Svg.image
+            [ SvgAttrs.x "0"
+            , SvgAttrs.y "0"
+            , SvgAttrs.width "100%"
+            , SvgAttrs.height "100%"
+            , SvgAttrs.opacity "0.33"
+            , SvgAttrs.xlinkHref ""
+            ] []
