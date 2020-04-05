@@ -3,6 +3,9 @@
 const haywireIterator = require('./iterator');
 
 const PARSERS = {
+    'ammo_pickup': {
+        '1': [userCoords('originator')]
+    },
     'bullet_impact': {
         '1': [userCoords('originator'), coordinates('impact')]
     },
@@ -11,6 +14,9 @@ const PARSERS = {
     },
     'bomb_abortplant': {
         '1': [userCoords('originator')]
+    },
+    'bomb_beep': {
+        '1': []
     },
     'bomb_begindefuse': {
         '1': [userCoords('originator')]
@@ -34,10 +40,13 @@ const PARSERS = {
         '1': [userCoords('originator')]
     },
     'cs_pre_restart': {
-        '1': []
+        '1': [name('map')]
     },
     'cs_win_panel_round': {
-        '1': []
+        '1': [name('map')]
+    },
+    'cs_win_panel_match': {
+        '1': [name('map')]
     },
     'decoy_detonate': {
         '1': [userCoords('originator'), entity('decoy')]
@@ -64,6 +73,9 @@ const PARSERS = {
         '1': [userCoords('originator')]
     },
     'exit_rescue_zone': {
+        '1': [userCoords('originator')]
+    },
+    'hostage_hurt': {
         '1': [userCoords('originator')]
     },
     'inferno_startburn': {
@@ -130,19 +142,19 @@ const PARSERS = {
         '1': [userCoords('originator')]
     },
     'round_announce_match_start': {
-        '1': []
+        '1': [name('map')]
     },
     'round_announce_warmup': {
-        '1': []
+        '1': [name('map')]
     },
     'round_end': {
-        '1': []
+        '1': [name('map')]
     },
     'round_freeze_end': {
-        '1': []
+        '1': [name('map')]
     },
     'round_poststart': {
-        '1': []
+        '1': [name('map')]
     },
     'smokegrenade_detonate': {
         '1': [userCoords('originator'), entity('smokegrenade_detonate')]
@@ -163,7 +175,6 @@ const PARSERS = {
 
 module.exports = function parseLogLine(data) {
     if (data.indexOf('HW->') < 0) {
-        // TODO: use other parser
         const err = new Error('NonHaywireData');
         err.details = {
             data

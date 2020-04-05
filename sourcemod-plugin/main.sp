@@ -74,20 +74,22 @@ HookEvents() {
     HookEvent("bomb_begindefuse", HandleUserHaskit);
 
     HookEvent("bomb_exploded", HandleSimpleEvent);
-    HookEvent("announce_phase_end", HandleSimpleEvent);
-    HookEvent("cs_intermission", HandleSimpleEvent);
-    HookEvent("buytime_ended", HandleSimpleEvent);
-    HookEvent("round_freeze_end", HandleSimpleEvent);
-    HookEvent("mb_input_lock_success", HandleSimpleEvent);
-    HookEvent("mb_input_lock_cancel", HandleSimpleEvent);
-    HookEvent("cs_match_end_restart", HandleSimpleEvent);
-    HookEvent("cs_pre_restart", HandleSimpleEvent);
-    HookEvent("round_announce_warmup", HandleSimpleEvent);
-    HookEvent("round_announce_match_start", HandleSimpleEvent);
-    HookEvent("round_poststart", HandleSimpleEvent);
-    HookEvent("round_end", HandleSimpleEvent);
-    HookEvent("cs_win_panel_round", HandleSimpleEvent);
-    HookEvent("cs_win_panel_match", HandleSimpleEvent);
+    HookEvent("bomb_beep", HandleSimpleEvent);
+
+    HookEvent("announce_phase_end", HandleRecapEvent);
+    HookEvent("cs_intermission", HandleRecapEvent);
+    HookEvent("buytime_ended", HandleRecapEvent);
+    HookEvent("mb_input_lock_success", HandleRecapEvent);
+    HookEvent("mb_input_lock_cancel", HandleRecapEvent);
+    HookEvent("cs_match_end_restart", HandleRecapEvent);
+    HookEvent("cs_pre_restart", HandleRecapEvent);
+    HookEvent("round_announce_match_start", HandleRecapEvent);
+    HookEvent("round_announce_warmup", HandleRecapEvent);
+    HookEvent("round_end", HandleRecapEvent);
+    HookEvent("round_freeze_end", HandleRecapEvent);
+    HookEvent("round_poststart", HandleRecapEvent);
+    HookEvent("cs_win_panel_round", HandleRecapEvent);
+    HookEvent("cs_win_panel_match", HandleRecapEvent);
 
     HookEvent("inferno_startburn", HandleSimpleEntity);
     HookEvent("inferno_expire", HandleSimpleEntity);
@@ -393,6 +395,17 @@ public Action:HandleUserCoordinates(Handle:event, const String:eventName[], bool
         GetEventFloat(event, "x"),
         GetEventFloat(event, "y"),
         GetEventFloat(event, "z")
+    );
+    return Plugin_Handled
+}
+
+public Action:HandleRecapEvent(Handle: event, const String:eventName[], bool:dontBroadcast) {
+    new String:mapName[64]
+    GetCurrentMap(mapName, 64);
+
+    LogToGame("HW->%s->1->%s",
+        eventName,
+        mapName
     );
     return Plugin_Handled
 }
