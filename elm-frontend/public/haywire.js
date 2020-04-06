@@ -8123,10 +8123,16 @@ var $author$project$Main$decodeEntity = function (message) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
-var $author$project$Main$DecodedMap = F4(
+var $author$project$Main$Map = F4(
 	function (pos_x, pos_y, scale, name) {
 		return {name: name, pos_x: pos_x, pos_y: pos_y, scale: scale};
 	});
+var $elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
+var $elm$core$String$toFloat = _String_toFloat;
 var $author$project$Main$mapDecoder = A3(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
 	_List_fromArray(
@@ -8136,7 +8142,13 @@ var $author$project$Main$mapDecoder = A3(
 		$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
 		_List_fromArray(
 			['map', 'scale']),
-		$elm$json$Json$Decode$string,
+		A2(
+			$elm$json$Json$Decode$map,
+			A2(
+				$elm$core$Basics$composeR,
+				$elm$core$String$toFloat,
+				$elm$core$Maybe$withDefault(0)),
+			$elm$json$Json$Decode$string),
 		A3(
 			$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
 			_List_fromArray(
@@ -8147,22 +8159,12 @@ var $author$project$Main$mapDecoder = A3(
 				_List_fromArray(
 					['map', 'pos_x']),
 				$elm$json$Json$Decode$string,
-				$elm$json$Json$Decode$succeed($author$project$Main$DecodedMap)))));
-var $elm$core$String$toFloat = _String_toFloat;
+				$elm$json$Json$Decode$succeed($author$project$Main$Map)))));
 var $author$project$Main$decodeMap = function (message) {
 	var _v0 = $elm$json$Json$Decode$decodeString($author$project$Main$mapDecoder)(message);
 	if (_v0.$ === 'Ok') {
-		var decodedMap = _v0.a;
-		return $elm$core$Maybe$Just(
-			{
-				name: decodedMap.name,
-				pos_x: decodedMap.pos_x,
-				pos_y: decodedMap.pos_y,
-				scale: A2(
-					$elm$core$Maybe$withDefault,
-					1.0,
-					$elm$core$String$toFloat(decodedMap.scale))
-			});
+		var map = _v0.a;
+		return $elm$core$Maybe$Just(map);
 	} else {
 		var err = _v0.a;
 		return $elm$core$Maybe$Nothing;
@@ -10027,11 +10029,6 @@ var $billstclair$elm_port_funnel$PortFunnel$FunnelSpec = F4(
 var $author$project$PortFunnels$WebSocketFunnel = function (a) {
 	return {$: 'WebSocketFunnel', a: a};
 };
-var $elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
-	});
 var $billstclair$elm_websocket_client$PortFunnel$WebSocket$commander = F2(
 	function (gfPort, response) {
 		switch (response.$) {

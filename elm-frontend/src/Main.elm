@@ -943,15 +943,8 @@ decodeMap message =
         |> Json.Decode.decodeString
         ) message
     of
-        Ok decodedMap -> Just
-            { name = decodedMap.name
-            , pos_x = decodedMap.pos_x
-            , pos_y = decodedMap.pos_y
-            , scale =
-                ( String.toFloat decodedMap.scale
-                |> Maybe.withDefault 1.0
-                )
-            }
+        Ok map -> Just map
+
         Err err -> Nothing
 
 
@@ -1039,12 +1032,12 @@ originatorTeamDecoder nestingKeys =
     |> JDPipeline.optionalAt (nestingKeys ++ [ "name" ]) Json.Decode.string ""
 
 
-mapDecoder : Json.Decode.Decoder DecodedMap
+mapDecoder : Json.Decode.Decoder Map
 mapDecoder =
-    Json.Decode.succeed DecodedMap
+    Json.Decode.succeed Map
     |> JDPipeline.requiredAt [ "map", "pos_x" ] Json.Decode.string
     |> JDPipeline.requiredAt [ "map", "pos_y" ] Json.Decode.string
-    |> JDPipeline.requiredAt [ "map", "scale" ] Json.Decode.string
+    |> JDPipeline.requiredAt [ "map", "scale" ] ( Json.Decode.string |> Json.Decode.map (String.toFloat >> Maybe.withDefault 0 ) )
     |> JDPipeline.requiredAt [ "map", "name" ] Json.Decode.string
 
 
