@@ -94,35 +94,36 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    { send = "sent from frontend (elm)"
-    , log = []
-    , url = defaultUrl
-    , wasLoaded = False
-    , state = PortFunnels.initialState
-    , key = "socket"
-    , error = Nothing
-    , players = Dict.empty
-    , entities = Dict.empty
-    , bullets = Dict.empty
-    , minX = 0
-    , minY = 0
-    , maxX = 0
-    , maxY = 0
-    , bulletsResetCount = 200
-    , entitiesResetCount = 200
-    , enablePlayerNames = False
-    , enablePlayerAnimations = True
-    , map = Nothing
-    }
-    |> Cmd.Extra.withNoCmd
-
-
-type alias DecodedMap =
-    { pos_x : String
-    , pos_y : String
-    , scale : String
-    , name : String
-    }
+    let
+        defaultModel =
+            { send = "sent from frontend (elm)"
+            , log = []
+            , url = defaultUrl
+            , wasLoaded = False
+            , state = PortFunnels.initialState
+            , key = "socket"
+            , error = Nothing
+            , players = Dict.empty
+            , entities = Dict.empty
+            , bullets = Dict.empty
+            , minX = 0
+            , minY = 0
+            , maxX = 0
+            , maxY = 0
+            , bulletsResetCount = 200
+            , entitiesResetCount = 200
+            , enablePlayerNames = False
+            , enablePlayerAnimations = True
+            , map = Nothing
+            }
+    in
+        defaultModel |> Cmd.Extra.withCmd
+            (WebSocket.makeOpenWithKey defaultModel.key defaultModel.url
+                |> send defaultModel
+            )
+        -- to chain tasks, use Task.andThen
+        -- convert command to task using Task.attempt
+    -- |> Cmd.Extra.withNoCmd
 
 
 type alias Map =
@@ -257,13 +258,7 @@ type alias Angles =
 
 
 type Msg =
-    UpdateSend String
-    | UpdateUrl String
-    | ToggleAutoReopen
-    | Connect
-    | Close
-    | Send
-    | Process Json.Encode.Value
+    Process Json.Encode.Value
     | Animate Animation.Msg
     | AnimationEnded BulletId
     | OnKeyPress KeyPressMotion String
@@ -273,64 +268,6 @@ type Msg =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        UpdateSend newsend ->
-            { model | send = newsend } |> Cmd.Extra.withNoCmd
-
-        UpdateUrl url ->
-            { model | url = url } |> Cmd.Extra.withNoCmd
-
-        ToggleAutoReopen ->
-            let
-                state =
-                    model.state
-
-                socketState =
-                    state.websocket
-
-                autoReopen =
-                    WebSocket.willAutoReopen model.key socketState
-            in
-            { model
-                | state =
-                    { state
-                        | websocket =
-                            WebSocket.setAutoReopen
-                                model.key
-                                (not autoReopen)
-                                socketState
-                    }
-            }
-                |> Cmd.Extra.withNoCmd
-
-        Connect ->
-            { model
-                | log =
-                    ("Connecting to " ++ model.url) :: model.log
-            }
-                |> Cmd.Extra.withCmd
-                    (WebSocket.makeOpenWithKey model.key model.url
-                        |> send model
-                    )
-
-        Send ->
-            { model
-                | log =
-                    ("Sending \"" ++ model.send ++ "\"") :: model.log
-            }
-                |> Cmd.Extra.withCmd
-                    (WebSocket.makeSend model.key model.send
-                        |> send model
-                    )
-
-        Close ->
-            { model
-                | log = "Closing" :: model.log
-            }
-                |> Cmd.Extra.withCmd
-                    (WebSocket.makeClose model.key
-                        |> send model
-                    )
-
         Process value ->
             case
                 PortFunnels.processValue funnelDict value model.state model
@@ -1220,49 +1157,6 @@ view model =
         , Html.Attributes.style "border" "solid"
         ]
         [ Html.h1 [] [ Html.text "Haywire frontend" ]
-        , Html.p []
-            [ Html.input
-                [ Html.Attributes.value model.send
-                , Html.Events.onInput UpdateSend
-                , Html.Attributes.size 50
-                ]
-                []
-            , Html.text " "
-            , Html.button
-                [ Html.Events.onClick Send
-                , Html.Attributes.disabled (not isConnected)
-                ]
-                [ Html.text "Send" ]
-            ]
-        , Html.p []
-            [ b "url: "
-            , Html.input
-                [ Html.Attributes.value model.url
-                , Html.Events.onInput UpdateUrl
-                , Html.Attributes.size 30
-                , Html.Attributes.disabled isConnected
-                ]
-                []
-            , Html.text " "
-            , if isConnected then
-                Html.button [ Html.Events.onClick Close ]
-                    [ Html.text "Close" ]
-
-              else
-                Html.button [ Html.Events.onClick Connect ]
-                    [ Html.text "Connect" ]
-            , br
-            , b "auto reopen: "
-            , Html.input
-                [ Html.Attributes.type_ "checkbox"
-                , Html.Events.onClick ToggleAutoReopen
-                , Html.Attributes.checked <|
-                    WebSocket.willAutoReopen
-                        model.key
-                        model.state.websocket
-                ]
-                []
-            ]
         , Svg.svg
             [ SvgAttrs.width "1024"
             , SvgAttrs.height "1024"
