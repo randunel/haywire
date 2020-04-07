@@ -2,16 +2,17 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    const flags = undefined;
+    const wsUrl = "ws://localhost:3000";
     const mainModule = 'Main';
 
     const app = Elm[mainModule].init({
         node: document.getElementById('haywire'),
-        flags: flags
+        flags: wsUrl
     });
 
     const modules = ['WebSocket'];
 
+    // use rollup to bundle js dependency
     PortFunnel.subscribe(app, { modules: modules });
 
     (function() {

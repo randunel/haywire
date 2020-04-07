@@ -5099,7 +5099,6 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
-var $author$project$Main$defaultUrl = 'ws://localhost:3000';
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $billstclair$elm_websocket_client$PortFunnel$WebSocket$State = function (a) {
@@ -7209,8 +7208,8 @@ var $Janiczek$cmd_extra$Cmd$Extra$withCmd = F2(
 	function (cmd, model) {
 		return _Utils_Tuple2(model, cmd);
 	});
-var $author$project$Main$init = function (_v0) {
-	var defaultModel = {bullets: $elm$core$Dict$empty, bulletsResetCount: 200, enablePlayerAnimations: true, enablePlayerNames: false, entities: $elm$core$Dict$empty, entitiesResetCount: 200, error: $elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, map: $elm$core$Maybe$Nothing, maxX: 0, maxY: 0, minX: 0, minY: 0, players: $elm$core$Dict$empty, send: 'sent from frontend (elm)', state: $author$project$PortFunnels$initialState, url: $author$project$Main$defaultUrl, wasLoaded: false};
+var $author$project$Main$init = function (wsUrl) {
+	var defaultModel = {bullets: $elm$core$Dict$empty, bulletsResetCount: 200, enablePlayerAnimations: true, enablePlayerNames: false, entities: $elm$core$Dict$empty, entitiesResetCount: 200, error: $elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, map: $elm$core$Maybe$Nothing, maxX: 0, maxY: 0, minX: 0, minY: 0, players: $elm$core$Dict$empty, send: 'sent from frontend (elm)', state: $author$project$PortFunnels$initialState, url: wsUrl, wasLoaded: false};
 	return A2(
 		$Janiczek$cmd_extra$Cmd$Extra$withCmd,
 		A2(
@@ -12791,5 +12790,4 @@ var $author$project$Main$view = function (model) {
 };
 var $author$project$Main$main = $elm$browser$Browser$element(
 	{init: $author$project$Main$init, subscriptions: $author$project$Main$subscriptions, update: $author$project$Main$update, view: $author$project$Main$view});
-_Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));
+_Platform_export({'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$string)(0)}});}(this));

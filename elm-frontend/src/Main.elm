@@ -55,11 +55,6 @@ cmdPort =
 -- MODEL
 
 
-defaultUrl : String
-defaultUrl =
-    "ws://localhost:3000"
-
-
 type alias Model =
     { send : String
     , log : List String
@@ -92,13 +87,13 @@ main =
     }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
+init : (String) -> ( Model, Cmd Msg )
+init wsUrl =
     let
         defaultModel =
             { send = "sent from frontend (elm)"
             , log = []
-            , url = defaultUrl
+            , url = wsUrl
             , wasLoaded = False
             , state = PortFunnels.initialState
             , key = "socket"
@@ -117,13 +112,13 @@ init _ =
             , map = Nothing
             }
     in
-        defaultModel |> Cmd.Extra.withCmd
-            (WebSocket.makeOpenWithKey defaultModel.key defaultModel.url
+        defaultModel
+        |> Cmd.Extra.withCmd
+            ( WebSocket.makeOpenWithKey defaultModel.key defaultModel.url
                 |> send defaultModel
             )
         -- to chain tasks, use Task.andThen
         -- convert command to task using Task.attempt
-    -- |> Cmd.Extra.withNoCmd
 
 
 type alias Map =
