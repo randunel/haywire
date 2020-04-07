@@ -5119,6 +5119,9 @@ var $billstclair$elm_websocket_client$PortFunnel$WebSocket$makeOpenWithKey = F2(
 		return $billstclair$elm_websocket_client$PortFunnel$WebSocket$InternalMessage$PWillOpen(
 			{keepAlive: false, key: key, url: url});
 	});
+var $billstclair$elm_websocket_client$PortFunnel$WebSocket$makeOpen = function (url) {
+	return A2($billstclair$elm_websocket_client$PortFunnel$WebSocket$makeOpenWithKey, url, url);
+};
 var $author$project$Main$Process = function (a) {
 	return {$: 'Process', a: a};
 };
@@ -7209,13 +7212,13 @@ var $Janiczek$cmd_extra$Cmd$Extra$withCmd = F2(
 		return _Utils_Tuple2(model, cmd);
 	});
 var $author$project$Main$init = function (wsUrl) {
-	var defaultModel = {bullets: $elm$core$Dict$empty, bulletsResetCount: 200, enablePlayerAnimations: true, enablePlayerNames: false, entities: $elm$core$Dict$empty, entitiesResetCount: 200, error: $elm$core$Maybe$Nothing, key: 'socket', log: _List_Nil, map: $elm$core$Maybe$Nothing, maxX: 0, maxY: 0, minX: 0, minY: 0, players: $elm$core$Dict$empty, send: 'sent from frontend (elm)', state: $author$project$PortFunnels$initialState, url: wsUrl, wasLoaded: false};
+	var defaultModel = {bullets: $elm$core$Dict$empty, bulletsResetCount: 200, enablePlayerAnimations: true, enablePlayerNames: false, entities: $elm$core$Dict$empty, entitiesResetCount: 200, error: $elm$core$Maybe$Nothing, log: _List_Nil, map: $elm$core$Maybe$Nothing, maxX: 0, maxY: 0, minX: 0, minY: 0, players: $elm$core$Dict$empty, send: 'sent from frontend (elm)', state: $author$project$PortFunnels$initialState, url: wsUrl, wasLoaded: false};
 	return A2(
 		$Janiczek$cmd_extra$Cmd$Extra$withCmd,
 		A2(
 			$author$project$Main$send,
 			defaultModel,
-			A2($billstclair$elm_websocket_client$PortFunnel$WebSocket$makeOpenWithKey, defaultModel.key, defaultModel.url)),
+			$billstclair$elm_websocket_client$PortFunnel$WebSocket$makeOpen(defaultModel.url)),
 		defaultModel);
 };
 var $author$project$Main$Animate = function (a) {
@@ -12673,7 +12676,7 @@ var $author$project$Main$playerSvg = F2(
 var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
 var $author$project$Main$view = function (model) {
-	var isConnected = A2($billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected, model.key, model.state.websocket);
+	var isConnected = A2($billstclair$elm_websocket_client$PortFunnel$WebSocket$isConnected, model.url, model.state.websocket);
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(

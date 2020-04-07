@@ -61,7 +61,6 @@ type alias Model =
     , url : String
     , wasLoaded : Bool
     , state : State
-    , key : String
     , error : Maybe String
     , players : Dict.Dict String Player
     , entities : Dict.Dict String Entity
@@ -96,7 +95,6 @@ init wsUrl =
             , url = wsUrl
             , wasLoaded = False
             , state = PortFunnels.initialState
-            , key = "socket"
             , error = Nothing
             , players = Dict.empty
             , entities = Dict.empty
@@ -114,11 +112,9 @@ init wsUrl =
     in
         defaultModel
         |> Cmd.Extra.withCmd
-            ( WebSocket.makeOpenWithKey defaultModel.key defaultModel.url
+            ( WebSocket.makeOpen defaultModel.url
                 |> send defaultModel
             )
-        -- to chain tasks, use Task.andThen
-        -- convert command to task using Task.attempt
 
 
 type alias Map =
@@ -1142,7 +1138,7 @@ view : Model -> Html Msg
 view model =
     let
         isConnected =
-            WebSocket.isConnected model.key model.state.websocket
+            WebSocket.isConnected model.url model.state.websocket
     in
     Html.div
         [ Html.Attributes.style "width" "90%"
