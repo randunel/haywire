@@ -1147,8 +1147,7 @@ view model =
         , Html.Attributes.style "padding" "1em"
         , Html.Attributes.style "border" "solid"
         ]
-        [ Html.h1 [] [ Html.text "Haywire frontend" ]
-        , Svg.svg
+        [ Svg.svg
             [ SvgAttrs.width "1024"
             , SvgAttrs.height "1024"
             -- , SvgAttrs.transform "scale(1, -1)"

@@ -12510,7 +12510,6 @@ var $author$project$Main$entitiesSvg = F2(
 						]))
 				]));
 	});
-var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$Attributes$id = _VirtualDom_attribute('id');
 var $elm$core$List$intersperse = F2(
@@ -12689,13 +12688,6 @@ var $author$project$Main$view = function (model) {
 			]),
 		_List_fromArray(
 			[
-				A2(
-				$elm$html$Html$h1,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Haywire frontend')
-					])),
 				A2(
 				$elm$svg$Svg$svg,
 				_List_fromArray(
