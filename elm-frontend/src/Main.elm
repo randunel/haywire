@@ -788,17 +788,18 @@ updateMap map model =
 
 handleEntity : Entity -> Model -> Model
 handleEntity entity model =
-    { model | entities =
-        Dict.insert entity.id entity model.entities
-    }
+    model
+    -- { model | entities =
+    --     Dict.insert entity.id entity model.entities
+    -- }
 
 
 handleBulletImpact : Bullet -> Model -> Model
 handleBulletImpact bullet model =
-    if Dict.size model.bullets > model.bulletsResetCount then
-        { model | bullets = Dict.empty
-        }
-    else
+    -- if Dict.size model.bullets > model.bulletsResetCount then
+    --     { model | bullets = Dict.empty
+    --     }
+    -- else
         { model | bullets =
             Dict.insert bullet.id bullet model.bullets
         }
