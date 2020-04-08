@@ -1,12 +1,10 @@
 'use strict';
 
-document.addEventListener('DOMContentLoaded', () => {
-
-    const wsUrl = "ws://localhost:3000";
+function loadHaywire(node, wsUrl) {
     const mainModule = 'Main';
 
     const app = Elm[mainModule].init({
-        node: document.getElementById('haywire'),
+        node,
         flags: wsUrl
     });
 
@@ -31,4 +29,4 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     })();
-}, false);
+}

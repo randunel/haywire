@@ -1,17 +1,23 @@
 <html>
-  <head>
-    <title>Haywire</title>
-    <style>
-        svg {
-            background-color: #eee;
-            border: 2px solid #000;
-        }
-    </style>
-    <script type='text/javascript' src='haywire.js'></script>
-    <script type='text/javascript' src='js/PortFunnel.js'></script>
-    <script type='text/javascript' src='js/init.js'></script>
-  </head>
-  <body>
-    <div id='haywire'></div>
-  </body>
+    <head>
+        <title>Haywire</title>
+        <style>
+svg {
+    background-color: #eee;
+    border: 2px solid #000;
+}
+        </style>
+        <script type='text/javascript' src='js/haywire.js'></script>
+        <script type='text/javascript' src='js/PortFunnel.js'></script>
+        <script type='text/javascript' src='js/load.js'></script>
+    </head>
+    <body>
+        <div id='haywire'></div>
+        <script type='text/javascript'>
+            document.addEventListener('DOMContentLoaded', () => {
+                const node = document.querySelector('#haywire');
+                loadHaywire(node, 'ws://localhost:3000');
+            });
+        </script>
+    </body>
 </html>
