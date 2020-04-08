@@ -1177,28 +1177,6 @@ view model =
                 ++
                 (List.map (entitiesSvg model) (Dict.values model.entities))
             )
-        -- , Html.p [] <|
-        --     List.concat
-        --         [ [ b "Map:"
-        --           , br
-        --           ]
-        --         , case model.map of
-        --             Just map ->
-        --                 [ Html.text
-        --                     ( map.name
-        --                     ++ " pos_x: " ++ map.pos_x
-        --                     ++ " pos_y: " ++ map.pos_y
-        --                     ++ " scale: " ++ String.fromFloat(map.scale)
-        --                     ++ " minX: " ++ String.fromFloat(model.minX)
-        --                     ++ " minY: " ++ String.fromFloat(model.minY)
-        --                     ++ " maxX: " ++ String.fromFloat(model.maxX)
-        --                     ++ " maxY: " ++ String.fromFloat(model.maxY)
-        --                     )
-        --                 ]
-
-        --             Nothing ->
-        --                 [ Html.text "" ]
-        --         ]
         , Html.p [] <|
             List.concat
                 [ [ b "Players:"
