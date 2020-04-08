@@ -1,6 +1,6 @@
 'use strict';
 
-function loadHaywire(node, wsUrl) {
+window.loadHaywire = function loadHaywire(node, wsUrl) {
     const mainModule = 'Main';
 
     const app = Elm[mainModule].init({
