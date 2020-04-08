@@ -20,7 +20,6 @@ const server = http.createServer(app);
 const wss = new ws.Server({ server });
 
 wss.on('connection', socket => {
-    socket.send('hello from node', { asd: 'qq' });
     if (map) {
         socket.send(JSON.stringify({
             command: 'map',
