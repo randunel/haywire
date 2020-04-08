@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "async": "^3.2.0",
-    "eslint-config-ub": "^3.0.0"
+    "eslint-config-ub": "^3.0.0",
+    "uglify-js": "^3.8.1"
   }
 }
